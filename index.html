@@ -47,7 +47,7 @@ body.page-today { margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Out
 .page-today .search-toggle img { width:24px; height:24px; display:block; }
 
 /* 日期行：小字一行 */
-.page-today .date-line { margin-top:8px; font-size:11px; color:#B8B4AC; display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+.page-today .date-line { margin-top:8px; font-size:11px; color:#A1A19A; display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
 .page-today .date-line-sep { color:#D4D0C8; margin:0 2px; }
 .page-today .weather-mark { display:inline-flex; align-items:center; gap:4px; cursor:pointer; font-size:11px; color:#B8B4AC; }
 .page-today .weather-mark:active { color:var(--muted); }
@@ -78,7 +78,7 @@ body.page-today { margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Out
 .page-today .lucky-dot.dot-daizi { background:#4A3C5C; }
 
 /* 签文 */
-.page-today .fortune-quote { margin:0 0 16px; font-size:20px; line-height:1.7; font-weight:700; color:var(--ink); letter-spacing:0.02em; padding-left:12px; border-left:2px solid #EAE7E1; }
+.page-today .fortune-quote { margin:0 0 14px; font-size:16px; line-height:1.8; font-weight:700; color:var(--ink); letter-spacing:0.02em; padding-left:10px; border-left:2px solid #EAE7E1; }
 
 /* 底部宜忌 */
 .page-today .fortune-footer { padding-top:14px; border-top:1px dashed rgba(104,103,97,0.18); font-size:13px; line-height:1.5; color:var(--muted); display:flex; gap:6px; flex-wrap:wrap; align-items:baseline; }
@@ -108,38 +108,45 @@ body.page-today { margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Out
 .page-today .action-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .page-today .action-card { padding:16px; border:1px solid var(--line); border-radius:16px; text-decoration:none; color:inherit; cursor:pointer; background:var(--paper); box-shadow:var(--card-shadow); transition:all 0.3s cubic-bezier(0.16,1,0.3,1); }
 .page-today .action-card:active { transform:scale(0.97); background:#F5F4F0; }
-.page-today .action-card-icon { margin-bottom:6px; }
-.page-today .action-card-icon img { width:22px; height:22px; display:block; }
+.page-today .action-card-icon { margin-bottom:6px; display:flex; }
+.page-today .action-icon { width:22px; height:22px; color:#7E997E; }
 .page-today .action-card-title { font-size:13px; font-weight:700; color:var(--ink); margin-bottom:2px; }
 .page-today .action-card-desc { font-size:10px; color:var(--muted); }
 
 /* ═══════ 第四层：今天的痕迹 ═══════ */
-.page-today .trace-section { padding:0 22px 24px; }
-.page-today .trace-empty { padding:20px 0; text-align:center; color:#C5BFB5; font-size:12px; line-height:1.8; background:transparent; }
-.page-today .trace-empty-btn { display:inline-block; margin-top:8px; padding:6px 16px; background:var(--green); color:#FFF; border:none; border-radius:999px; font-size:10px; font-weight:600; cursor:pointer; font-family:inherit; }
+.page-today .trace-section { padding:0 22px 18px; }
+.page-today .trace-empty { padding:12px 0 8px; text-align:center; color:#C5BFB5; font-size:11px; line-height:1.7; background:transparent; }
+
 .page-today .trace-list { display:flex; flex-direction:column; gap:4px; }
-.page-today .trace-item { display:flex; gap:10px; padding:12px 14px; background:var(--paper); border:1px solid var(--line); border-radius:12px; box-shadow:var(--card-shadow); transition:all 0.3s; cursor:pointer; }
+.page-today .trace-item { display:flex; gap:10px; padding:10px 14px; background:var(--paper); border:1px solid var(--line); border-radius:10px; box-shadow:var(--card-shadow); transition:all 0.3s; cursor:pointer; }
 .page-today .trace-item:active { transform:scale(0.98); background:#F5F4F0; }
-.page-today .trace-time { font-size:9px; color:var(--light); flex-shrink:0; width:42px; padding-top:2px; }
+.page-today .trace-time { font-size:9px; color:var(--light); flex-shrink:0; width:36px; padding-top:2px; }
 .page-today .trace-body { flex:1; min-width:0; }
-.page-today .trace-type { font-size:9px; color:#7E997E; font-weight:600; margin-bottom:3px; }
-.page-today .trace-preview { font-size:12px; color:var(--ink); line-height:1.5; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.page-today .trace-type { font-size:9px; color:#7E997E; font-weight:600; margin-bottom:2px; }
+.page-today .trace-preview { font-size:11px; color:var(--ink); line-height:1.4; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.page-today .trace-all { display:inline-block; margin-top:6px; font-size:10px; color:#7E997E; cursor:pointer; text-decoration:none; text-align:right; width:100%; background:none; border:none; font-family:inherit; }
+.page-today .trace-all:active { color:var(--green); }
 
 /* ═══════ 第五层：手边工具 ═══════ */
 .page-today .tools-section { padding:0 22px 24px; }
-.page-today .tools-bar { display:flex; flex-wrap:wrap; gap:8px; }
-.page-today .tool-chip { display:inline-flex; align-items:center; gap:4px; padding:6px 14px; background:var(--paper); border:1px solid var(--line); border-radius:999px; text-decoration:none; color:var(--muted); font-size:11px; cursor:pointer; transition:all 0.2s; font-family:inherit; box-shadow:var(--card-shadow); }
-.page-today .tool-chip:active { background:#F5F4F0; transform:scale(0.97); }
+.page-today .tools-tray { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; height:86px; border-radius:22px; border:1px solid var(--line); background:rgba(255,255,255,0.5); box-shadow:0 2px 6px rgba(28,27,26,0.04); overflow:hidden; }
+.page-today .tools-tray-item { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; text-decoration:none; color:var(--ink); cursor:pointer; position:relative; }
+.page-today .tools-tray-item:active { background:rgba(227,232,227,0.5); }
+.page-today .tools-tray-item + .tools-tray-item { border-left:1px solid rgba(234,231,225,0.6); }
+.page-today .tools-tray-icon { width:22px; height:22px; color:#7E997E; }
+.page-today .tools-tray-label { font-size:13px; font-weight:600; color:var(--ink); }
 
 /* ═══════ 底部导航 ═══════ */
-.page-today .nav-bar { position:fixed; bottom:12px; left:50%; transform:translateX(-50%); width:calc(100% - 40px); max-width:430px; height:52px; background:rgba(251,251,250,0.92); backdrop-filter:blur(12px); border:1px solid var(--line); border-radius:20px; display:flex; align-items:center; justify-content:space-around; padding:0 8px; z-index:40; box-shadow:0 4px 20px rgba(0,0,0,0.1); }
-.page-today .nav-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; width:40px; height:40px; border-radius:12px; background:transparent; border:none; cursor:pointer; padding:0; }
+.page-today .nav-bar { position:fixed; bottom:12px; left:50%; transform:translateX(-50%); width:calc(100% - 40px); max-width:430px; height:56px; background:rgba(251,251,250,0.92); backdrop-filter:blur(12px); border:1px solid var(--line); border-radius:20px; display:flex; align-items:center; justify-content:space-around; padding:0 6px; z-index:40; box-shadow:0 4px 20px rgba(0,0,0,0.1); }
+.page-today .nav-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; width:44px; height:44px; border-radius:12px; background:transparent; border:none; cursor:pointer; padding:0; }
 .page-today .nav-icon-wrap { width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:8px; transition:all 0.2s; }
 .page-today .nav-active-pill { background:#E3E8E3; }
-.page-today .nav-icon { width:16px; height:16px; transition:color 0.2s; }
+.page-today .nav-icon { width:18px; height:18px; transition:color 0.2s; }
 .page-today .nav-label { font-size:7px; font-weight:600; margin-top:1px; transition:color 0.2s; }
 .page-today .clr-sage { color:var(--green); }
-.page-today .clr-ink { color:var(--muted); }
+.page-today .clr-ink { color:#8B8B80; }
+.page-today .text-sage-800 { color:var(--green); }
+.page-today .text-ink-500 { color:#8B8B80; }
 
 /* ═══════ 模态框 ═══════ */
 .page-today .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100; display:flex; align-items:center; justify-content:center; padding:24px; }
@@ -218,22 +225,22 @@ body.page-today { margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Out
     <div class="section-title">今天，留下些什么</div>
     <div class="action-grid">
       <a class="action-card" href="timeline.html">
-        <div class="action-card-icon"><img src="pic/动态.png"></div>
+        <div class="action-card-icon"><svg class="action-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
         <div class="action-card-title">记一刻</div>
         <div class="action-card-desc">留下一句话或一张照片</div>
       </a>
-      <a class="action-card" href="calories.html">
-        <div class="action-card-icon"><img src="pic/线路-饮食.png"></div>
-        <div class="action-card-title">记饮食</div>
-        <div class="action-card-desc">记下今天吃了什么</div>
-      </a>
       <div class="action-card" onclick="openFinanceModal()">
-        <div class="action-card-icon"><img src="pic/174_记账.png"></div>
+        <div class="action-card-icon"><svg class="action-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
         <div class="action-card-title">记一笔</div>
         <div class="action-card-desc">今天的钱花去了哪里</div>
       </div>
+      <a class="action-card" href="calories.html">
+        <div class="action-card-icon"><svg class="action-icon" viewBox="0 0 1024 1024" fill="currentColor" width="22" height="22"><path d="M434.517 0c-11.797 0-21.354 9.557-21.333 21.355V331.22c0 66.368-48.704 121.43-112.213 131.691V21.355C300.97 9.557 291.37 0 279.595 0c-11.776 0-21.376 9.557-21.376 21.355v441.557c-63.488-10.283-112.171-65.344-112.171-131.69V21.354C146.048 9.557 136.491 0 124.693 0c-11.818 0-21.376 9.557-21.397 21.355v309.888c0 89.962 67.755 164.288 154.923 174.869v496.512c0 11.819 9.578 21.376 21.376 21.376 11.797 0 21.376-9.557 21.376-21.376V506.112c87.146-10.603 154.922-84.907 154.922-174.89V21.354C455.893 9.557 446.336 0 434.517 0zM705.664 0c-11.797 0-21.355 9.557-21.355 21.355v981.269c0 11.819 9.558 21.376 21.355 21.376 11.819 0 21.376-9.557 21.376-21.376V559.211h172.288c11.84 0 21.355-9.536 21.355-21.376C920.683 236.245 826.24 0 705.664 0z m21.376 516.459V46.677c87.04 32.278 146.944 258.304 150.741 469.782H727.04z"/></svg></div>
+        <div class="action-card-title">记饮食</div>
+        <div class="action-card-desc">记下今天吃了什么</div>
+      </a>
       <a class="action-card" href="inspiration.html">
-        <div class="action-card-icon"><img src="pic/灵感.png"></div>
+        <div class="action-card-icon"><svg class="action-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg></div>
         <div class="action-card-title">存灵感</div>
         <div class="action-card-desc">收集突然想到的碎片</div>
       </a>
@@ -249,12 +256,23 @@ body.page-today { margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Out
   <!-- ═══ 第五层：手边工具 ═══ -->
   <div class="tools-section">
     <div class="section-title">手边工具</div>
-    <div class="tools-bar">
-      <a class="tool-chip" href="img2pdf.html"><span>📄</span> 图片转PDF</a>
-      <a class="tool-chip" href="qrcode.html"><span>📲</span> 二维码</a>
-      <a class="tool-chip" href="watermark.html"><span>💧</span> 去水印</a>
-      <a class="tool-chip" href="tools.html"><span>🔧</span> 更多工具</a>
-      <a class="tool-chip" href="storage.html"><span>📦</span> 收纳盒</a>
+    <div class="tools-tray">
+      <a class="tools-tray-item" href="qrcode.html">
+        <svg class="tools-tray-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M18 20h3v-3M14 14v6h3"/></svg>
+        <span class="tools-tray-label">二维码</span>
+      </a>
+      <a class="tools-tray-item" href="img2pdf.html">
+        <svg class="tools-tray-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span class="tools-tray-label">图转PDF</span>
+      </a>
+      <a class="tools-tray-item" href="watermark.html">
+        <svg class="tools-tray-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/></svg>
+        <span class="tools-tray-label">去水印</span>
+      </a>
+      <a class="tools-tray-item" href="tools.html">
+        <svg class="tools-tray-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        <span class="tools-tray-label">全部</span>
+      </a>
     </div>
   </div>
 
@@ -262,11 +280,11 @@ body.page-today { margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Out
 
   <!-- ═══ 底部导航 ═══ -->
   <nav class="nav-bar">
-    <button class="nav-btn" id="nav-today"><div class="nav-icon-wrap nav-active-pill"><svg class="nav-icon clr-sage" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div><span class="nav-label clr-sage">今天</span></button>
-    <button class="nav-btn" id="nav-todo"><div class="nav-icon-wrap"><svg class="nav-icon clr-ink" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div><span class="nav-label clr-ink">待办</span></button>
-    <button class="nav-btn" id="nav-records"><div class="nav-icon-wrap"><svg class="nav-icon clr-ink" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg></div><span class="nav-label clr-ink">记录</span></button>
-    <button class="nav-btn" id="nav-tools"><div class="nav-icon-wrap"><svg class="nav-icon clr-ink" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg></div><span class="nav-label clr-ink">工具</span></button>
-    <button class="nav-btn" id="nav-storage"><div class="nav-icon-wrap"><svg class="nav-icon clr-ink" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-14v14m0-14L4 7m0 0v10l8 4"/></svg></div><span class="nav-label clr-ink">收纳盒</span></button>
+    <button class="nav-btn" id="nav-today"><div class="nav-icon-wrap nav-active-pill"><svg class="nav-icon clr-sage" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></div><span class="nav-label clr-sage">今天</span></button>
+    <button class="nav-btn" id="nav-todo"><div class="nav-icon-wrap"><svg class="nav-icon clr-ink" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div><span class="nav-label clr-ink">待办</span></button>
+    <button class="nav-btn" id="nav-records"><div class="nav-icon-wrap"><svg class="nav-icon clr-ink" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5a2.5 2.5 0 010-5H20"/><path d="M10 8h6M10 12h4"/></svg></div><span class="nav-label clr-ink">记录</span></button>
+    <button class="nav-btn" id="nav-tools"><div class="nav-icon-wrap"><svg class="nav-icon clr-ink" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div><span class="nav-label clr-ink">工具</span></button>
+    <button class="nav-btn" id="nav-storage"><div class="nav-icon-wrap"><svg class="nav-icon clr-ink" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 7l-9-5-9 5m18 0l-9 5m9-5v10l-9 5m0-15v14"/><path d="M3.97 12.08L12 17l8.03-4.92"/></svg></div><span class="nav-label clr-ink">收纳盒</span></button>
   </nav>
 
   <div class="modal-overlay hidden" id="global-modal"><div class="modal-box" id="modal-content-area"></div></div>
@@ -520,43 +538,41 @@ function renderTraces() {
     var m = p.date.match(/(\d+)月(\d+)日/);
     if (!m) return;
     var md = String(m[1]).padStart(2,'0')+'-'+String(m[2]).padStart(2,'0');
-    if (md === todayMD) traces.push({ time: p.date, type: '动态', text: p.content, url: 'timeline.html' });
+    if (md === todayMD) traces.push({ time: m[1]+'月'+m[2]+'日', type: '🌤 记录一刻', text: p.content, url: 'timeline.html' });
   });
   (db.dietLogs||[]).forEach(function(p) {
     if (!p.date) return;
     var dd = p.date.slice(5);
-    if (dd === todayMD) traces.push({ time: p.date, type: '饮食', text: (p.items||[]).map(function(i){return i.name;}).join('、')||'记录了一顿饭', url: 'calories.html' });
+    if (dd === todayMD) traces.push({ time: p.date.slice(5), type: '🍜 饮食', text: (p.items||[]).map(function(i){return i.name;}).join('、')||'记录了一顿饭', url: 'calories.html' });
   });
   (db.diaries||[]).forEach(function(p) {
     if (!p.date) return;
     var m = p.date.match(/(\d+)月(\d+)日/);
     if (m) {
       var md = String(m[1]).padStart(2,'0')+'-'+String(m[2]).padStart(2,'0');
-      if (md === todayMD) traces.push({ time: p.date, type: '日记', text: p.title||'写了一段日记', url: 'diary.html' });
+      if (md === todayMD) traces.push({ time: m[1]+'月'+m[2]+'日', type: '📖 日记', text: p.title||'写了一段日记', url: 'diary.html' });
     } else {
       var dd = p.date.slice(5,10);
-      if (dd === todayMD) traces.push({ time: p.date, type: '日记', text: p.title||'写了一段日记', url: 'diary.html' });
+      if (dd === todayMD) traces.push({ time: p.date.slice(5), type: '📖 日记', text: p.title||'写了一段日记', url: 'diary.html' });
     }
   });
   (db.inspirations||[]).forEach(function(p) {
     if (!p.date) return;
     var dd = p.date.slice(5,10);
-    if (dd === todayMD) traces.push({ time: p.date, type: '灵感', text: p.title||'收藏了一条灵感', url: 'inspiration.html' });
+    if (dd === todayMD) traces.push({ time: dd, type: '💡 灵感', text: p.title||'收藏了一条灵感', url: 'inspiration.html' });
   });
   (db.financeLogs||[]).forEach(function(p) {
     if (!p.date) return;
     var dd = p.date.slice(5);
-    if (dd === todayMD) traces.push({ time: p.timeStr||p.date, type: '记账', text: p.type+' ¥'+p.amount.toFixed(2)+' · '+(p.category||'')+(p.note?' · '+p.note:''), url: '#' });
+    if (dd === todayMD) traces.push({ time: p.timeStr||p.date, type: '¥ 记一笔', text: (p.note||p.category)+' ¥'+p.amount.toFixed(2), url: '#' });
   });
   traces.sort(function(a,b){ return a.time < b.time ? 1 : -1; });
-  traces = traces.slice(0,4);
+  traces = traces.slice(0,3);
 
   if (traces.length === 0) {
     container.innerHTML =
       '<div class="trace-empty">' +
-        '今天还是一张空白的纸。<br>留下一句话、一张照片，或者一顿饭的味道。<br>' +
-        '<button class="trace-empty-btn" onclick="document.querySelector(\'.action-card\').click()">开始记录</button>' +
-      '</div>';
+        '今天还是一张空白的纸。留下一句话、一张照片，或者一顿饭的味道。</div>';
     return;
   }
 
@@ -565,6 +581,7 @@ function renderTraces() {
     html += '<div class="trace-item" onclick="window.location.href=\''+t.url+'\'"><span class="trace-time">'+escapeHtml(t.time)+'</span><div class="trace-body"><div class="trace-type">'+escapeHtml(t.type)+'</div><div class="trace-preview">'+escapeHtml(t.text)+'</div></div></div>';
   });
   html += '</div>';
+  html += '<button class="trace-all" onclick="window.location.href=\'timeline.html\'">查看今天的全部记录 →</button>';
   container.innerHTML = html;
 }
 

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>简纸 — 灵感工坊</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+SC:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="shared.js"></script>
+<style>
+body.page-insadd{ margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Outfit',sans-serif; }
+.page-insadd .app-viewport{ max-width:480px; margin:0 auto; background:#F5F4F0; min-height:100vh; display:flex; flex-direction:column; }
+.page-insadd .header-bar{ height:56px; border-bottom:1px solid #EAE7E1; padding:0 16px; display:flex; align-items:center; justify-content:space-between; background:#F5F4F0; }
+.page-insadd .form-area{ flex:1; overflow-y:auto; padding:20px 16px 96px; }
+.page-insadd .cat-btn{ padding:6px 12px; font-size:12px; border-radius:8px; border:1px solid #EAE7E1; cursor:pointer; font-family:inherit; background:#FFF; color:#5C5854; }
+.page-insadd .cat-btn.active{ border-color:#8B5E3C; background:#FAF3EE; color:#8B5E3C; font-weight:700; }
+.page-insadd .kanshi-toast{ position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:999;background:#1C1B1A;color:#FBBF24;padding:8px 20px;border-radius:999px;font-size:12px;font-weight:700;animation:fadeSlideIn 0.3s ease-out; }
+@keyframes fadeSlideIn{0%{opacity:0;transform:translateX(-50%)translateY(-12px)}100%{opacity:1;transform:translateX(-50%)translateY(0)}}
+
+.page-insadd .back-btn{background:none;border:none;padding:8px;color:#2C2B29;cursor:pointer}
+.page-insadd .header-title{font-size:14px;font-weight:700}
+.page-insadd .header-spacer{width:32px}
+.page-insadd .section-label-bold{font-size:10px;color:#5C5854;margin-bottom:8px;font-weight:600}
+.page-insadd .cat-selector{display:flex;gap:8px;margin-bottom:20px}
+.page-insadd .input-field-r{width:100%;height:44px;padding:0 12px;font-size:12px;border:1px solid #EAE7E1;border-radius:12px;outline:none;box-sizing:border-box;margin-bottom:16px}
+.page-insadd .textarea-lg{width:100%;min-height:140px;padding:12px;font-size:12px;border:1px solid #EAE7E1;border-radius:12px;outline:none;font-family:inherit;box-sizing:border-box;margin-bottom:16px}
+.page-insadd .input-field-r-last{width:100%;height:44px;padding:0 12px;font-size:12px;border:1px solid #EAE7E1;border-radius:12px;outline:none;box-sizing:border-box;margin-bottom:24px}
+.page-insadd .btn-primary-lg{width:100%;height:48px;background:#405140;color:#FBFBFA;border:none;border-radius:14px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(64,81,64,0.3)}
+
+	.page-insadd .num{font-family:"Inter",Arial,sans-serif;font-weight:700;font-variant-numeric:tabular-nums}
+	</style>
+</head>
+<body class="page-insadd">
+<div class="app-viewport">
+  <div class="header-bar">
+    <button onclick="history.back()" class="back-btn"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+    <h3 class="header-title">灵感工坊 ✨</h3>
+    <span class="header-spacer"></span>
+  </div>
+  <div class="form-area no-scrollbar">
+    <!-- 分类 -->
+    <p class="section-label-bold">灵感分类</p>
+    <div class="cat-selector" id="cat-selector">
+      <button class="cat-btn active" onclick="selectCat(this,'小说人设')">小说人设</button>
+      <button class="cat-btn" onclick="selectCat(this,'创意片段')">创意片段</button>
+      <button class="cat-btn" onclick="selectCat(this,'随笔')">随笔</button>
+      <button class="cat-btn" onclick="selectCat(this,'设计参考')">设计参考</button>
+    </div>
+
+    <input type="text" id="ins-title" placeholder="标题（如：星辰运转的诗构想）" class="input-field-r">
+    <textarea id="ins-ref" placeholder="灵感内容/引用..." class="textarea-lg"></textarea>
+    <input type="text" id="ins-tag" placeholder="标签（逗号分隔，如：灵感, 写作）" class="input-field-r">
+    <input type="text" id="ins-link" placeholder="参考链接（可选）" class="input-field-r-last">
+
+    <button onclick="submitInspiration()" class="btn-primary-lg">✎ 永久封存灵感</button>
+  </div>
+</div>
+<script>
+loadDatabase();
+var selectedCat = '小说人设';
+
+function selectCat(el, cat) {
+  selectedCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(function(b){ b.className='cat-btn'; });
+  el.className = 'cat-btn active';
+}
+
+function submitInspiration() {
+  var title = document.getElementById('ins-title');
+  var ref = document.getElementById('ins-ref');
+  var tag = document.getElementById('ins-tag');
+  var link = document.getElementById('ins-link');
+  if (!title || !title.value.trim() || !ref || !ref.value.trim()) {
+    triggerToast('请至少填写标题和内容');
+    return;
+  }
+  db.inspirations.unshift({
+    id: 'ins_' + Date.now(),
+    title: title.value.trim(),
+    ref: ref.value.trim(),
+    tag: tag ? tag.value.trim() : '',
+    cat: selectedCat,
+    link: link ? link.value.trim() : '',
+    date: new Date().toISOString().split('T')[0]
+  });
+  saveDatabase();
+  triggerToast('✅ 灵感已封存');
+  history.back();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>简纸 — 今日动态</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+SC:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="shared.js"></script>
+<style>
+/* ═══ 基础 ═══ */
+body.page-timeline { margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Outfit',sans-serif; -webkit-tap-highlight-color:transparent; }
+.page-timeline .app-viewport { max-width:480px; margin:0 auto; background:#F5F4F0; min-height:100vh; display:flex; flex-direction:column; }
+.page-timeline .no-scrollbar::-webkit-scrollbar { display:none; }
+.page-timeline .no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
+
+/* ═══ Header（粘性固定）═══ */
+.page-timeline .header-wrap { position:sticky; top:0; z-index:30; background:#F5F4F0; }
+.page-timeline .header-bar { height:56px; border-bottom:1px solid #EAE7E1; padding:0 16px; display:flex; align-items:center; justify-content:space-between; background:#F5F4F0; }
+.page-timeline .back-btn { background:none; border:none; padding:8px; color:#2C2B29; cursor:pointer; flex-shrink:0; }
+.page-timeline .hdr-center { font-size:14px; font-weight:700; color:#2C2B29; display:flex; align-items:center; gap:4px; }
+.page-timeline .hdr-cloud { font-size:12px; opacity:0.6; }
+.page-timeline .hdr-right { display:flex; align-items:center; gap:2px; }
+.page-timeline .hdr-btn { background:none; border:none; padding:6px; color:#5C5854; cursor:pointer; font-size:16px; border-radius:8px; }
+.page-timeline .hdr-btn.cal-active { background:#405140; color:#FBFBFA; }
+.page-timeline .add-btn-circle { width:32px; height:32px; border-radius:999px; background:#405140; color:#FBFBFA; border:none; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+/* ═══ 日历状态栏 ═══ */
+.page-timeline .date-bar { height:36px; padding:0 20px; display:flex; align-items:center; justify-content:space-between; background:#FAF9F6; border-bottom:1px solid #EAE7E1; font-size:11px; color:#5C5854; overflow:hidden; }
+.page-timeline .date-bar.hidden { display:none; }
+.page-timeline .date-picker-area { display:flex; align-items:center; gap:6px; cursor:pointer; }
+.page-timeline .date-clear-btn { background:none; border:none; font-size:10px; color:#405140; cursor:pointer; font-family:inherit; text-decoration:underline; padding:4px; }
+
+/* ═══ 分类标签 ═══ */
+.page-timeline .filter-bar { padding:10px 20px; display:flex; gap:8px; overflow-x:auto; background:#FAF9F6; border-bottom:1px solid #EAE7E1; }
+.page-timeline .filter-pill { padding:6px 14px; border-radius:999px; font-size:11px; white-space:nowrap; border:1px solid #DDD9CF; cursor:pointer; transition:all 0.2s; background:transparent; color:#5C5854; font-family:inherit; flex-shrink:0; }
+.page-timeline .filter-pill.active { background:#2C2B29; color:#FBFBFA; border-color:#2C2B29; }
+
+/* ═══ 动态列表 ═══ */
+.page-timeline .posts-area { flex:1; overflow-y:auto; background:#F5F4F0; }
+.page-timeline .post-item { padding:20px 20px 16px; border-bottom:1px solid #EAE7E1; }
+.page-timeline .post-top { display:flex; gap:10px; }
+.page-timeline .post-avatar { width:38px; height:38px; border-radius:999px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#FFF; background:linear-gradient(135deg,#405140,#7E997E); overflow:hidden; }
+.page-timeline .post-avatar img { width:100%; height:100%; object-fit:cover; }
+.page-timeline .post-head { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+.page-timeline .post-author { font-size:13px; font-weight:700; color:#2C2B29; }
+.page-timeline .post-datetime { font-size:9px; color:#A1A1AA; }
+.page-timeline .post-body { flex:1; min-width:0; }
+.page-timeline .post-text { font-size:12px; color:#5C5854; line-height:1.7; white-space:pre-wrap; margin:8px 0; }
+.page-timeline .post-imgs { display:flex; flex-direction:column; gap:8px; margin-bottom:8px; }
+.page-timeline .post-img { width:100%; max-height:320px; object-fit:cover; border-radius:14px; background:#EAE7E1; }
+.page-timeline .post-foot { display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
+.page-timeline .post-tags { display:flex; gap:6px; flex-wrap:wrap; }
+.page-timeline .post-tag { font-size:10px; color:#405140; }
+.page-timeline .post-mood { font-size:12px; }
+.page-timeline .post-del { font-size:9px; color:#F9A8B0; background:none; border:none; cursor:pointer; font-family:inherit; padding:4px; }
+.page-timeline .empty-state { padding:80px 20px; text-align:center; color:#D4D0C8; font-size:14px; }
+
+/* ═══ 模态框通用 ═══ */
+.page-timeline .modal-overlay { position:fixed; inset:0; background:rgba(20,22,18,0.58); z-index:100; display:flex; align-items:center; justify-content:center; padding:24px; }
+.page-timeline .modal-overlay.hidden { display:none; }
+.page-timeline .modal-box { background:#FFF; width:82%; max-width:380px; border-radius:24px; padding:24px; max-height:85vh; overflow-y:auto; }
+.page-timeline .modal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.page-timeline .modal-title { font-size:14px; font-weight:700; color:#2C2B29; }
+.page-timeline .modal-close { background:none; border:none; color:#A1A1AA; font-size:18px; cursor:pointer; padding:4px; }
+.page-timeline .modal-actions { display:flex; gap:10px; margin-top:20px; }
+.page-timeline .btn-cancel { flex:1; height:42px; background:#F5F4F0; color:#5C5854; border:none; border-radius:12px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; }
+.page-timeline .btn-primary { flex:1; height:42px; background:#405140; color:#FFF; border:none; border-radius:12px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; }
+
+/* 编辑弹窗 */
+.page-timeline .avatar-upload-area { display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:16px; }
+.page-timeline .avatar-preview { width:64px; height:64px; border-radius:999px; background:linear-gradient(135deg,#405140,#7E997E); display:flex; align-items:center; justify-content:center; font-size:24px; color:#FFF; font-weight:700; overflow:hidden; }
+.page-timeline .avatar-preview img { width:100%; height:100%; object-fit:cover; }
+.page-timeline .avatar-upload-btn { font-size:11px; color:#405140; cursor:pointer; text-decoration:underline; font-family:inherit; background:none; border:none; }
+.page-timeline .edit-input { width:100%; height:40px; padding:0 14px; font-size:13px; border:1px solid #EAE7E1; border-radius:10px; outline:none; box-sizing:border-box; font-family:inherit; margin-bottom:16px; }
+
+/* 新增弹窗 */
+.page-timeline .publish-textarea { width:100%; min-height:80px; padding:12px; font-size:12px; border:1px solid #EAE7E1; border-radius:12px; outline:none; font-family:inherit; box-sizing:border-box; resize:none; margin-bottom:14px; }
+.page-timeline .tag-group-label { font-size:11px; font-weight:600; color:#5C5854; margin-bottom:8px; }
+.page-timeline .tag-grid { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+.page-timeline .tag-opt { padding:5px 12px; border-radius:999px; font-size:11px; border:1px solid #DDD9CF; cursor:pointer; background:transparent; color:#5C5854; font-family:inherit; transition:all 0.15s; }
+.page-timeline .tag-opt.selected { background:#2C2B29; color:#FFF; border-color:#2C2B29; }
+.page-timeline .mood-grid { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+.page-timeline .mood-opt { padding:5px 12px; border-radius:999px; font-size:11px; border:1px solid #DDD9CF; cursor:pointer; background:transparent; color:#5C5854; font-family:inherit; transition:all 0.15s; }
+.page-timeline .mood-opt.selected { background:#2C2B29; color:#FFF; border-color:#2C2B29; }
+.page-timeline .photo-upload-area { margin-bottom:14px; }
+.page-timeline .photo-btn { display:inline-flex; align-items:center; gap:4px; padding:8px 14px; border-radius:10px; border:1px dashed #A1A1AA; background:#FAF9F6; cursor:pointer; font-size:11px; color:#5C5854; font-family:inherit; }
+.page-timeline .photo-previews { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+.page-timeline .photo-preview-item { width:56px; height:56px; border-radius:10px; overflow:hidden; position:relative; }
+.page-timeline .photo-preview-item img { width:100%; height:100%; object-fit:cover; }
+.page-timeline .photo-del { position:absolute; top:-4px; right:-4px; width:18px; height:18px; border-radius:999px; background:rgba(0,0,0,0.6); color:#FFF; border:none; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+
+/* Hidden date input */
+.page-timeline .date-input-hidden { position:absolute; opacity:0; width:0; height:0; pointer-events:none; }
+
+	.page-timeline .num{font-family:"Inter",Arial,sans-serif;font-weight:700;font-variant-numeric:tabular-nums}
+	</style>
+</head>
+<body class="page-timeline">
+<div class="app-viewport">
+
+  <!-- 粘性头部 -->
+  <div class="header-wrap">
+    <div class="header-bar">
+      <button onclick="window.location.href='index.html'" class="back-btn"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+      <span class="hdr-center">今日动态 <span class="hdr-cloud">☁️</span></span>
+      <div class="hdr-right">
+        <button onclick="toggleCalendar()" id="cal-toggle-btn" class="hdr-btn" title="日历">📅</button>
+        <button onclick="openEditModal()" class="hdr-btn" title="编辑">🖊️</button>
+        <button onclick="openPublishModal()" class="add-btn-circle">+</button>
+      </div>
+    </div>
+
+    <!-- 日期筛选栏 -->
+    <div id="date-status-bar" class="date-bar hidden">
+      <div class="date-picker-area" onclick="pickDate()">
+        <span>📅</span>
+        <span id="date-display">选择日期</span>
+        <input type="date" id="date-picker-input" class="date-input-hidden" onchange="onDatePicked(this.value)">
+      </div>
+      <button onclick="clearDateFilter()" class="date-clear-btn">◷ 全部动态</button>
+    </div>
+
+    <!-- 分类标签 -->
+    <div class="filter-bar no-scrollbar" id="filter-bar">
+      <button class="filter-pill active" onclick="filterPosts('全部')">全部</button>
+      <button class="filter-pill" onclick="filterPosts('出去玩')">出去玩</button>
+      <button class="filter-pill" onclick="filterPosts('美食')">美食</button>
+      <button class="filter-pill" onclick="filterPosts('日常')">日常</button>
+      <button class="filter-pill" onclick="filterPosts('摄影')">摄影</button>
+      <button class="filter-pill" onclick="filterPosts('旅行')">旅行</button>
+      <button class="filter-pill" onclick="filterPosts('随笔')">随笔</button>
+    </div>
+  </div>
+
+  <!-- 动态列表 -->
+  <div class="posts-area no-scrollbar" id="posts-container"></div>
+
+</div>
+
+<!-- 全局模态框 -->
+<div class="modal-overlay hidden" id="global-modal">
+  <div class="modal-box" id="modal-content-area"></div>
+</div>
+
+<script>
+(function(){
+loadDatabase();
+
+// ─── 用户资料 ───
+if (!db.userProfile) db.userProfile = { displayName: '', avatar: '' };
+
+var activeTag = '全部';
+var selectedDate = ''; // ISO date string or ''
+
+// ─── 图片转 base64 ───
+function readFileAsDataURL(file, cb) {
+  var reader = new FileReader();
+  reader.onload = function(e) { cb(e.target.result); };
+  reader.readAsDataURL(file);
+}
+
+// ─── 渲染列表 ───
+function renderPosts() {
+  var container = document.getElementById('posts-container');
+  if (!container) return;
+  container.innerHTML = '';
+  var filtered = db.timelinePosts.slice();
+
+  // 标签筛选
+  if (activeTag !== '全部') {
+    filtered = filtered.filter(function(p) {
+      var tags = p.tags || [];
+      if (p.category) tags.push(p.category);
+      return tags.some(function(t) { return t === activeTag; });
+    });
+  }
+
+  // 日期筛选
+  if (selectedDate) {
+    filtered = filtered.filter(function(p) {
+      if (!p.date) return false;
+      // p.date format: "7月7日 18:30" — extract month+day to compare
+      var parts = p.date.match(/(\d+)月(\d+)日/);
+      if (!parts) return false;
+      var md = String(parts[1]).padStart(2,'0') + '-' + String(parts[2]).padStart(2,'0');
+      var sd = selectedDate.slice(5); // MM-DD
+      return md === sd;
+    });
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state">还没有动态，记录此刻吧 ✍️</div>';
+    return;
+  }
+
+  filtered.forEach(function(post) {
+    var tags = post.tags || [];
+    if (post.category && tags.indexOf(post.category) === -1) tags.push(post.category);
+    var tagHtml = tags.map(function(t){ return '<span class="post-tag">#'+escapeHtml(t)+'</span>'; }).join(' ');
+
+    // images: support both old single `image` and new `images` array
+    var imgs = post.images || [];
+    if (post.image && !post.images) imgs = [post.image];
+    var imgHtml = '';
+    if (imgs.length > 0) {
+      imgHtml = '<div class="post-imgs">';
+      imgs.forEach(function(src) {
+        imgHtml += '<img src="'+escapeHtml(src)+'" class="post-img" loading="lazy">';
+      });
+      imgHtml += '</div>';
+    }
+
+    // avatar
+    var displayName = post.displayName || db.userProfile.displayName || 'K';
+    var avatarHtml = '';
+    if (post.avatar || db.userProfile.avatar) {
+      var a = post.avatar || db.userProfile.avatar;
+      avatarHtml = '<img src="'+escapeHtml(a)+'" alt="avatar">';
+    } else {
+      avatarHtml = displayName.charAt(0).toUpperCase();
+    }
+
+    container.innerHTML +=
+      '<div class="post-item">' +
+        '<div class="post-top">' +
+          '<div class="post-avatar">'+avatarHtml+'</div>' +
+          '<div class="post-body">' +
+            '<div class="post-head"><span class="post-author">'+escapeHtml(displayName)+'</span><span class="post-datetime">'+escapeHtml(post.date)+'</span></div>' +
+            '<div class="post-text">'+escapeHtml(post.content)+'</div>' +
+            imgHtml +
+            '<div class="post-foot">' +
+              '<div class="post-tags">'+tagHtml+'</div>' +
+              '<span class="post-mood">'+escapeHtml(post.mood||'')+'</span>' +
+            '</div>' +
+            '<div style="text-align:right;margin-top:4px"><button onclick="deletePost(\''+post.id+'\')" class="post-del">删除</button></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  });
+}
+
+// ─── 标签分类 ───
+function filterPosts(cat) {
+  activeTag = cat;
+  document.querySelectorAll('.filter-pill').forEach(function(b){
+    b.classList.toggle('active', b.textContent.trim() === cat);
+  });
+  renderPosts();
+}
+
+// ─── 日历筛选 ───
+function toggleCalendar() {
+  var bar = document.getElementById('date-status-bar');
+  var btn = document.getElementById('cal-toggle-btn');
+  if (!bar) return;
+  if (bar.classList.contains('hidden')) {
+    bar.classList.remove('hidden');
+    btn.classList.add('cal-active');
+  } else {
+    clearDateFilter();
+  }
+}
+
+function pickDate() {
+  document.getElementById('date-picker-input').click();
+}
+
+function onDatePicked(val) {
+  if (!val) return;
+  selectedDate = val;
+  var d = new Date(val + 'T00:00:00');
+  var month = d.getMonth() + 1;
+  var day = d.getDate();
+  document.getElementById('date-display').textContent = month+'月'+day+'日';
+  renderPosts();
+}
+
+function clearDateFilter() {
+  selectedDate = '';
+  var bar = document.getElementById('date-status-bar');
+  var btn = document.getElementById('cal-toggle-btn');
+  if (bar) bar.classList.add('hidden');
+  if (btn) btn.classList.remove('cal-active');
+  document.getElementById('date-display').textContent = '选择日期';
+  renderPosts();
+}
+
+// ─── 删除动态 ───
+function deletePost(id) {
+  if (!confirm('确认删除这条动态？')) return;
+  db.timelinePosts = db.timelinePosts.filter(function(p){ return p.id !== id; });
+  saveDatabase();
+  renderPosts();
+}
+
+// ─── 新增动态弹窗 ───
+var selectedTags = [];
+var selectedMood = '😊 开心';
+var selectedPhotos = [];
+
+function openPublishModal() {
+  selectedTags = [];
+  selectedMood = '😊 开心';
+  selectedPhotos = [];
+  var moodOpts = ['😊 开心','😌 平静','😢 难过','😤 生气','😨 焦虑'];
+  var tagOpts = ['日常','出去玩','美食','学习','工作','旅行','随笔'];
+  var tagHtml = tagOpts.map(function(t){ return '<span class="tag-opt" onclick="toggleTag(this,\''+t+'\')">'+t+'</span>'; }).join('');
+  var moodHtml = moodOpts.map(function(m){
+    var sel = m === '😊 开心' ? ' selected' : '';
+    return '<span class="mood-opt'+sel+'" onclick="selectMood(this,\''+m+'\')">'+m+'</span>';
+  }).join('');
+
+  showModal(
+    '<div class="modal-head"><span class="modal-title">记录此刻 ✍️</span><button onclick="closeModal()" class="modal-close">✕</button></div>' +
+    '<textarea id="pub-content" class="publish-textarea" placeholder="有什么事，值得记住……"></textarea>' +
+    '<div class="tag-group-label">▸ 活动标签（可多选）</div>' +
+    '<div class="tag-grid" id="pub-tag-grid">'+tagHtml+'</div>' +
+    '<div class="tag-group-label">▸ 此刻心情</div>' +
+    '<div class="mood-grid" id="pub-mood-grid">'+moodHtml+'</div>' +
+    '<div class="tag-group-label">▸ 添加照片（可多选）</div>' +
+    '<div class="photo-upload-area">' +
+      '<button onclick="document.getElementById(\'pub-photo-input\').click()" class="photo-btn">📷 点此从相册选择照片</button>' +
+      '<input type="file" id="pub-photo-input" accept="image/*" multiple style="display:none" onchange="onPhotosSelected(this.files)">' +
+      '<div class="photo-previews" id="pub-photo-previews"></div>' +
+    '</div>' +
+    '<div class="modal-actions">' +
+      '<button onclick="closeModal()" class="btn-cancel">取消</button>' +
+      '<button onclick="submitPost()" class="btn-primary">发布</button>' +
+    '</div>'
+  );
+}
+
+function toggleTag(el, tag) {
+  var idx = selectedTags.indexOf(tag);
+  if (idx >= 0) {
+    selectedTags.splice(idx, 1);
+    el.classList.remove('selected');
+  } else {
+    selectedTags.push(tag);
+    el.classList.add('selected');
+  }
+}
+
+function selectMood(el, mood) {
+  selectedMood = mood;
+  document.querySelectorAll('#pub-mood-grid .mood-opt').forEach(function(b){ b.classList.remove('selected'); });
+  el.classList.add('selected');
+}
+
+function onPhotosSelected(files) {
+  if (!files || !files.length) return;
+  var previews = document.getElementById('pub-photo-previews');
+  Array.from(files).forEach(function(file) {
+    if (!file.type.startsWith('image/')) return;
+    readFileAsDataURL(file, function(dataUrl) {
+      selectedPhotos.push(dataUrl);
+      var div = document.createElement('div');
+      div.className = 'photo-preview-item';
+      var idx = selectedPhotos.length - 1;
+      div.innerHTML = '<img src="'+dataUrl+'"><button onclick="removePhoto('+idx+')" class="photo-del">✕</button>';
+      previews.appendChild(div);
+    });
+  });
+}
+
+function removePhoto(idx) {
+  selectedPhotos.splice(idx, 1);
+  renderPhotoPreviews();
+}
+
+function renderPhotoPreviews() {
+  var previews = document.getElementById('pub-photo-previews');
+  if (!previews) return;
+  previews.innerHTML = '';
+  selectedPhotos.forEach(function(src, i) {
+    var div = document.createElement('div');
+    div.className = 'photo-preview-item';
+    div.innerHTML = '<img src="'+src+'"><button onclick="removePhoto('+i+')" class="photo-del">✕</button>';
+    previews.appendChild(div);
+  });
+}
+
+function submitPost() {
+  var content = document.getElementById('pub-content');
+  if (!content || !content.value.trim()) return;
+  var now = new Date();
+  var displayName = db.userProfile.displayName || 'K';
+  var dateStr = (now.getMonth()+1)+'月'+now.getDate()+'日 '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  db.timelinePosts.unshift({
+    id: 'post_'+Date.now(),
+    content: content.value.trim(),
+    tags: selectedTags.slice(),
+    images: selectedPhotos.slice(),
+    mood: selectedMood,
+    date: dateStr,
+    displayName: displayName,
+    avatar: db.userProfile.avatar || ''
+  });
+  saveDatabase();
+  closeModal();
+  renderPosts();
+}
+
+// ─── 编辑资料弹窗 ───
+var editAvatarData = null;
+
+function openEditModal() {
+  editAvatarData = null;
+  var displayName = db.userProfile.displayName || '';
+  var avatar = db.userProfile.avatar || '';
+  var avatarPreview = avatar
+    ? '<img src="'+escapeHtml(avatar)+'">'
+    : (displayName ? displayName.charAt(0).toUpperCase() : 'K');
+
+  showModal(
+    '<div class="modal-head"><span class="modal-title">编辑资料 🖊️</span><button onclick="closeModal()" class="modal-close">✕</button></div>' +
+    '<div class="avatar-upload-area">' +
+      '<div class="avatar-preview" id="edit-avatar-preview">'+avatarPreview+'</div>' +
+      '<div>' +
+        '<button onclick="document.getElementById(\'edit-avatar-input\').click()" class="avatar-upload-btn">📷 上传照片</button>' +
+        '<input type="file" id="edit-avatar-input" accept="image/*" style="display:none" onchange="onAvatarSelected(this.files)">' +
+      '</div>' +
+    '</div>' +
+    '<input type="text" id="edit-display-name" class="edit-input" placeholder="显示名称" value="'+escapeHtml(displayName)+'">' +
+    '<div class="modal-actions">' +
+      '<button onclick="closeModal()" class="btn-cancel">取消</button>' +
+      '<button onclick="saveProfile()" class="btn-primary">保存</button>' +
+    '</div>'
+  );
+}
+
+function onAvatarSelected(files) {
+  if (!files || !files[0]) return;
+  readFileAsDataURL(files[0], function(dataUrl) {
+    editAvatarData = dataUrl;
+    var preview = document.getElementById('edit-avatar-preview');
+    if (preview) preview.innerHTML = '<img src="'+dataUrl+'">';
+  });
+}
+
+function saveProfile() {
+  var nameInput = document.getElementById('edit-display-name');
+  if (!nameInput) return;
+  var name = nameInput.value.trim() || 'K';
+  db.userProfile.displayName = name;
+  if (editAvatarData) db.userProfile.avatar = editAvatarData;
+  saveDatabase();
+  closeModal();
+  renderPosts();
+}
+
+// ─── 导航 ───
+window.filterPosts = filterPosts;
+window.deletePost = deletePost;
+window.openPublishModal = openPublishModal;
+window.toggleCalendar = toggleCalendar;
+window.pickDate = pickDate;
+window.onDatePicked = onDatePicked;
+window.clearDateFilter = clearDateFilter;
+window.toggleTag = toggleTag;
+window.selectMood = selectMood;
+window.onPhotosSelected = onPhotosSelected;
+window.removePhoto = removePhoto;
+window.submitPost = submitPost;
+window.openEditModal = openEditModal;
+window.onAvatarSelected = onAvatarSelected;
+window.saveProfile = saveProfile;
+
+renderPosts();
+
+})();
+</script>
+</body>
+</html>

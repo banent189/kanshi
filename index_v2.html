@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="h-full">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>简纸 Kanshi — 今天</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+SC:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="lib/lunar.min.js"></script>
+<script src="shared.js"></script>
+<style>
+/* ═══════ 全局 ═══════ */
+.page-today,
+body.page-today { margin:0; padding:0; }
+body.page-today {
+  background:#0F0F0E;
+  font-family:'Noto Serif SC','Outfit',sans-serif;
+  -webkit-tap-highlight-color:transparent;
+  overflow-x:hidden;
+}
+.page-today .app-viewport {
+  max-width:480px; margin:0 auto;
+  background:#F5F4F0; min-height:100vh;
+  box-shadow:0 0 50px rgba(0,0,0,0.6);
+  position:relative;
+  display:flex; flex-direction:column;
+}
+.page-today .no-scrollbar::-webkit-scrollbar { display:none; }
+.page-today .no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
+
+/* ═══════ 纸卡 ═══════ */
+.page-today .paper-card {
+  background:#FBFBFA; border:1px solid #EAE7E1; border-radius:20px;
+  transition:all 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+.page-today .paper-card:active { transform:scale(0.98); background:#F5F4F0; }
+
+/* ═══════ Toast ═══════ */
+.page-today .kanshi-toast {
+  position:fixed; top:24px; left:50%; transform:translateX(-50%);
+  z-index:999; background:#1C1B1A; color:#FBBF24;
+  border:1px solid #2C2B29; padding:8px 20px; border-radius:999px;
+  font-size:12px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,0.4);
+  display:flex; align-items:center; gap:8px;
+  animation:toastIn 0.3s ease-out;
+}
+@keyframes toastIn {
+  0%{opacity:0;transform:translateX(-50%)translateY(-12px)}
+  100%{opacity:1;transform:translateX(-50%)translateY(0)}
+}
+
+/* ═══════ 底部导航 ═══════ */
+.page-today .nav-bar {
+  position:fixed; bottom:12px; left:50%; transform:translateX(-50%);
+  width:calc(100% - 40px); max-width:430px; height:64px;
+  background:rgba(251,251,250,0.9); backdrop-filter:blur(12px);
+  border:1px solid #EAE7E1; border-radius:24px;
+  display:flex; align-items:center; justify-content:space-around;
+  padding:0 12px; z-index:40; box-shadow:0 4px 20px rgba(0,0,0,0.1);
+}
+.page-today .nav-btn {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  width:48px; height:48px; border-radius:16px;
+  background:transparent; border:none; cursor:pointer; padding:0;
+}
+.page-today .nav-icon-wrap {
+  width:36px; height:36px;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:12px; transition:all 0.2s;
+}
+.page-today .nav-active-pill { background:#E3E8E3; }
+.page-today .nav-icon { width:20px; height:20px; transition:color 0.2s; }
+.page-today .nav-label { font-size:8px; font-weight:700; margin-top:2px; transition:color 0.2s; }
+.page-today .clr-sage { color:#405140; }
+.page-today .clr-ink { color:#5C5854; }
+
+/* ═══════ 模态框 ═══════ */
+.page-today .modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100;
+  display:flex; align-items:center; justify-content:center; padding:24px;
+}
+.page-today .modal-overlay.hidden { display:none; }
+.page-today .modal-box {
+  background:#F5F4F0; border:1px solid #DDD9CF;
+  width:100%; max-width:360px; border-radius:24px;
+  padding:24px; box-shadow:0 12px 40px rgba(0,0,0,0.3);
+  max-height:85vh; overflow-y:auto;
+}
+
+/* ═══════ 今天页面 ═══════ */
+.page-today .scroll-area { flex:1; overflow-y:auto; padding-bottom:128px; }
+
+/* 头部 */
+.page-today .top-bar {
+  padding:32px 24px 16px;
+  display:flex; justify-content:space-between; align-items:flex-end;
+}
+.page-today .brand-row { display:flex; align-items:center; gap:8px; }
+.page-today .brand-name {
+  font-family:'Cinzel',serif; font-size:24px; font-weight:700;
+  letter-spacing:0.05em; color:#2C2B29; margin:0;
+}
+.page-today .brand-badge {
+  padding:2px 8px; background:#2C2B29; color:#FBFBFA;
+  font-size:10px; border-radius:6px; font-weight:600;
+}
+.page-today .date-line { font-size:11px; color:#5C5854; margin-top:4px; }
+.page-today .weather-widget {
+  display:flex; align-items:center; gap:8px;
+  background:#FBFBFA; border:1px solid #EAE7E1;
+  padding:6px 12px; border-radius:999px; cursor:pointer;
+}
+.page-today .weather-icon { font-size:14px; }
+.page-today .weather-temp { font-size:12px; font-weight:700; color:#2C2B29; }
+.page-today .weather-loc { font-size:8px; color:#5C5854; display:block; margin-top:2px; }
+
+/* 运签 */
+.page-today .fortune-card {
+  margin:8px 24px 0; padding:20px; border-radius:20px;
+  background:linear-gradient(135deg,#FBFBFA 0%,#FAF6EE 100%);
+  border:1px solid #EAE7E1; position:relative; overflow:hidden;
+}
+.page-today .fortune-badge {
+  padding:4px 10px; font-size:10px; border-radius:999px;
+  background:#E3E8E3; color:#405140; font-weight:600;
+  display:inline-block;
+}
+.page-today .fortune-text {
+  font-size:16px; font-weight:700; margin-top:12px; color:#2C2B29;
+}
+.page-today .fortune-right {
+  text-align:right; border-left:1px solid #EAE7E1; padding-left:16px;
+  flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end;
+}
+.page-today .lucky-color-box {
+  display:flex; align-items:center; gap:6px; margin-top:6px;
+  background:#F5F4F0; border:1px solid #EAE7E1;
+  padding:4px 10px; border-radius:999px;
+}
+.page-today .lucky-color-dot {
+  display:inline-block; width:14px; height:14px; border-radius:999px;
+  border:1px solid rgba(0,0,0,0.1);
+}
+.page-today .dot-darkgold { background:#B8860B; }
+.page-today .dot-forest { background:#2F4F4F; }
+.page-today .dot-brown { background:#8B4513; }
+.page-today .dot-zihei { background:#1C1B1A; }
+.page-today .dot-tuhuang { background:#C4A24E; }
+.page-today .dot-songlv { background:#2D5A27; }
+.page-today .dot-ouhe { background:#C9A9C6; }
+.page-today .dot-zhusha { background:#C04040; }
+.page-today .dot-yanzhi { background:#B22222; }
+.page-today .dot-tubai { background:#D2C9B8; }
+.page-today .dot-yuebai { background:#A8C8D8; }
+.page-today .dot-liujin { background:#D4AF37; }
+.page-today .dot-tuose { background:#A0816A; }
+.page-today .dot-daizi { background:#4A3C5C; }
+.page-today .fortune-advisory {
+  border-top:1px dashed #DDD9CF; margin-top:16px; padding-top:12px;
+  display:flex; gap:16px; font-size:12px;
+}
+.page-today .advisory-suit { color:#047857; font-weight:700; margin-right:6px; }
+.page-today .advisory-avoid { color:#BE123C; font-weight:700; margin-right:6px; }
+.page-today .advisory-text { color:#5C5854; }
+.page-today .advisory-divider { border-left:1px solid #EAE7E1; }
+.page-today .fortune-row { display:flex; justify-content:space-between; align-items:center; }
+.page-today .luck-label { font-size:9px; color:#5C5854; }
+.page-today .luck-name { font-size:12px; font-weight:700; }
+
+.page-today .sc-title { margin:32px 24px 12px; }
+.page-today .sc-icon-moments { background:#F3EFE9; border:1px solid #FDE68A; }
+.page-today .sc-icon-diet { background:#EBF0EB; border:1px solid #CCD7CC; }
+.page-today .sc-icon-pdf { background:#EAEAF0; border:1px solid #93C5FD; }
+.page-today .sc-icon-insp { background:#FAF2F2; border:1px solid #FECACA; }
+
+.page-today .drawer-pwd { border-bottom:3px solid #857c70; }
+.page-today .drawer-pwd-handle { background:linear-gradient(180deg,#b0c4de 0%,#708090 100%); border-color:#475569; }
+.page-today .drawer-pwd-status { font-size:12px; font-weight:700; color:#475569; }
+
+/* 搜索 */
+.page-today .search-section { margin:24px 24px 0; position:relative; }
+.page-today .search-wrap { position:relative; }
+.page-today .search-input {
+  width:100%; height:44px; padding:0 16px 0 44px; border-radius:999px;
+  border:1px solid #EAE7E1; background:#FBFBFA;
+  font-size:12px; color:#2C2B29; outline:none;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,0.03);
+  box-sizing:border-box;
+}
+.page-today .search-input:focus { border-color:#7E997E; }
+.page-today .search-icon {
+  position:absolute; left:16px; top:14px;
+  width:16px; height:16px; color:#5C5854;
+}
+.page-today .search-panel {
+  display:none; position:absolute; left:0; right:0; margin-top:8px;
+  background:#FFF; border:1px solid #EAE7E1; border-radius:16px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.1); z-index:50;
+  max-height:256px; overflow-y:auto;
+}
+.page-today .search-panel.show { display:block; }
+.page-today .search-empty {
+  padding:12px 16px; font-size:12px; color:#A1A1AA;
+}
+.page-today .search-item {
+  padding:12px 16px; font-size:12px; color:#2C2B29;
+  border-bottom:1px solid #F5F4F0; cursor:pointer;
+  display:flex; justify-content:space-between;
+}
+.page-today .search-item:last-child { border-bottom:none; }
+.page-today .search-item:hover { background:#F5F4F0; }
+.page-today .search-badge {
+  font-size:9px; background:#E3E8E3; color:#405140;
+  padding:2px 6px; border-radius:4px;
+}
+
+/* 高频入口 */
+.page-today .section-title {
+  font-size:14px; font-weight:700; color:#2C2B29; margin-bottom:12px;
+}
+.page-today .shortcut-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:0 24px;
+}
+.page-today .shortcut-card {
+  padding:16px; border-radius:20px;
+  display:flex; flex-direction:column; justify-content:space-between;
+  height:112px; cursor:pointer; overflow:hidden;
+}
+.page-today .shortcut-top {
+  display:flex; justify-content:space-between; align-items:flex-start;
+}
+.page-today .shortcut-icon-box {
+  width:36px; height:36px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 2px 4px rgba(0,0,0,0.05);
+}
+.page-today .shortcut-label {
+  font-size:10px; color:#5C5854;
+}
+.page-today .shortcut-title { font-size:12px; font-weight:700; color:#2C2B29; }
+.page-today .shortcut-desc { font-size:10px; color:#5C5854; margin-top:4px; }
+
+/* 抽屉 */
+.page-today .drawer-section { margin:32px 24px 0; }
+.page-today .drawer-item {
+  padding:20px;
+  display:flex; align-items:center; justify-content:space-between;
+  cursor:pointer; margin-bottom:16px;
+}
+.page-today .drawer-physical {
+  background:linear-gradient(180deg,#FCFAF7 0%,#EFECE6 100%);
+  border:1px solid #DFDBD3; border-bottom:3px solid #C5BFB5;
+  border-radius:16px;
+  box-shadow:0 4px 10px rgba(28,27,26,0.08),inset 0 1px 0 #FFF;
+  transition:all 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+.page-today .drawer-physical:active { transform:translateY(2px); }
+.page-today .drawer-handle {
+  width:50px; height:12px;
+  background:linear-gradient(180deg,#D4AF37 0%,#AA7C11 100%);
+  border:1px solid #8C6200; border-radius:4px;
+  box-shadow:0 2px 3px rgba(0,0,0,0.2),inset 0 1px 1px rgba(255,255,255,0.3);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.page-today .drawer-dot {
+  width:6px; height:6px; background:rgba(0,0,0,0.3);
+  border-radius:999px;
+}
+.page-today .drawer-dot-gap { margin-right:12px; }
+.page-today .drawer-title { font-size:12px; font-weight:700; color:#2C2B29; }
+.page-today .drawer-sub { font-size:10px; color:#5C5854; }
+.page-today .drawer-count { font-size:12px; font-weight:700; color:#405140; }
+.page-today .drawer-count-label { font-size:8px; color:#5C5854; }
+.page-today .drawer-left { display:flex; align-items:center; gap:16px; }
+.page-today .drawer-right { text-align:right; }
+
+	.page-today .num{font-family:"Inter",Arial,sans-serif;font-weight:700;font-variant-numeric:tabular-nums}
+	</style>
+</head>
+<body class="page-today">
+<div class="app-viewport">
+
+<div class="scroll-area no-scrollbar">
+
+  <!-- 头部 -->
+  <div class="top-bar">
+    <div>
+      <div class="brand-row">
+        <h1 class="brand-name">KANSHI</h1>
+        <span class="brand-badge">简纸</span>
+      </div>
+      <p class="date-line" id="current-date-str">2026年7月20日 | 农历 丙午年·五月廿四</p>
+    </div>
+    <div class="weather-widget" id="weather-widget">
+      <span class="weather-icon" id="weather-icon">🌤️</span>
+      <div>
+        <span class="weather-temp" id="weather-temp">28°C</span>
+        <span class="weather-loc" id="weather-loc">北京市</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 运签 -->
+  <div class="fortune-card">
+    <div class="fortune-row">
+      <div>
+        <span class="fortune-badge">今日运签</span>
+        <p class="fortune-text" id="fortune-text">——</p>
+      </div>
+      <div class="fortune-right">
+        <span class="luck-label">幸运色</span>
+        <div class="lucky-color-box">
+          <span class="lucky-color-dot dot-darkgold" id="fortune-color-dot"></span>
+          <span class="luck-name" id="fortune-color-name"></span>
+        </div>
+      </div>
+    </div>
+    <div class="fortune-advisory">
+      <div>
+        <span class="advisory-suit">可做</span>
+        <span class="advisory-text" id="fortune-suit"></span>
+      </div>
+      <div class="advisory-divider"></div>
+      <div>
+        <span class="advisory-avoid">不宜</span>
+        <span class="advisory-text" id="fortune-avoid"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 搜索 -->
+  <div class="search-section">
+    <div class="search-wrap">
+      <svg class="search-icon" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-input" type="text" id="global-search-input" placeholder="搜索你的内容、工具或灵感...">
+    </div>
+    <div class="search-panel" id="search-autocomplete-panel"></div>
+  </div>
+
+  <!-- 高频入口 -->
+  <div class="section-title sc-title">今日高频</div>
+  <div class="shortcut-grid">
+    <div class="shortcut-card paper-card" id="goto-timeline">
+      <div class="shortcut-top">
+        <div class="shortcut-icon-box sc-icon-moments">
+          <svg width="20" height="20" fill="none" stroke="#92400E" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><circle cx="12" cy="13" r="3"/></svg>
+        </div>
+        <span class="shortcut-label">MOMENTS</span>
+      </div>
+      <div>
+        <div class="shortcut-title">今日动态</div>
+        <div class="shortcut-desc">看看今天发点啥？</div>
+      </div>
+    </div>
+    <div class="shortcut-card paper-card" id="goto-calories">
+      <div class="shortcut-top">
+        <div class="shortcut-icon-box sc-icon-diet">
+          <svg width="20" height="20" fill="none" stroke="#405140" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M18 7.5H6M12 7.5a4.5 4.5 0 110 9M12 7.5a4.5 4.5 0 100 9"/></svg>
+        </div>
+        <span class="shortcut-label">DIET</span>
+      </div>
+      <div>
+        <div class="shortcut-title">热量日记</div>
+        <div class="shortcut-desc">摄入与消耗数据追踪</div>
+      </div>
+    </div>
+    <div class="shortcut-card paper-card" id="goto-img2pdf">
+      <div class="shortcut-top">
+        <div class="shortcut-icon-box sc-icon-pdf">
+          <svg width="20" height="20" fill="none" stroke="#1E40AF" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376A8.965 8.965 0 0012 12.75c-.129 0-.258.011-.385.032A9.061 9.061 0 016.75 14.25v-1.5M19.5 3H11.25a1.125 1.125 0 00-1.125 1.125V15c0 .621.504 1.125 1.125 1.125h8.25A1.125 1.125 0 0020.625 15V4.125A1.125 1.125 0 0019.5 3z"/></svg>
+        </div>
+        <span class="shortcut-label">CONVERTER</span>
+      </div>
+      <div>
+        <div class="shortcut-title">图片转 PDF</div>
+        <div class="shortcut-desc">实用的小工具</div>
+      </div>
+    </div>
+    <div class="shortcut-card paper-card" id="goto-inspiration">
+      <div class="shortcut-top">
+        <div class="shortcut-icon-box sc-icon-insp">
+          <svg width="20" height="20" fill="none" stroke="#9F1239" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5a2.5 2.5 0 010-5H20"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 4h2v16M9 8h4M9 12h4"/></svg>
+        </div>
+      </div>
+      <div>
+        <div class="shortcut-title">灵感书架</div>
+        <div class="shortcut-desc">记录你的碎片灵感</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 抽屉 -->
+  <div class="drawer-section">
+    <div class="section-title">常用收纳屋</div>
+    <div class="drawer-item drawer-physical" id="goto-inspiration-drawer">
+      <div class="drawer-left">
+        <div class="drawer-handle">
+          <span class="drawer-dot drawer-dot-gap"></span>
+          <span class="drawer-dot"></span>
+        </div>
+        <div>
+          <div class="drawer-title">灵感抽屉</div>
+          <div class="drawer-sub">收集奇想、设计与参考</div>
+        </div>
+      </div>
+      <div class="drawer-right">
+        <span class="drawer-count" id="home-insp-count-badge">1</span>
+        <div class="drawer-count-label">条灵感</div>
+      </div>
+    </div>
+    <div class="drawer-item drawer-physical drawer-pwd" id="goto-password-lock">
+      <div class="drawer-left">
+        <div class="drawer-handle drawer-pwd-handle">
+          <span class="drawer-dot drawer-dot-gap"></span>
+          <span class="drawer-dot"></span>
+        </div>
+        <div>
+          <div class="drawer-title">密码抽屉</div>
+          <div class="drawer-sub">安全核心</div>
+        </div>
+      </div>
+      <div class="drawer-right">
+        <span class="drawer-pwd-status">已上锁</span>
+        <div class="drawer-count-label">手动防窥</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+  <!-- 底部导航 -->
+  <nav class="nav-bar">
+    <button class="nav-btn" id="nav-today">
+      <div class="nav-icon-wrap nav-active-pill">
+        <svg class="nav-icon clr-sage" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </div>
+      <span class="nav-label clr-sage">今天</span>
+    </button>
+    <button class="nav-btn" id="nav-todo">
+      <div class="nav-icon-wrap">
+        <svg class="nav-icon clr-ink" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      </div>
+      <span class="nav-label clr-ink">待办</span>
+    </button>
+    <button class="nav-btn" id="nav-records">
+      <div class="nav-icon-wrap">
+        <svg class="nav-icon clr-ink" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+      </div>
+      <span class="nav-label clr-ink">记录</span>
+    </button>
+    <button class="nav-btn" id="nav-tools">
+      <div class="nav-icon-wrap">
+        <svg class="nav-icon clr-ink" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
+      </div>
+      <span class="nav-label clr-ink">工具</span>
+    </button>
+    <button class="nav-btn" id="nav-storage">
+      <div class="nav-icon-wrap">
+        <svg class="nav-icon clr-ink" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-14v14m0-14L4 7m0 0v10l8 4"/></svg>
+      </div>
+      <span class="nav-label clr-ink">收纳盒</span>
+    </button>
+  </nav>
+
+  <!-- 模态框 -->
+  <div class="modal-overlay hidden" id="global-modal">
+    <div class="modal-box" id="modal-content-area"></div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+loadDatabase();
+
+// ─── 灵感徽章 ───
+var badge = document.getElementById('home-insp-count-badge');
+if (badge) badge.textContent = db.inspirations.length;
+
+// ─── 日期（含农历）───
+var dateEl = document.getElementById('current-date-str');
+if (dateEl) {
+  var d = new Date();
+  var wk = ['日','一','二','三','四','五','六'];
+  var dateStr = d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 星期'+wk[d.getDay()];
+  if (typeof Lunar !== 'undefined') {
+    try {
+      var lunar = Lunar.fromDate(d);
+      dateStr += ' | 农历 ' + lunar.getYearInGanZhi() + '年·' + lunar.getMonthInChinese() + '月' + lunar.getDayInChinese();
+    } catch(e) {}
+  }
+  dateEl.textContent = dateStr;
+}
+
+// ─── 天气（根据用户位置，Open-Meteo 实时 API）───
+function wmoIcon(code) {
+  if (code===0) return '☀️';
+  if (code<=3) return '🌤️';
+  if (code<=48) return '🌫️';
+  if (code<=57) return '🌦️';
+  if (code<=67) return '🌧️';
+  if (code<=77) return '❄️';
+  if (code<=82) return '🌦️';
+  if (code<=99) return '⛈️';
+  return '🌤️';
+}
+function refreshWeather() {
+  var locEl = document.getElementById('weather-loc');
+  var tempEl = document.getElementById('weather-temp');
+  var iconEl = document.getElementById('weather-icon');
+  if (!locEl||!tempEl||!iconEl) return;
+  locEl.textContent='定位中…';
+  tempEl.textContent='--°C';
+  iconEl.textContent='⏳';
+  if (!navigator.geolocation) { locEl.textContent='不支持定位'; iconEl.textContent='🌤️'; return; }
+  navigator.geolocation.getCurrentPosition(function(pos){
+    var lat=pos.coords.latitude, lng=pos.coords.longitude;
+    fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lng+'&current_weather=true&timezone=auto')
+      .then(function(r){return r.json()})
+      .then(function(d){
+        if (d.current_weather) {
+          tempEl.textContent=Math.round(d.current_weather.temperature)+'°C';
+          iconEl.textContent=wmoIcon(d.current_weather.weathercode);
+        }
+      }).catch(function(){tempEl.textContent='--°C';iconEl.textContent='🌤️'});
+    fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lng+'&format=json&accept-language=zh&zoom=10')
+      .then(function(r){return r.json()})
+      .then(function(d){
+        if (d&&d.address) {
+          var a=d.address;
+          locEl.textContent=a.city||a.town||a.village||a.county||a.state_district||a.state||a.country||'当前位置';
+        } else locEl.textContent='当前位置';
+      }).catch(function(){locEl.textContent='当前位置'});
+  }, function(){
+    locEl.textContent='定位失败';
+    tempEl.textContent='--°C';
+    iconEl.textContent='🌤️';
+  });
+}
+refreshWeather();
+var weatherWidget=document.getElementById('weather-widget');
+if(weatherWidget) weatherWidget.addEventListener('click',refreshWeather);
+
+// ─── 60甲子签诗库 ───
+var GANZHI_POEMS = {
+  '甲子':'甲子启岁，万象更新。心若向阳，无惧悲伤。今日宜定计划、开新局。',
+  '乙丑':'乙丑如牛，负重前行。一步一印，终抵青山。今日宜踏实耕耘，勿求速成。',
+  '丙寅':'丙寅虎跃，气势如虹。趁势而起，莫负东风。今日宜大胆进取，敢为人先。',
+  '丁卯':'丁卯月明，兔隐桂丛。静待良机，勿妄勿动。今日宜沉潜观察，不宜贸然。',
+  '戊辰':'戊辰成龙，潜渊吐珠。蓄力已久，正当出海。今日宜展露才华，大有可为。',
+  '己巳':'己巳蛇行，曲中求直。柔能克刚，弱能胜强。今日宜以退为进，智取为上。',
+  '庚午':'庚午天马，行空独往。志在千里，何惧路长。今日宜远行出发，开阔眼界。',
+  '辛未':'辛未衔草，羊群归巢。温厚待人，自有福报。今日宜施恩惠、广结善缘。',
+  '壬申':'壬申金猴，巧智无双。遇山开路，遇水架梁。今日宜智解难题，一展巧思。',
+  '癸酉':'癸酉鸡鸣，天色将明。勤者早行，惰者迟醒。今日宜早起步，抢占先机。',
+
+  '甲戌':'甲戌守成，如犬护庭。忠厚持家，风雨不惊。今日宜守业、持家、稳根基。',
+  '乙亥':'乙亥归藏，猪卧暖堂。蓄精养锐，来日方长。今日宜休养生息，不宜劳顿。',
+  '丙子':'丙子水动，暗流奔涌。顺势而下，不可强攻。今日宜顺势而为，借水力行舟。',
+  '丁丑':'丁丑泥深，牛步艰辛。耐心熬过，自有春耕。今日宜坚持隐忍，曙光在前。',
+  '戊寅':'戊寅松立，虎卧山脊。风骨不折，傲然独立。今日宜守正不移，行端坐直。',
+  '己卯':'己卯春草，兔戏林梢。生机勃发，绿满荒郊。今日宜开拓新域，播种希望。',
+  '庚辰':'庚辰鳞动，龙跃云中。扶摇直上，所向皆通。今日宜大展拳脚，事事亨通。',
+  '辛巳':'辛巳螣蛇，雾隐深泽。神机莫测，以静制动。今日宜谋定后动，以智取胜。',
+  '壬午':'壬午烽火，马踏狼烟。英雄胆色，在此一战。今日宜决断破局，义无反顾。',
+  '癸未':'癸未草茂，羊群食饱。温柔敦厚，福自来找。今日宜以善待人，不争不躁。',
+
+  '甲申':'甲申金猴，气贯斗牛。千钧一发，巧手能收。今日宜从容应变，危机化机。',
+  '乙酉':'乙酉凤鸣，金鸡报晓。天地清朗，百事正好。今日宜高调行事，正当其时。',
+  '丙戌':'丙戌熔金，犬守丹心。烈火真金，岁月可鉴。今日宜表忠心、证价值。',
+  '丁亥':'丁亥灯暖，猪卧炉前。围炉夜话，岁岁平安。今日宜亲友相聚，多些温情。',
+  '戊子':'戊子山高，鼠登松梢。积微成著，步步登高。今日宜从小事做起，积跬步至千里。',
+  '己丑':'己丑沃土，牛耕深亩。春种一粒，秋收万谷。今日宜栽培技能、投资未来。',
+  '庚寅':'庚寅松风，虎啸长空。独行天地，谁与争锋。今日宜独当一面，展现实力。',
+  '辛卯':'辛卯玉兔，月宫捣药。虽是一隅，功在九霄。今日宜坚守岗位，细小亦有大成。',
+  '壬辰':'壬辰潜龙，水底藏锋。云起之时，一跃苍穹。今日宜等待时机，不宜冲动。',
+  '癸巳':'癸巳灵蛇，曲径通幽。柳暗花明，终见高楼。今日宜转个思路，换个角度。',
+
+  '甲午':'甲午火盛，骏马奔腾。光芒万丈，正午当空。今日宜意气风发，大有作为。',
+  '乙未':'乙未兰香，羊栖芳冈。素心一片，岁月含章。今日宜淡泊明志，宁静致远。',
+  '丙申':'丙申烁金，猿臂摘星。灵光乍现，巧计天成。今日宜发挥创造力。',
+  '丁酉':'丁酉华羽，凤栖梧桐。高洁不染，何惧风凶。今日宜修身养性，保持清正。',
+  '戊戌':'戊戌山岳，犬卧岩壑。厚重不移，风雨不剥。今日宜稳守阵地，以静待变。',
+  '己亥':'己亥归流，猪入平洲。随波逐浪，自在悠悠。今日宜随缘自适，不必强求。',
+  '庚子':'庚子寒夜，鼠窥残月。暗蓄光芒，待旦而作。今日宜暗中用功，厚积薄发。',
+  '辛丑':'辛丑霜降，牛卧草堂。耐得寂寞，方有荣光。今日宜静心修炼，不慕浮华。',
+  '壬寅':'壬寅月出，虎啸幽谷。威而不猛，刚中带柔。今日宜以德服人，刚柔并济。',
+  '癸卯':'癸卯露重，兔隐月中。清辉遍洒，天地一同。今日宜心怀慈悲，多行善举。',
+
+  '甲辰':'甲辰渊深，龙潜碧浔。一声雷动，飞升入云。今日宜厚积薄发，一鸣惊人。',
+  '乙巳':'乙巳风起，蛇蜕旧衣。去故纳新，焕然可期。今日宜断舍离，轻装前行。',
+  '丙午':'丙午盛夏，马踏飞花。骄阳似火，烈烈其华。今日宜热情洋溢，大胆示爱。',
+  '丁未':'丁未暖阳，羊栖草场。悠然自得，福泽绵长。今日宜享受当下，知足常乐。',
+  '戊申':'戊申金秋，猿收百果。辛勤半载，收获满箩。今日宜验收成果、犒劳自己。',
+  '己酉':'己酉谷满，鸡唱丰年。仓廪殷实，不愁吃穿。今日宜理财盘点，知足惜福。',
+  '庚戌':'庚戌佩印，犬护金库。忠诚守责，邪祟不入。今日宜尽职守、管好财。',
+  '辛亥':'辛亥归藏，猪卧粮仓。满腹经纶，不争自彰。今日宜低调内敛，自有识者。',
+  '壬子':'壬子寒江，鼠渡苍茫。孤舟一叶，破浪而往。今日宜勇敢尝试，不畏风险。',
+  '癸丑':'癸丑冰封，牛困雪中。待得春来，草绿山重。今日宜熬过难关，坚持到底。',
+
+  '甲寅':'甲寅木王，虎踞高岗。万物生长，赖此春光。今日宜带动他人，发挥影响力。',
+  '乙卯':'乙卯春分，兔戏芳芬。花期正好，莫负良辰。今日宜约会、出游、享受好时光。',
+  '丙辰':'丙辰雷动，龙腾云涌。天降甘霖，泽被万众。今日宜助人施惠，功德无量。',
+  '丁巳':'丁巳焰起，蛇行炎地。浴火而生，蜕变可期。今日宜勇敢改变，重塑自我。',
+  '戊午':'戊午重峦，马越千山。天地辽阔，任尔往还。今日宜自由奔放，追逐梦想。',
+  '己未':'己未草繁，羊聚成团。和衷共济，温暖相伴。今日宜团队合作，众人拾柴。',
+  '庚申':'庚申金猿，智取仙丹。千变万化，不拘一端。今日宜灵活变通，多策略并行。',
+  '辛酉':'辛酉金鸡，独唱天西。一鸣惊人，万籁俱寂。今日宜展示才华，赢得喝彩。',
+  '壬戌':'壬戌海阔，犬守潮波。忠心不二，岁月如歌。今日宜坚守承诺，不负所托。',
+  '癸亥':'癸亥终章，猪卧福堂。一岁圆满，来日方长。今日宜收尾总结、感恩辞旧。'
+};
+
+// 12地支幸运色
+var ZHI_COLORS={
+  '子':{hex:'#1C1B1A',cls:'dot-zihei',name:'玄黑'},
+  '丑':{hex:'#C4A24E',cls:'dot-tuhuang',name:'土黄'},
+  '寅':{hex:'#2D5A27',cls:'dot-songlv',name:'松绿'},
+  '卯':{hex:'#C9A9C6',cls:'dot-ouhe',name:'藕荷'},
+  '辰':{hex:'#B8860B',cls:'dot-darkgold',name:'缃色'},
+  '巳':{hex:'#C04040',cls:'dot-zhusha',name:'朱砂'},
+  '午':{hex:'#B22222',cls:'dot-yanzhi',name:'胭脂'},
+  '未':{hex:'#D2C9B8',cls:'dot-tubai',name:'荼白'},
+  '申':{hex:'#A8C8D8',cls:'dot-yuebai',name:'月白'},
+  '酉':{hex:'#D4AF37',cls:'dot-liujin',name:'鎏金'},
+  '戌':{hex:'#A0816A',cls:'dot-tuose',name:'驼色'},
+  '亥':{hex:'#4A3C5C',cls:'dot-daizi',name:'黛紫'}
+};
+
+// ─── 运签 ───
+function refreshFortune() {
+  if (typeof Lunar==='undefined') {
+    if(document.getElementById('fortune-text')) document.getElementById('fortune-text').textContent='——';
+    return;
+  }
+  try {
+    var lunar=Lunar.fromDate(new Date());
+    var ganzhiDay=lunar.getDayInGanZhi(); // 如"乙未"
+    var zhi=lunar.getDayZhi();             // 如"未"
+    var yiList=lunar.getDayYi();
+    var jiList=lunar.getDayJi();
+
+    var poem=GANZHI_POEMS[ganzhiDay]||'日升月落平常心。今日宜静不宜躁。';
+    var color=ZHI_COLORS[zhi]||{hex:'#B8860B',cls:'dot-darkgold',name:'暗金'};
+
+    // 额外追加 dot class 到 CSS 中
+    var ft=document.getElementById('fortune-text');
+    var fcd=document.getElementById('fortune-color-dot');
+    var fcn=document.getElementById('fortune-color-name');
+    var fSuit=document.getElementById('fortune-suit');
+    var fAvoid=document.getElementById('fortune-avoid');
+    if(ft) ft.textContent='『'+ganzhiDay+'』'+' '+poem;
+    if(fcd){fcd.className='lucky-color-dot '+color.cls;}
+    if(fcn) fcn.textContent=color.name;
+    if(fSuit) fSuit.textContent=yiList?yiList.slice(0,4).join('  ')||'诸事皆宜':'诸事皆宜';
+    if(fAvoid) fAvoid.textContent=jiList?jiList.slice(0,4).join('  ')||'无所禁忌':'无所禁忌';
+  } catch(e){
+    if(document.getElementById('fortune-text')) document.getElementById('fortune-text').textContent='——';
+  }
+}
+refreshFortune();
+
+// ─── 搜索 ───
+var searchCatalog = [
+  { key:"imeline moments 朋友圈", title:"⏳ 今日动态", url:"timeline.html" },
+  { key:"热量 减肥 diet 卡路里", title:"🍴 饮食与热量记账", url:"calories.html" },
+  { key:"图片 pdf converter 转换", title:"📄 批量图片转 PDF", url:"img2pdf.html" },
+  { key:"灵感 spark 创意 小说", title:"💡 灵感归档工坊", url:"inspiration.html" },
+  { key:"密码 安全 密钥 lock", title:"🔑 密码抽屉", url:"password-lock.html" },
+  { key:"打卡 习惯 坚持 streak", title:"🎖️ 习惯进化打卡", url:"habits.html" },
+  { key:"日记 diary 写作 长文", title:"📖 心灵日记本", url:"diary.html" },
+  { key:"读书 观后感 书影 评分", title:"🎨 观感活页册", url:"books.html" },
+  { key:"照片 回忆 瞬间 画廊", title:"🖼️ 影像回忆画廊", url:"gallery.html" },
+  { key:"二维码 qrcode 码上游", title:"📲 码上游离线传输", url:"qrcode.html" }
+];
+
+var searchInput = document.getElementById('global-search-input');
+var searchPanel = document.getElementById('search-autocomplete-panel');
+
+searchInput.addEventListener('input', function() {
+  var q = this.value.trim().toLowerCase();
+  searchPanel.innerHTML = '';
+  if (!q) { searchPanel.classList.remove('show'); return; }
+  var matched = searchCatalog.filter(function(item) {
+    return item.key.indexOf(q) >= 0 || item.title.indexOf(q) >= 0;
+  });
+  if (matched.length === 0) {
+    searchPanel.innerHTML = '<div class="search-empty">没有搜索到相关的记录...</div>';
+  } else {
+    matched.forEach(function(item) {
+      var div = document.createElement('div');
+      div.className = 'search-item';
+      div.innerHTML = '<span>' + item.title + '</span><span class="search-badge">打开</span>';
+      div.addEventListener('click', function() {
+        window.location.href = item.url;
+      });
+      searchPanel.appendChild(div);
+    });
+  }
+  searchPanel.classList.add('show');
+});
+
+document.addEventListener('click', function(e) {
+  if (e.target !== searchInput && !searchPanel.contains(e.target)) {
+    searchPanel.classList.remove('show');
+  }
+});
+
+// ─── 导航 ───
+document.getElementById('nav-today').addEventListener('click', function(){ window.location.href='index.html'; });
+document.getElementById('nav-todo').addEventListener('click', function(){ window.location.href='todo.html'; });
+document.getElementById('nav-records').addEventListener('click', function(){ window.location.href='records.html'; });
+document.getElementById('nav-tools').addEventListener('click', function(){ window.location.href='tools.html'; });
+document.getElementById('nav-storage').addEventListener('click', function(){ window.location.href='storage.html'; });
+
+// ─── 快捷入口 ───
+document.getElementById('goto-timeline').addEventListener('click', function(){ window.location.href='timeline.html'; });
+document.getElementById('goto-calories').addEventListener('click', function(){ window.location.href='calories.html'; });
+document.getElementById('goto-img2pdf').addEventListener('click', function(){ window.location.href='img2pdf.html'; });
+document.getElementById('goto-inspiration').addEventListener('click', function(){ window.location.href='inspiration.html'; });
+document.getElementById('goto-inspiration-drawer').addEventListener('click', function(){ window.location.href='inspiration.html'; });
+document.getElementById('goto-password-lock').addEventListener('click', function(){ window.location.href='password-lock.html'; });
+
+})();
+</script>
+</body>
+</html>

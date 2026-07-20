@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>简纸 — 饮食热量</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+SC:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="shared.js"></script>
+<style>
+
+body.page-cal{ margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Outfit',sans-serif; -webkit-tap-highlight-color:transparent; }
+.page-cal .app-viewport{ max-width:480px; margin:0 auto; background:#F5F4F0; min-height:100vh; display:flex; flex-direction:column; }
+.page-cal .no-scrollbar::-webkit-scrollbar{ display:none; }
+.page-cal .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
+.page-cal .kanshi-toast{ position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:999;background:#1C1B1A;color:#FBBF24;border:1px solid #2C2B29;padding:8px 20px;border-radius:999px;font-size:12px;font-weight:700;animation:fadeSlideIn 0.3s ease-out; }
+@keyframes fadeSlideIn{0%{opacity:0;transform:translateX(-50%)translateY(-12px)}100%{opacity:1;transform:translateX(-50%)translateY(0)}}
+.page-cal .modal-overlay{ position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;display:flex;align-items:center;justify-content:center;padding:24px }
+.page-cal .modal-overlay.hidden{ display:none }
+.page-cal .hidden { display:none !important; }
+.page-cal .preset-btn { background:#E3E8E3; color:#405140; border:1px solid #CCD7CC; padding:4px 10px; font-size:10px; border-radius:999px; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+.page-cal .preset-btn.selected { background:#405140; color:#FFF; }
+.page-cal .modal-content{ background:#F5F4F0;border:1px solid #DDD9CF;width:100%;max-width:360px;border-radius:24px;padding:24px }
+
+
+.page-cal .header-bar{ height:56px; border-bottom:1px solid #EAE7E1; padding:0 16px; display:flex; align-items:center; justify-content:space-between; background:#F5F4F0; position:relative; }
+
+
+.page-cal .cal-viewport{ flex:1; position:relative; overflow:hidden; }
+.page-cal .cal-view{ position:absolute; top:0; left:0; right:0; bottom:0; transform:translateX(100%); transition:transform 0.3s cubic-bezier(0.22,1,0.36,1); z-index:5; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.page-cal .cal-view.active{ transform:translateX(0); z-index:10; }
+.page-cal .cal-view.base{ transform:translateX(0); z-index:1; }
+
+
+.page-cal .dash{ padding:20px 16px 120px; }
+.page-cal .stat-card{ background:#FFF; border:1px solid #EAE7E1; border-radius:16px; padding:20px; margin-bottom:16px; }
+.page-cal .nutri-grid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:20px; }
+.page-cal .nutri-item{ background:#FFF; border-radius:12px; padding:14px; text-align:center; }
+.page-cal .exe-grid{ display:flex; justify-content:space-between; text-align:center; gap:8px; }
+.page-cal .exe-item{ flex:1; background:#FFF; border-radius:12px; padding:12px; }
+
+
+.page-cal .view-header{ height:56px; border-bottom:1px solid #EAE7E1; padding:0 16px; display:flex; align-items:center; justify-content:space-between; background:#FFF; flex-shrink:0; }
+.page-cal .input-scroll{ padding:20px 16px 120px; }
+.page-cal .period-btn{ padding:6px 16px; font-size:11px; border-radius:8px; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+.page-cal .period-btn.active{ background:#405140; color:#FFF; }
+.page-cal .period-btn.inactive{ background:#F5F4F0; color:#5C5854; }
+
+
+.page-cal .confirm-footer{ position:sticky; bottom:0; background:#FFF; border-top:1px solid #EAE7E1; padding:12px 16px 24px; display:flex; align-items:center; justify-content:space-between; }
+
+.page-cal .aa0{background:none;border:none;padding:8px;color:#2C2B29;cursor:pointer}
+.page-cal .aa1{font-size:14px;font-weight:700}
+.page-cal .aa2{display:flex;gap:4px}
+.page-cal .aa3{background:none;border:none;padding:6px;color:#5C5854;cursor:pointer}
+.page-cal .aa4{font-size:20px;font-weight:700;color:#2C2B29;margin-bottom:20px}
+.page-cal .aa5{display:flex;justify-content:space-around;text-align:center;margin-bottom:12px}
+.page-cal .aa6{color:#F97316;font-size:28px;font-weight:700}
+.page-cal .b95{font-size:10px;color:#5C5854}
+.page-cal .aa8{color:#EAE7E1;font-size:24px}
+.page-cal .aa9{color:#F43F5E;font-size:28px;font-weight:700}
+.page-cal .aa10{color:#10B981;font-size:28px;font-weight:700}
+.page-cal .aa11{background:#FAFAF9;margin:0 -20px -20px;padding:12px 20px;border-top:1px solid #EAE7E1;font-size:10px;color:#5C5854}
+.page-cal .aa12{margin-bottom:16px}
+.page-cal .aa13{font-size:12px;font-weight:700;color:#2C2B29}
+.page-cal .aa14{font-size:9px;color:#5C5854}
+.page-cal .aa15{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.page-cal .aa16{padding:6px 10px;background:#405140;color:#FFF;border:none;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer}
+.page-cal .aa17{border:1px solid #FECACA}
+.page-cal .aa18{font-size:18px;font-weight:700;color:#F43F5E}
+.page-cal .aa19{font-size:10px;color:#FDA4AF}
+.page-cal .aa20{border:1px solid #BFDBFE}
+.page-cal .aa21{font-size:18px;font-weight:700;color:#3B82F6}
+.page-cal .aa22{font-size:10px;color:#93C5FD}
+.page-cal .aa23{border:1px solid #FDE68A}
+.page-cal .aa24{font-size:18px;font-weight:700;color:#F59E0B}
+.page-cal .aa25{font-size:10px;color:#FCD34D}
+.page-cal .aa26{font-size:10px;color:#405140;background:none;border:none;cursor:pointer;font-family:inherit;text-decoration:underline}
+.page-cal .aa27{display:flex;flex-direction:column;gap:4px}
+.page-cal .aa28{width:32px}
+.page-cal .aa29{width:100%;min-height:80px;padding:12px;font-size:12px;background:#FAFAF9;border:1px solid #EAE7E1;border-radius:12px;outline:none;font-family:inherit;box-sizing:border-box;margin-bottom:16px}
+.page-cal .aa30{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.page-cal .aa31{font-size:10px;color:#5C5854;margin-bottom:8px}
+.page-cal .aa32{display:flex;gap:8px;margin-bottom:16px}
+.page-cal .aa33{display:flex;align-items:center;gap:12px;background:#FAFAF9;border:1px solid #EAE7E1;border-radius:12px;padding:10px 16px;margin-bottom:16px}
+.page-cal .aa34{flex:1;background:transparent;border:none;outline:none;font-size:24px;font-weight:700;color:#F97316;text-align:center}
+.page-cal .aa35{font-size:12px;color:#5C5854}
+.page-cal .aa36{display:flex;gap:8px}
+.page-cal .aa37{flex:1;height:44px;background:#405140;color:#FFF;border:none;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer}
+.page-cal .aa38{flex:1;height:44px;background:#2C2B29;color:#FBBF24;border:none;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer}
+.page-cal .aa39{padding:20px 16px}
+.page-cal .aa40{background:#FAFAF9;border-radius:16px;padding:20px;margin-bottom:20px}
+.page-cal .aa41{font-size:16px;font-weight:700;color:#2C2B29}
+.page-cal .aa42{display:flex;gap:8px;margin-top:8px}
+.page-cal .aa43{font-size:10px;padding:4px 8px;border-radius:999px;background:#E3E8E3;color:#405140}
+.page-cal .aa44{border:1px solid #FED7AA}
+.page-cal .aa45{width:100%;background:transparent;border:none;outline:none;font-size:18px;font-weight:700;color:#F97316;text-align:center}
+.page-cal .aa46{width:100%;background:transparent;border:none;outline:none;font-size:18px;font-weight:700;color:#F43F5E;text-align:center}
+.page-cal .aa47{width:100%;background:transparent;border:none;outline:none;font-size:18px;font-weight:700;color:#3B82F6;text-align:center}
+.page-cal .aa48{display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer}
+.page-cal .aa49{padding:10px 20px;background:#405140;color:#FFF;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer}
+.page-cal .aa50{padding:20px 16px 120px}
+.page-cal .aa51{background:#FFF;border:1px solid #EAE7E1;border-radius:16px;padding:20px;margin-bottom:16px}
+.page-cal .aa52{display:flex;gap:8px;margin-bottom:12px}
+.page-cal .aa53{flex:1;height:40px;padding:0 12px;font-size:12px;border:1px solid #EAE7E1;border-radius:8px;outline:none;box-sizing:border-box}
+.page-cal .aa54{width:80px;height:40px;text-align:center;font-size:16px;font-weight:700;border:1px solid #EAE7E1;border-radius:8px;outline:none}
+.page-cal .aa55{font-size:10px;color:#5C5854;align-self:center}
+.page-cal .aa56{width:100%;height:40px;background:#405140;color:#FFF;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer}
+.page-cal .aa57{background:#FAFAF9;border-radius:16px;padding:16px}
+.page-cal .aa58{display:flex;justify-content:space-between;margin-bottom:12px}
+.page-cal .b83{font-size:10px;color:#A1A1AA;text-align:center;padding:12px}
+.page-cal .aa60{padding:6px 12px;background:#405140;color:#FFF;border:none;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer}
+.page-cal .aa61{background:#FFF;border:1px solid #EAE7E1;border-radius:16px;padding:20px;text-align:center;margin-bottom:16px}
+.page-cal .aa62{display:flex;align-items:center;justify-content:center;gap:8px}
+.page-cal .aa63{width:80px;background:transparent;border:none;outline:none;font-size:36px;font-weight:700;color:#405140;text-align:center}
+.page-cal .aa64{font-size:14px;color:#A1A1AA}
+.page-cal .aa65{display:flex;justify-content:center;gap:32px;margin-top:12px;padding-top:12px;border-top:1px solid #EAE7E1;font-size:12px}
+.page-cal .aa66{font-weight:700}
+.page-cal .aa67{font-weight:700;color:#10B981}
+.page-cal .aa68{height:160px;background:#FAFAF9;border-radius:16px;padding:16px;margin-bottom:16px}
+.page-cal .aa69{font-size:12px;font-weight:700;color:#2C2B29;margin-bottom:12px}
+.page-cal .aa70{width:100%;height:100px}
+.page-cal .aa71{text-align:center;font-size:10px;color:#A1A1AA;padding:24px}
+.page-cal .aa72{background:#FAFAF9;border-radius:16px;padding:20px}
+.page-cal .aa73{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.page-cal .aa74{height:36px;padding:0 8px;font-size:12px;border:1px solid #EAE7E1;border-radius:8px;outline:none}
+.page-cal .aa75{height:36px;font-size:12px;border:1px solid #EAE7E1;border-radius:8px}
+.page-cal .aa76{padding:20px 16px 120px;display:flex;flex-direction:column;gap:16px}
+.page-cal .b77{text-align:center;padding:24px;color:#A1A1AA;font-size:12px}
+.page-cal .b78{display:flex;justify-content:space-between;background:#FFF;border:1px solid #EAE7E1;border-radius:10px;padding:10px 12px}
+.page-cal .b79{font-size:10px;padding:2px 6px;background:#E3E8E3;border-radius:4px}
+.page-cal .b80{font-size:12px;flex:1;margin-left:8px;color:#2C2B29}
+.page-cal .b81{font-size:12px;font-weight:700;color:#D97706}
+.page-cal .b82{padding:4px 10px;font-size:10px;border-radius:999px;background:#E3E8E3;color:#405140;border:1px solid #CCD7CC;cursor:pointer;font-family:inherit}
+.page-cal .b84{display:flex;justify-content:space-between;background:#FFF;border:1px solid #EAE7E1;border-radius:10px;padding:10px 12px;margin-bottom:4px}
+.page-cal .b85{font-size:12px;color:#2C2B29}
+.page-cal .b86{font-size:12px;font-weight:700;color:#F43F5E}
+.page-cal .b87{display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #EAE7E1;margin-bottom:16px}
+.page-cal .b88{font-size:14px;font-weight:700;color:#2C2B29}
+.page-cal .b89{background:none;border:none;color:#5C5854;font-size:16px;cursor:pointer}
+.page-cal .b90{width:100%;height:48px;font-size:20px;font-weight:700;text-align:center;border:1px solid #EAE7E1;border-radius:12px;outline:none;margin-bottom:16px;box-sizing:border-box}
+.page-cal .b91{width:100%;height:44px;background:#405140;color:#FFF;border:none;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer}
+.page-cal .b92{text-align:center;padding:48px;color:#A1A1AA;font-size:14px}
+.page-cal .b93{display:flex;justify-content:space-between;margin-bottom:8px}
+.page-cal .b94{font-size:13px;font-weight:700;color:#2C2B29}
+.page-cal .b96{display:flex;justify-content:space-between;background:#FAFAF9;border:1px solid #EAE7E1;border-radius:10px;padding:8px 12px;margin-bottom:4px}
+
+
+	.page-cal .num{font-family:"Inter",Arial,sans-serif;font-weight:700;font-variant-numeric:tabular-nums}
+	</style>
+</head>
+<body class="page-cal">
+<div class="app-viewport">
+  <div class="header-bar" id="main-header">
+    <button onclick="history.back()" class="back-btn"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+    <h3 class="header-title">饮食与热量</h3>
+    <div class="back-btn">
+      <button onclick="openView('view-exercise')" class="add-btn" title="运动记录"><svg width="20" height="20" viewBox="0 0 1027 1024" fill="currentColor"><path d="M716.6 242.4c67 0 121.2-54.2 121.2-121.2S783.6 0 716.6 0s-121.2 54.2-121.2 121.2 54.2 121.2 121.2 121.2z"/></svg></button>
+      <button onclick="openView('view-goals')" class="add-btn" title="目标体重"><svg width="20" height="20" viewBox="0 0 1024 1024" fill="currentColor"><path d="M512 50.7c42.9 0 81.8 17.4 110 45.6 28.1 28.1 45.6 67 45.5 110 0 42.9-17.4 81.8-45.5 110S555 361.8 512 361.8s-81.9-17.4-110-45.6c-28.2-28.2-45.6-67.1-45.6-110 0-42.9 17.4-81.9 45.6-110 28.1-28.2 67.1-45.5 110-45.5z"/></svg></button>
+    </div>
+  </div>
+
+  <div class="cal-viewport" id="cal-viewport">
+    <!-- ── Dashboard ── -->
+    <div class="cal-view base active" id="view-dashboard">
+      <div class="dash no-scrollbar">
+        <h1 class="back-btn">今日概览</h1>
+        <div class="stat-card">
+          <div class="back-btn">
+            <div><div class="back-btn" id="cal-in">0</div><div class="back-btn">摄入</div></div>
+            <div class="back-btn">−</div>
+            <div><div class="back-btn" id="cal-out">0</div><div class="back-btn">消耗</div></div>
+            <div class="back-btn">=</div>
+            <div><div class="back-btn" id="cal-def">0</div><div class="back-btn">缺口</div></div>
+          </div>
+          <div class="back-btn" id="def-guide">健康减脂建议保持 300~500 kcal 缺口</div>
+        </div>
+        <div class="exe-grid" class="back-btn">
+          <div class="exe-item"><div class="back-btn" id="cal-bmr">0</div><div class="back-btn">基础代谢</div></div>
+          <div class="exe-item"><div class="back-btn" id="cal-activity">0</div><div class="back-btn">活动</div></div>
+          <div class="exe-item"><div class="back-btn" id="cal-total-out">0</div><div class="back-btn">总消耗</div></div>
+        </div>
+        <div class="back-btn">
+          <h3 class="header-title">营养素</h3>
+          <button onclick="openView('view-record-input')" class="add-btn">+ 记录</button>
+        </div>
+        <div class="nutri-grid">
+          <div class="nutri-item" class="back-btn"><div class="back-btn">蛋白质</div><div class="back-btn"><span id="cal-protein">0</span><span class="back-btn">g</span></div></div>
+          <div class="nutri-item" class="back-btn"><div class="back-btn">碳水</div><div class="back-btn"><span id="cal-carbs">0</span><span class="back-btn">g</span></div></div>
+          <div class="nutri-item" class="back-btn"><div class="back-btn">脂肪</div><div class="back-btn"><span id="cal-fat">0</span><span class="back-btn">g</span></div></div>
+        </div>
+        <div class="back-btn">
+          <h3 class="header-title">今日记录</h3>
+          <button onclick="openView('view-history')" class="add-btn">历史</button>
+        </div>
+        <div id="today-records" class="back-btn"></div>
+      </div>
+    </div>
+
+    <!-- ── Record Input ── -->
+    <div class="cal-view" id="view-record-input">
+      <div class="view-header">
+        <button onclick="closeView()" class="back-btn"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+        <h3 class="header-title">记录食物</h3>
+        <span class="header-spacer"></span>
+      </div>
+      <div class="input-scroll no-scrollbar">
+        <textarea id="diet-text" placeholder="例如：一碗米饭、两个鸡蛋..." class="back-btn"></textarea>
+        <div class="back-btn" id="preset-grid"></div>
+        <p class="back-btn">时段</p>
+        <div class="back-btn" id="period-selector">
+          <button class="period-btn active" onclick="selectPeriod('早餐')">早餐</button>
+          <button class="period-btn inactive" onclick="selectPeriod('午餐')">午餐</button>
+          <button class="period-btn inactive" onclick="selectPeriod('晚餐')">晚餐</button>
+          <button class="period-btn inactive" onclick="selectPeriod('加餐')">加餐</button>
+        </div>
+        <div class="back-btn">
+          <input type="number" id="diet-cal" value="0" min="0" class="back-btn">
+          <span class="back-btn">kcal</span>
+        </div>
+        <div class="back-btn">
+          <button onclick="analyzeAndGo()" class="back-btn">营养分析</button>
+          <button onclick="goToConfirm()" class="back-btn">确认录入</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Confirm ── -->
+    <div class="cal-view" id="view-confirm">
+      <div class="view-header">
+        <button onclick="backToInput()" class="back-btn"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+        <h3 class="header-title">确认食物</h3>
+        <span class="header-spacer"></span>
+      </div>
+      <div class="back-btn">
+        <div class="back-btn">
+          <div class="back-btn" id="confirm-name">—</div>
+          <div class="back-btn"><span class="back-btn" id="confirm-period">早餐</span></div>
+        </div>
+        <div class="nutri-grid">
+          <div class="nutri-item" class="back-btn"><div class="back-btn">热量</div><input type="number" id="conf-cal" value="0" class="back-btn"></div>
+          <div class="nutri-item" class="back-btn"><div class="back-btn">蛋白质</div><input type="number" id="conf-protein" value="0" step="0.1" class="back-btn"></div>
+          <div class="nutri-item" class="back-btn"><div class="back-btn">碳水</div><input type="number" id="conf-carbs" value="0" step="0.1" class="back-btn"></div>
+        </div>
+      </div>
+      <div class="confirm-footer">
+        <label class="back-btn">
+          <input type="checkbox" id="remember-food"> 记住这个食物
+        </label>
+        <button onclick="submitRecord()" class="back-btn">确认</button>
+      </div>
+    </div>
+
+    <!-- ── Exercise ── -->
+    <div class="cal-view" id="view-exercise">
+      <div class="view-header">
+        <button onclick="closeView()" class="back-btn"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+        <h3 class="header-title">运动记录</h3>
+        <span class="header-spacer"></span>
+      </div>
+      <div class="back-btn">
+        <div class="back-btn">
+          <div class="back-btn">
+            <input type="text" id="ex-name" placeholder="运动名称" class="back-btn">
+            <input type="number" id="ex-cal" placeholder="200" class="back-btn">
+            <span class="back-btn">kcal</span>
+          </div>
+          <button onclick="submitEx()" class="back-btn">+ 添加</button>
+        </div>
+        <div id="ex-list" class="back-btn">
+          <div class="back-btn"><span class="back-btn">今日运动</span><span class="back-btn" id="ex-total">0 kcal</span></div>
+          <div id="ex-items"><p class="back-btn">暂无记录</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Goals ── -->
+    <div class="cal-view" id="view-goals">
+      <div class="view-header">
+        <button onclick="closeView()" class="back-btn"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+        <h3 class="header-title">目标体重</h3>
+        <button onclick="openWeightModal()" class="add-btn">记录</button>
+      </div>
+      <div class="back-btn">
+        <div class="back-btn">
+          <p class="back-btn">目标体重</p>
+          <div class="back-btn">
+            <input type="number" id="goal-weight" value="60" class="back-btn">
+            <span class="back-btn">kg</span>
+          </div>
+          <div class="back-btn">
+            <div><span class="back-btn">最新</span><p class="back-btn" id="w-latest">—</p></div>
+            <div><span class="back-btn">变化</span><p class="back-btn" id="w-change">—</p></div>
+          </div>
+        </div>
+        <div class="back-btn">
+          <h3 class="header-title">体重趋势</h3>
+          <svg id="chart-svg" class="back-btn" viewBox="0 0 100 100" preserveAspectRatio="none"><path id="chart-line" d="" fill="none" stroke="#3B82F6" stroke-width="1.5"/></svg>
+          <p id="chart-empty" class="back-btn">尚未有体重记录</p>
+        </div>
+        <div class="back-btn">
+          <h3 class="header-title">BMR 计算</h3>
+          <div class="back-btn">
+            <input type="number" id="bmr-height" placeholder="身高 cm" class="back-btn">
+            <input type="number" id="bmr-weight" placeholder="体重 kg" class="back-btn">
+            <input type="number" id="bmr-age" placeholder="年龄" class="back-btn">
+            <select id="bmr-gender" class="back-btn"><option value="female">女性</option><option value="male">男性</option></select>
+          </div>
+          <button onclick="saveBMR()" class="back-btn">保存设置</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── History ── -->
+    <div class="cal-view" id="view-history">
+      <div class="view-header">
+        <button onclick="closeView()" class="back-btn"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+        <h3 class="header-title">历史记录</h3>
+        <span class="header-spacer"></span>
+      </div>
+      <div class="back-btn" id="history-container"></div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay hidden" id="global-modal"><div class="modal-content" id="modal-content-area"></div></div>
+<script>
+loadDatabase();
+var viewStack = ['view-dashboard'];
+var selectedPeriod = '早餐';
+
+function renderDashboard() {
+  var today = getTodayISO();
+  var logs = (db.dietLogs||[]).filter(function(l){ return l.timestamp && l.timestamp.slice(0,10) === today; });
+  var ex = (db.exerciseLogs||[]).filter(function(l){ return l.date === today; });
+  var totalIn=0, p=0, c=0, f=0;
+  logs.forEach(function(l){ totalIn+=l.calories||0; p+=l.protein||0; c+=l.carbs||0; f+=l.fat||0; });
+  var bmrS = { bmr:0, activity:0 };
+  try { var s = localStorage.getItem('KANSHI_DIET_BMR'); if (s) bmrS = JSON.parse(s); } catch(e) {}
+  var exCal = ex.reduce(function(s,l){return s+(l.calories||0);},0);
+  var bmr = bmrS.bmr||0, act = (bmrS.activity||0) + exCal, out = bmr + act;
+  var def = totalIn > 0 ? out - totalIn : 0;
+  setText('cal-in', totalIn); setText('cal-out', out); setText('cal-def', Math.abs(def));
+  setText('cal-bmr', bmr); setText('cal-activity', act); setText('cal-total-out', out);
+  setText('cal-protein', p); setText('cal-carbs', c); setText('cal-fat', f);
+  var guide = document.getElementById('def-guide');
+  if (guide) {
+    if (def<0) guide.textContent = '📈 热量盈余 '+Math.abs(def)+' kcal';
+    else if (def>=500) guide.textContent = '🔥 缺口充足';
+    else if (def>=300) guide.textContent = '👍 接近理想';
+    else if (totalIn===0) guide.textContent = '今天还没记录';
+    else guide.textContent = '💪 继续加油';
+  }
+  var r = document.getElementById('today-records');
+  if (r) {
+    if (logs.length===0) r.innerHTML = '<div class="back-btn">暂无记录</div>';
+    else {
+      logs.sort(function(a,b){ return (a.type||'') > (b.type||'') ? 1 : -1; });
+      r.innerHTML = logs.map(function(l){
+        return '<div class="back-btn">' +
+          '<span class="back-btn">'+escapeHtml(l.type||'')+'</span>' +
+          '<span class="back-btn">'+escapeHtml(l.name||'')+'</span>' +
+          '<span class="back-btn">'+(l.calories||0)+'</span></div>';
+      }).join('');
+    }
+  }
+}
+function setText(id, val) { var el=document.getElementById(id); if (el) el.textContent=val; }
+
+function openView(id) {
+  viewStack.push(id);
+  document.querySelectorAll('.cal-view').forEach(function(v){ v.classList.remove('active'); });
+  var el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  if (id === 'view-record-input') renderPresets();
+  if (id === 'view-goals') renderChart();
+  if (id === 'view-history') renderHistory();
+  if (id === 'view-exercise') renderExList();
+}
+function closeView() {
+  if (viewStack.length <= 1) return;
+  viewStack.pop();
+  var cur = viewStack[viewStack.length-1];
+  document.querySelectorAll('.cal-view').forEach(function(v){ v.classList.remove('active'); });
+  var el = document.getElementById(cur);
+  if (el) el.classList.add('active');
+  if (cur === 'view-dashboard') renderDashboard();
+}
+
+// ═══ Presets ═══
+var DEFAULT_PRESETS = [{name:'咖啡',cal:30},{name:'米饭',cal:150},{name:'鸡蛋',cal:70},{name:'面食',cal:250},{name:'牛奶',cal:180},{name:'苹果',cal:45}];
+function getPresets() { try { var s=localStorage.getItem('KANSHI_DIET_PRESETS'); return s?JSON.parse(s):DEFAULT_PRESETS; } catch(e){return DEFAULT_PRESETS;} }
+function renderPresets() {
+  var g=document.getElementById('preset-grid'); if(!g)return;
+  g.innerHTML = getPresets().map(function(p){ return '<button onclick="quickFill('+p.cal+',this)" data-cal="'+p.cal+'" class="b5 preset-btn">'+p.name+'</button>'; }).join('');
+  g.querySelectorAll('button').forEach(function(b){ b.classList.remove('selected'); });
+}
+function quickFill(cal, btn) {
+  var inp=document.getElementById('diet-cal');
+  if (!inp) return;
+  if (btn.classList.contains('selected')) {
+    btn.classList.remove('selected');
+    inp.value = Math.max(0, (parseInt(inp.value)||0) - cal);
+  } else {
+    btn.classList.add('selected');
+    inp.value = (parseInt(inp.value)||0) + cal;
+  }
+}
+function selectPeriod(p) {
+  selectedPeriod=p;
+  document.querySelectorAll('.period-btn').forEach(function(b){ b.className='period-btn '+(b.textContent.trim()===p?'active':'inactive'); });
+}
+function analyzeAndGo() { goToConfirm(); }
+function goToConfirm() {
+  var text = document.getElementById('diet-text');
+  var calInp = document.getElementById('diet-cal');
+  if (!text||!calInp) return;
+  var name = text.value.trim()||'未命名食物';
+  var cal = parseInt(calInp.value)||0;
+  document.getElementById('confirm-name').textContent = name;
+  document.getElementById('confirm-period').textContent = selectedPeriod;
+  document.getElementById('conf-cal').value = cal;
+  var m = estimateMacros(cal);
+  document.getElementById('conf-protein').value = m.protein;
+  document.getElementById('conf-carbs').value = m.carbs;
+  openView('view-confirm');
+}
+function backToInput() {
+  viewStack.pop();
+  document.getElementById('view-confirm').classList.remove('active');
+  document.getElementById('view-record-input').classList.add('active');
+}
+function estimateMacros(cal) { return { protein:Math.round(cal*0.25/4*10)/10, carbs:Math.round(cal*0.5/4*10)/10, fat:Math.round(cal*0.25/9*10)/10 }; }
+function submitRecord() {
+  var name=document.getElementById('confirm-name').textContent;
+  var cal=parseFloat(document.getElementById('conf-cal').value)||0;
+  var protein=parseFloat(document.getElementById('conf-protein').value)||0;
+  var carbs=parseFloat(document.getElementById('conf-carbs').value)||0;
+  var rem=document.getElementById('remember-food').checked;
+  if (!name||cal<=0) return;
+  db.dietLogs.push({ id:'diet_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), type:selectedPeriod, name:name, calories:cal, protein:protein, carbs:carbs, fat:0, timestamp:new Date().toISOString() });
+  saveDatabase();
+  // 回到仪表板
+  viewStack = ['view-dashboard'];
+  document.querySelectorAll('.cal-view').forEach(function(v){v.classList.remove('active');});
+  document.getElementById('view-dashboard').classList.add('active');
+  document.getElementById('diet-text').value='';
+  document.getElementById('diet-cal').value='0';
+  renderDashboard();
+  triggerToast('✅ 已记录 '+name+' ('+cal+' kcal)');
+}
+
+// ═══ Exercise ═══
+function renderExList() {
+  var today=getTodayISO();
+  var ex=(db.exerciseLogs||[]).filter(function(l){return l.date===today;});
+  var total = ex.reduce(function(s,l){return s+(l.calories||0);},0);
+  document.getElementById('ex-total').textContent=total+' kcal';
+  var list=document.getElementById('ex-items');
+  if (ex.length===0) list.innerHTML='<p class="back-btn">暂无记录</p>';
+  else list.innerHTML=ex.map(function(l){return '<div class="back-btn"><span class="back-btn">'+escapeHtml(l.name)+'</span><span class="back-btn">'+(l.calories||0)+' kcal</span></div>';}).join('');
+}
+function submitEx() {
+  var n=document.getElementById('ex-name'),c=document.getElementById('ex-cal');
+  if(!n||!c||!n.value.trim()||!parseInt(c.value)) return;
+  db.exerciseLogs.push({id:'ex_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), name:n.value.trim(), calories:parseInt(c.value), date:getTodayISO(), timestamp:new Date().toISOString()});
+  saveDatabase(); n.value=''; c.value=''; renderExList(); triggerToast('已记录运动');
+}
+
+// ═══ Goals & Weight ═══
+function renderChart() {
+  var logs=(db.weightLogs||[]).slice().sort(function(a,b){return (a.date||'').localeCompare(b.date||'');});
+  var target=60; try{var s=localStorage.getItem('KANSHI_DIET_BMR');if(s){var p=JSON.parse(s);target=p.targetWeight||60;document.getElementById('goal-weight').value=target;}}catch(e){}
+  var lat=document.getElementById('w-latest');
+  var chg=document.getElementById('w-change');
+  if (logs.length===0) { lat.textContent='—'; chg.textContent='—'; document.getElementById('chart-empty').classList.remove('hidden'); return; }
+  document.getElementById('chart-empty').classList.add('hidden');
+  lat.textContent=logs[logs.length-1].weight+'kg';
+  if (logs.length>=2) { var d=logs[logs.length-1].weight-logs[0].weight; chg.textContent=(d>0?'+':'')+d.toFixed(1)+'kg'; }
+  var weights=logs.map(function(l){return l.weight;});
+  var min=Math.min.apply(null,weights)-1, max=Math.max.apply(null,weights)+1, range=max-min||1;
+  var pts=weights.map(function(w,i){ var x=(i/(weights.length-1))*100; var y=100-((w-min)/range)*80-10; return x+','+y; }).join(' L');
+  document.getElementById('chart-line').setAttribute('d','M'+pts);
+}
+
+function openWeightModal() {
+  showModal('<div><div class="back-btn"><span class="back-btn">记录体重 ⚖️</span><button onclick="closeModal()" class="back-btn">✕</button></div>' +
+    '<input type="number" id="w-input" step="0.1" placeholder="65.0" class="back-btn">' +
+    '<button onclick="submitWeight()" class="back-btn">记录</button></div>');
+}
+function submitWeight() {
+  var inp=document.getElementById('w-input');
+  var w=parseFloat(inp?inp.value:0);
+  if(!w||w<=0)return;
+  db.weightLogs.push({id:'w_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), weight:w, date:getTodayISO(), timestamp:new Date().toISOString()});
+  saveDatabase(); closeModal(); renderChart();
+}
+function saveBMR() {
+  var h=parseFloat(document.getElementById('bmr-height').value)||0;
+  var w=parseFloat(document.getElementById('bmr-weight').value)||0;
+  var age=parseInt(document.getElementById('bmr-age').value)||0;
+  var gender=document.getElementById('bmr-gender').value;
+  var bmr=gender==='male'?Math.round(10*w+6.25*h-5*age+5):Math.round(10*w+6.25*h-5*age-161);
+  var target=parseFloat(document.getElementById('goal-weight').value)||60;
+  localStorage.setItem('KANSHI_DIET_BMR', JSON.stringify({height:h,weight:w,age:age,gender:gender,bmr:bmr,activity:Math.round(bmr*0.2),targetWeight:target}));
+  triggerToast('BMR: '+bmr+' kcal/d');
+  renderDashboard();
+}
+
+// ═══ History ═══
+function renderHistory() {
+  var c=document.getElementById('history-container'); if(!c)return;
+  var logs=db.dietLogs||[];
+  if(logs.length===0){c.innerHTML='<div class="back-btn">暂无记录</div>';return;}
+  var groups={};
+  logs.forEach(function(l){ var ds=l.timestamp?l.timestamp.slice(0,10):'未知'; if(!groups[ds])groups[ds]=[]; groups[ds].push(l); });
+  var sorted=Object.keys(groups).sort().reverse();
+  var colors={'早餐':'bg-amber-100','午餐':'bg-blue-100','晚餐':'bg-purple-100','加餐':'bg-green-100'};
+  c.innerHTML=sorted.map(function(ds){
+    var day=groups[ds];
+    var total=day.reduce(function(s,l){return s+(l.calories||0);},0);
+    return '<div><div class="back-btn"><h4 class="back-btn">'+ds+'</h4><span class="back-btn">'+total+' kcal</span></div>' +
+      day.map(function(l){return '<div class="back-btn"><span class="back-btn">'+escapeHtml(l.type||'')+'</span><span class="back-btn">'+escapeHtml(l.name||'')+'</span><span class="back-btn">'+(l.calories||0)+'</span></div>';}).join('') +
+      '</div>';
+  }).join('');
+}
+
+// Init
+renderDashboard();
+</script>
+</body>
+</html>

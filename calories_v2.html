@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>简纸 — 饮食热量</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+SC:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="shared.js"></script>
+<style>
+/* ═══ 基础 ═══ */
+body.page-cal { margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Outfit',sans-serif;
+  -webkit-tap-highlight-color:transparent; }
+.page-cal .app-viewport { max-width:480px; margin:0 auto; background:#F5F4F0; min-height:100vh; box-shadow:0 0 50px rgba(0,0,0,0.6); display:flex; flex-direction:column; position:relative; }
+.page-cal .no-scrollbar::-webkit-scrollbar { display:none; }
+.page-cal .no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
+
+/* Toast */
+.page-cal .kanshi-toast { position:fixed; top:24px; left:50%; transform:translateX(-50%); z-index:999; background:#1C1B1A; color:#FBBF24; border:1px solid #2C2B29; padding:8px 20px; border-radius:999px; font-size:12px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,0.4); display:flex; align-items:center; gap:8px; animation:toastIn 0.3s ease-out; }
+@keyframes toastIn { 0%{opacity:0;transform:translateX(-50%)translateY(-12px)} 100%{opacity:1;transform:translateX(-50%)translateY(0)} }
+
+/* Modal */
+.page-cal .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100; display:flex; align-items:center; justify-content:center; padding:24px; }
+.page-cal .modal-overlay.hidden { display:none; }
+.page-cal .modal-box { background:#F5F4F0; border:1px solid #DDD9CF; width:100%; max-width:360px; border-radius:24px; padding:24px; box-shadow:0 12px 40px rgba(0,0,0,0.3); }
+
+/* ═══ Header ═══ */
+.page-cal .header-bar { height:56px; border-bottom:1px solid #EAE7E1; padding:0 16px; display:flex; align-items:center; justify-content:space-between; background:#F5F4F0; flex-shrink:0; }
+.page-cal .back-btn { background:none; border:none; padding:8px; color:#2C2B29; cursor:pointer; }
+.page-cal .hdr-title { font-size:14px; font-weight:700; color:#2C2B29; }
+.page-cal .hdr-actions { display:flex; gap:4px; }
+.page-cal .hdr-icon-btn { background:none; border:none; padding:6px; color:#5C5854; cursor:pointer; }
+.page-cal .hdr-icon-btn svg { width:20px; height:20px; }
+
+/* ═══ Cal Viewport ═══ */
+.page-cal .cal-vp { flex:1; position:relative; overflow:hidden; background:#F5F4F0; }
+.page-cal .cal-view { position:absolute; top:0; left:0; right:0; bottom:0; transform:translateX(100%); transition:transform 0.3s cubic-bezier(0.22,1,0.36,1); z-index:5; overflow-y:auto; -webkit-overflow-scrolling:touch; background:#F5F4F0; }
+.page-cal .cal-view.active { transform:translateX(0); z-index:10; }
+.page-cal .cal-view.base { transform:translateX(0); z-index:1; }
+
+/* ═══ View: Dashboard ═══ */
+.page-cal .dash-scroll { padding:20px 16px 120px; }
+.page-cal .dash-title { font-size:20px; font-weight:700; color:#2C2B29; margin-bottom:20px; }
+.page-cal .stat-card { background:#FFF; border:1px solid #EAE7E1; border-radius:16px; padding:20px; margin-bottom:16px; }
+.page-cal .stat-row { display:flex; justify-content:space-around; text-align:center; margin-bottom:12px; }
+.page-cal .stat-val { font-size:28px; font-weight:700; }
+.page-cal .stat-label { font-size:10px; color:#5C5854; margin-top:2px; }
+.page-cal .stat-op { color:#EAE7E1; font-size:24px; display:flex; align-items:center; }
+.page-cal .stat-in { color:#F97316; }
+.page-cal .stat-out { color:#F43F5E; }
+.page-cal .stat-def { color:#10B981; }
+.page-cal .stat-guide { background:#FAFAF9; margin:0 -20px -20px; padding:12px 20px; border-top:1px solid #EAE7E1; font-size:10px; color:#5C5854; }
+.page-cal .exe-row { display:flex; justify-content:space-between; text-align:center; gap:8px; margin-bottom:16px; }
+.page-cal .exe-box { flex:1; background:#FFF; border-radius:12px; padding:12px; }
+.page-cal .exe-val { font-size:12px; font-weight:700; color:#2C2B29; }
+.page-cal .exe-lbl { font-size:9px; color:#5C5854; margin-top:4px; }
+.page-cal .nutri-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.page-cal .nutri-title { font-size:12px; font-weight:700; color:#2C2B29; }
+.page-cal .nutri-add-btn { padding:6px 10px; background:#405140; color:#FFF; border:none; border-radius:8px; font-size:10px; font-weight:700; cursor:pointer; }
+.page-cal .nutri-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:20px; }
+.page-cal .nutri-item { background:#FFF; border-radius:12px; padding:14px; text-align:center; }
+.page-cal .nutri-item.high-protein { border:1px solid #FECACA; }
+.page-cal .nutri-item.high-carbs { border:1px solid #BFDBFE; }
+.page-cal .nutri-item.high-fat { border:1px solid #FDE68A; }
+.page-cal .nutri-lbl { font-size:9px; color:#5C5854; }
+.page-cal .nutri-val { font-size:18px; font-weight:700; }
+.page-cal .nutri-val.protein { color:#F43F5E; }
+.page-cal .nutri-val.carbs { color:#3B82F6; }
+.page-cal .nutri-val.fat { color:#F59E0B; }
+.page-cal .nutri-unit { font-size:10px; }
+.page-cal .nutri-unit.protein { color:#FDA4AF; }
+.page-cal .nutri-unit.carbs { color:#93C5FD; }
+.page-cal .nutri-unit.fat { color:#FCD34D; }
+.page-cal .rec-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.page-cal .rec-title { font-size:12px; font-weight:700; color:#2C2B29; }
+.page-cal .rec-hist-btn { font-size:10px; color:#405140; background:none; border:none; cursor:pointer; font-family:inherit; text-decoration:underline; }
+.page-cal .rec-list { display:flex; flex-direction:column; gap:4px; }
+.page-cal .rec-row { display:flex; justify-content:space-between; background:#FFF; border:1px solid #EAE7E1; border-radius:10px; padding:10px 12px; align-items:center; }
+.page-cal .rec-period { font-size:10px; padding:2px 6px; background:#E3E8E3; color:#405140; border-radius:4px; }
+.page-cal .rec-name { font-size:12px; flex:1; margin-left:8px; color:#2C2B29; }
+.page-cal .rec-cal { font-size:12px; font-weight:700; color:#D97706; }
+.page-cal .empty-msg { text-align:center; padding:24px; color:#A1A1AA; font-size:12px; }
+
+/* ═══ View: Record Input ═══ */
+.page-cal .view-header { height:56px; border-bottom:1px solid #EAE7E1; padding:0 16px; display:flex; align-items:center; justify-content:space-between; background:#FFF; flex-shrink:0; }
+.page-cal .view-title { font-size:14px; font-weight:700; color:#2C2B29; }
+.page-cal .view-spacer { width:32px; }
+.page-cal .input-scroll { padding:20px 16px 120px; }
+.page-cal .diet-textarea { width:100%; min-height:80px; padding:12px; font-size:12px; background:#FAFAF9; border:1px solid #EAE7E1; border-radius:12px; outline:none; font-family:inherit; box-sizing:border-box; margin-bottom:16px; }
+.page-cal .preset-wrap { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
+.page-cal .preset-btn { padding:4px 10px; font-size:10px; border-radius:999px; background:#E3E8E3; color:#405140; border:1px solid #CCD7CC; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+.page-cal .preset-btn.slctd { background:#405140; color:#FFF; }
+.page-cal .period-lbl { font-size:10px; color:#5C5854; margin-bottom:8px; }
+.page-cal .period-bar { display:flex; gap:8px; margin-bottom:16px; }
+.page-cal .period-btn { padding:6px 16px; font-size:11px; border-radius:8px; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+.page-cal .period-btn.actv { background:#405140; color:#FFF; }
+.page-cal .period-btn.inactv { background:#F5F4F0; color:#5C5854; }
+.page-cal .cal-input-row { display:flex; align-items:center; gap:12px; background:#FAFAF9; border:1px solid #EAE7E1; border-radius:12px; padding:10px 16px; margin-bottom:16px; }
+.page-cal .cal-input { flex:1; background:transparent; border:none; outline:none; font-size:24px; font-weight:700; color:#F97316; text-align:center; }
+.page-cal .cal-unit { font-size:12px; color:#5C5854; }
+.page-cal .action-row { display:flex; gap:8px; }
+.page-cal .action-btn { flex:1; height:44px; border:none; border-radius:12px; font-size:12px; font-weight:700; cursor:pointer; }
+.page-cal .action-btn.primary { background:#405140; color:#FFF; }
+.page-cal .action-btn.secondary { background:#2C2B29; color:#FBBF24; }
+
+/* ═══ View: Confirm ═══ */
+.page-cal .confirm-area { padding:20px 16px; }
+.page-cal .confirm-card { background:#FAFAF9; border-radius:16px; padding:20px; margin-bottom:20px; }
+.page-cal .confirm-name { font-size:16px; font-weight:700; color:#2C2B29; }
+.page-cal .confirm-period { font-size:10px; padding:4px 8px; border-radius:999px; background:#E3E8E3; color:#405140; display:inline-block; margin-top:8px; }
+.page-cal .confirm-macro-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:20px; }
+.page-cal .macro-box { background:#FFF; border-radius:12px; padding:14px; text-align:center; }
+.page-cal .macro-box.orange { border:1px solid #FED7AA; }
+.page-cal .macro-box.rose { border:1px solid #FECACA; }
+.page-cal .macro-box.blue { border:1px solid #BFDBFE; }
+.page-cal .macro-lbl { font-size:9px; color:#5C5854; }
+.page-cal .macro-input { width:100%; background:transparent; border:none; outline:none; font-size:18px; font-weight:700; text-align:center; }
+.page-cal .macro-input.orange { color:#F97316; }
+.page-cal .macro-input.rose { color:#F43F5E; }
+.page-cal .macro-input.blue { color:#3B82F6; }
+.page-cal .confirm-foot { position:sticky; bottom:0; background:#FFF; border-top:1px solid #EAE7E1; padding:12px 16px 24px; display:flex; align-items:center; justify-content:space-between; }
+.page-cal .confirm-foot label { display:flex; align-items:center; gap:8px; font-size:12px; cursor:pointer; }
+.page-cal .confirm-submit { padding:10px 20px; background:#405140; color:#FFF; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; }
+
+/* ═══ View: Exercise ═══ */
+.page-cal .exe-area { padding:20px 16px 120px; }
+.page-cal .exe-card { background:#FFF; border:1px solid #EAE7E1; border-radius:16px; padding:20px; margin-bottom:16px; }
+.page-cal .exe-input-row { display:flex; gap:8px; margin-bottom:12px; }
+.page-cal .exe-name-input { flex:1; height:40px; padding:0 12px; font-size:12px; border:1px solid #EAE7E1; border-radius:8px; outline:none; box-sizing:border-box; }
+.page-cal .exe-cal-input { width:80px; height:40px; text-align:center; font-size:16px; font-weight:700; border:1px solid #EAE7E1; border-radius:8px; outline:none; }
+.page-cal .exe-cal-unit { font-size:10px; color:#5C5854; align-self:center; }
+.page-cal .exe-add-btn { width:100%; height:40px; background:#405140; color:#FFF; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; }
+.page-cal .exe-list-card { background:#FAFAF9; border-radius:16px; padding:16px; }
+.page-cal .exe-list-header { display:flex; justify-content:space-between; margin-bottom:12px; }
+.page-cal .exe-list-title { font-size:12px; font-weight:700; color:#2C2B29; }
+.page-cal .exe-list-total { font-size:10px; color:#5C5854; }
+.page-cal .exe-item-row { display:flex; justify-content:space-between; background:#FFF; border:1px solid #EAE7E1; border-radius:10px; padding:10px 12px; margin-bottom:4px; }
+.page-cal .exe-item-name { font-size:12px; color:#2C2B29; }
+.page-cal .exe-item-cal { font-size:12px; font-weight:700; color:#F43F5E; }
+.page-cal .exe-empty { font-size:10px; color:#A1A1AA; text-align:center; padding:12px; }
+
+/* ═══ View: Goals ═══ */
+.page-cal .goal-area { padding:20px 16px 120px; }
+.page-cal .goal-card { background:#FFF; border:1px solid #EAE7E1; border-radius:16px; padding:20px; text-align:center; margin-bottom:16px; }
+.page-cal .goal-lbl { font-size:10px; color:#5C5854; margin-bottom:8px; }
+.page-cal .goal-input-row { display:flex; align-items:center; justify-content:center; gap:8px; }
+.page-cal .goal-weight-input { width:80px; background:transparent; border:none; outline:none; font-size:36px; font-weight:700; color:#405140; text-align:center; }
+.page-cal .goal-unit { font-size:14px; color:#A1A1AA; }
+.page-cal .goal-metrics { display:flex; justify-content:center; gap:32px; margin-top:12px; padding-top:12px; border-top:1px solid #EAE7E1; font-size:12px; }
+.page-cal .goal-metric-label { font-size:9px; color:#5C5854; }
+.page-cal .goal-metric-val { font-weight:700; }
+.page-cal .goal-metric-val.green { color:#10B981; }
+.page-cal .goal-metric-val.amber { color:#F59E0B; }
+
+.page-cal .weight-modal-head { display:flex; justify-content:space-between; padding-bottom:8px; border-bottom:1px solid #EAE7E1; margin-bottom:16px; }
+.page-cal .weight-modal-title { font-size:14px; font-weight:700; color:#2C2B29; }
+.page-cal .weight-modal-close { background:none; border:none; color:#5C5854; font-size:16px; cursor:pointer; }
+.page-cal .weight-input-field { width:100%; height:48px; font-size:20px; font-weight:700; text-align:center; border:1px solid #EAE7E1; border-radius:12px; outline:none; margin-bottom:16px; box-sizing:border-box; }
+.page-cal .weight-submit-btn { width:100%; height:44px; background:#405140; color:#FFF; border:none; border-radius:12px; font-size:12px; font-weight:700; cursor:pointer; }
+.page-cal .goal-chart-box { background:#FAFAF9; border-radius:16px; padding:16px; margin-bottom:16px; }
+.page-cal .goal-chart-title { font-size:12px; font-weight:700; color:#2C2B29; margin-bottom:12px; }
+.page-cal .goal-chart-svg { width:100%; height:100px; }
+.page-cal .goal-chart-empty { text-align:center; font-size:10px; color:#A1A1AA; padding:24px; }
+.page-cal .goal-bmr-box { background:#FAFAF9; border-radius:16px; padding:20px; }
+.page-cal .goal-bmr-title { font-size:12px; font-weight:700; color:#2C2B29; margin-bottom:12px; }
+.page-cal .goal-bmr-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+.page-cal .bmr-input { height:36px; padding:0 8px; font-size:12px; border:1px solid #EAE7E1; border-radius:8px; outline:none; box-sizing:border-box; }
+.page-cal .bmr-select { height:36px; font-size:12px; border:1px solid #EAE7E1; border-radius:8px; }
+.page-cal .bmr-save-btn { width:100%; height:40px; background:#405140; color:#FFF; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; }
+
+/* ═══ View: History ═══ */
+.page-cal .hist-area { padding:20px 16px 120px; }
+.page-cal .hist-day { margin-bottom:16px; }
+.page-cal .hist-day-head { display:flex; justify-content:space-between; margin-bottom:8px; }
+.page-cal .hist-day-title { font-size:13px; font-weight:700; color:#2C2B29; }
+.page-cal .hist-day-total { font-size:10px; color:#5C5854; }
+.page-cal .hist-row { display:flex; justify-content:space-between; background:#FAFAF9; border:1px solid #EAE7E1; border-radius:10px; padding:8px 12px; margin-bottom:4px; align-items:center; }
+.page-cal .hist-period { font-size:10px; padding:2px 6px; background:#E3E8E3; border-radius:4px; }
+.page-cal .hist-name { font-size:12px; flex:1; margin-left:8px; color:#2C2B29; }
+.page-cal .hist-cal { font-size:12px; font-weight:700; color:#D97706; }
+.page-cal .hist-empty { text-align:center; padding:48px; color:#A1A1AA; font-size:14px; }
+
+	.page-cal .num{font-family:"Inter",Arial,sans-serif;font-weight:700;font-variant-numeric:tabular-nums}
+	</style>
+</head>
+<body class="page-cal">
+<div class="app-viewport">
+
+  <!-- ─── 主 Header ─── -->
+  <div class="header-bar" id="main-header">
+    <button onclick="history.back()" class="back-btn"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+    <h3 class="hdr-title">饮食与热量</h3>
+    <div class="hdr-actions">
+      <button class="hdr-icon-btn" id="goto-exercise" title="运动记录"><svg viewBox="0 0 1027 1024" fill="currentColor"><path d="M716.6 242.4c67 0 121.2-54.2 121.2-121.2S783.6 0 716.6 0s-121.2 54.2-121.2 121.2 54.2 121.2 121.2 121.2z"/></svg></button>
+      <button class="hdr-icon-btn" id="goto-goals" title="目标体重"><svg viewBox="0 0 1024 1024" fill="currentColor"><path d="M512 50.7c42.9 0 81.8 17.4 110 45.6 28.1 28.1 45.6 67 45.5 110 0 42.9-17.4 81.8-45.5 110S555 361.8 512 361.8s-81.9-17.4-110-45.6c-28.2-28.2-45.6-67.1-45.6-110 0-42.9 17.4-81.9 45.6-110 28.1-28.2 67.1-45.5 110-45.5z"/></svg></button>
+    </div>
+  </div>
+
+  <!-- ─── 视图容器 ─── -->
+  <div class="cal-vp" id="cal-vp">
+
+    <!-- ═══ Dashboard ═══ -->
+    <div class="cal-view base active" id="view-dash">
+      <div class="dash-scroll no-scrollbar">
+        <h1 class="dash-title">今日概览</h1>
+        <div class="stat-card">
+          <div class="stat-row">
+            <div><div class="stat-val stat-in" id="dash-in">0</div><div class="stat-label">摄入</div></div>
+            <div class="stat-op">−</div>
+            <div><div class="stat-val stat-out" id="dash-out">0</div><div class="stat-label">消耗</div></div>
+            <div class="stat-op">=</div>
+            <div><div class="stat-val stat-def" id="dash-def">0</div><div class="stat-label">缺口</div></div>
+          </div>
+          <div class="stat-guide" id="dash-guide">健康减脂建议保持 300~500 kcal 缺口</div>
+        </div>
+        <div class="exe-row">
+          <div class="exe-box"><div class="exe-val" id="dash-bmr">0</div><div class="exe-lbl">基础代谢</div></div>
+          <div class="exe-box"><div class="exe-val" id="dash-act">0</div><div class="exe-lbl">活动</div></div>
+          <div class="exe-box"><div class="exe-val" id="dash-total-out">0</div><div class="exe-lbl">总消耗</div></div>
+        </div>
+        <div class="nutri-header">
+          <h3 class="nutri-title">营养素</h3>
+          <button class="nutri-add-btn" id="goto-record">+ 记录</button>
+        </div>
+        <div class="nutri-grid">
+          <div class="nutri-item high-protein"><div class="nutri-lbl">蛋白质</div><div class="nutri-val protein"><span id="dash-protein">0</span><span class="nutri-unit protein">g</span></div></div>
+          <div class="nutri-item high-carbs"><div class="nutri-lbl">碳水</div><div class="nutri-val carbs"><span id="dash-carbs">0</span><span class="nutri-unit carbs">g</span></div></div>
+          <div class="nutri-item high-fat"><div class="nutri-lbl">脂肪</div><div class="nutri-val fat"><span id="dash-fat">0</span><span class="nutri-unit fat">g</span></div></div>
+        </div>
+        <div class="rec-header">
+          <h3 class="rec-title">今日记录</h3>
+          <button class="rec-hist-btn" id="goto-history">历史</button>
+        </div>
+        <div class="rec-list" id="dash-records"></div>
+      </div>
+    </div>
+
+    <!-- ═══ Record Input ═══ -->
+    <div class="cal-view" id="view-input">
+      <div class="view-header">
+        <button class="back-btn" id="back-input"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+        <h3 class="view-title">记录食物</h3>
+        <div class="view-spacer"></div>
+      </div>
+      <div class="input-scroll no-scrollbar">
+        <textarea class="diet-textarea" id="diet-text" placeholder="例如：一碗米饭、两个鸡蛋..."></textarea>
+        <div class="preset-wrap" id="preset-grid"></div>
+        <p class="period-lbl">时段</p>
+        <div class="period-bar" id="period-bar">
+          <button class="period-btn actv" onclick="selPeriod('早餐')">早餐</button>
+          <button class="period-btn inactv" onclick="selPeriod('午餐')">午餐</button>
+          <button class="period-btn inactv" onclick="selPeriod('晚餐')">晚餐</button>
+          <button class="period-btn inactv" onclick="selPeriod('加餐')">加餐</button>
+        </div>
+        <div class="cal-input-row">
+          <input type="number" id="diet-cal" value="0" min="0" class="cal-input">
+          <span class="cal-unit">kcal</span>
+        </div>
+        <div class="action-row">
+          <button class="action-btn primary" id="do-analyze">营养分析</button>
+          <button class="action-btn secondary" id="do-confirm">确认录入</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Confirm ═══ -->
+    <div class="cal-view" id="view-confirm">
+      <div class="view-header">
+        <button class="back-btn" id="back-confirm"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+        <h3 class="view-title">确认食物</h3>
+        <div class="view-spacer"></div>
+      </div>
+      <div class="confirm-area no-scrollbar">
+        <div class="confirm-card">
+          <div class="confirm-name" id="cf-name">—</div>
+          <div><span class="confirm-period" id="cf-period">早餐</span></div>
+        </div>
+        <div class="confirm-macro-grid">
+          <div class="macro-box orange"><div class="macro-lbl">热量</div><input type="number" id="cf-cal" value="0" class="macro-input orange"></div>
+          <div class="macro-box rose"><div class="macro-lbl">蛋白质</div><input type="number" id="cf-protein" value="0" step="0.1" class="macro-input rose"></div>
+          <div class="macro-box blue"><div class="macro-lbl">碳水</div><input type="number" id="cf-carbs" value="0" step="0.1" class="macro-input blue"></div>
+        </div>
+      </div>
+      <div class="confirm-foot">
+        <label><input type="checkbox" id="cf-remember"> 记住这个食物</label>
+        <button class="confirm-submit" id="do-submit">确认</button>
+      </div>
+    </div>
+
+    <!-- ═══ Exercise ═══ -->
+    <div class="cal-view" id="view-exercise">
+      <div class="view-header">
+        <button class="back-btn" id="back-exercise"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+        <h3 class="view-title">运动记录</h3>
+        <div class="view-spacer"></div>
+      </div>
+      <div class="exe-area no-scrollbar">
+        <div class="exe-card">
+          <div class="exe-input-row">
+            <input type="text" id="ex-name" placeholder="运动名称" class="exe-name-input">
+            <input type="number" id="ex-cal" placeholder="200" class="exe-cal-input">
+            <span class="exe-cal-unit">kcal</span>
+          </div>
+          <button class="exe-add-btn" id="do-add-ex">+ 添加</button>
+        </div>
+        <div class="exe-list-card">
+          <div class="exe-list-header"><span class="exe-list-title">今日运动</span><span class="exe-list-total" id="ex-total">0 kcal</span></div>
+          <div id="ex-items"><p class="exe-empty">暂无记录</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Goals ═══ -->
+    <div class="cal-view" id="view-goals">
+      <div class="view-header">
+        <button class="back-btn" id="back-goals"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+        <h3 class="view-title">目标体重</h3>
+        <button class="nutri-add-btn" id="do-weight-record">记录</button>
+      </div>
+      <div class="goal-area no-scrollbar">
+        <div class="goal-card">
+          <p class="goal-lbl">目标体重</p>
+          <div class="goal-input-row">
+            <input type="number" id="goal-target" value="60" class="goal-weight-input">
+            <span class="goal-unit">kg</span>
+          </div>
+          <div class="goal-metrics">
+            <div><span class="goal-metric-label">最新</span><p class="goal-metric-val" id="g-latest">—</p></div>
+            <div><span class="goal-metric-label">变化</span><p class="goal-metric-val green" id="g-change">—</p></div>
+          </div>
+        </div>
+        <div class="goal-chart-box">
+          <h3 class="goal-chart-title">体重趋势</h3>
+          <svg class="goal-chart-svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path id="chart-line" d="" fill="none" stroke="#3B82F6" stroke-width="1.5"/></svg>
+          <p class="goal-chart-empty" id="chart-empty">尚未有体重记录</p>
+        </div>
+        <div class="goal-bmr-box">
+          <h3 class="goal-bmr-title">BMR 计算</h3>
+          <div class="goal-bmr-grid">
+            <input type="number" id="bmr-h" placeholder="身高 cm" class="bmr-input">
+            <input type="number" id="bmr-w" placeholder="体重 kg" class="bmr-input">
+            <input type="number" id="bmr-age" placeholder="年龄" class="bmr-input">
+            <select id="bmr-gender" class="bmr-select"><option value="female">女性</option><option value="male">男性</option></select>
+          </div>
+          <button class="bmr-save-btn" id="do-save-bmr">保存设置</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ History ═══ -->
+    <div class="cal-view" id="view-history">
+      <div class="view-header">
+        <button class="back-btn" id="back-history"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+        <h3 class="view-title">历史记录</h3>
+        <div class="view-spacer"></div>
+      </div>
+      <div class="hist-area no-scrollbar" id="hist-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ═══════ 热量页 JS — 纯数据与事件逻辑 ═══════
+loadDatabase();
+
+var curView = 'view-dash';
+var stack = ['view-dash'];
+var selPeriod = '早餐';
+
+// ─── 初始化仪表板 ───
+function renderDash() {
+  var today = getTodayISO();
+  var logs = (db.dietLogs||[]).filter(function(l){ return l.timestamp && l.timestamp.slice(0,10) === today; });
+  var ex = (db.exerciseLogs||[]).filter(function(l){ return l.date === today; });
+  var totalIn=0, p=0, c=0, f=0;
+  logs.forEach(function(l){ totalIn+=l.calories||0; p+=l.protein||0; c+=l.carbs||0; f+=l.fat||0; });
+
+  var bmrS = { bmr:0, activity:0 };
+  try { var s = localStorage.getItem('KANSHI_DIET_BMR'); if (s) bmrS = JSON.parse(s); } catch(e) {}
+  var exCal = ex.reduce(function(s,l){return s+(l.calories||0);},0);
+  var bmr = bmrS.bmr||0, act = (bmrS.activity||0)+exCal, totalOut = bmr+act;
+  var deficit = totalIn>0 ? totalOut-totalIn : 0;
+
+  setText('dash-in', totalIn);
+  setText('dash-out', totalOut);
+  setText('dash-def', Math.abs(deficit));
+  setText('dash-bmr', bmr);
+  setText('dash-act', act);
+  setText('dash-total-out', totalOut);
+  setText('dash-protein', p);
+  setText('dash-carbs', c);
+  setText('dash-fat', f);
+
+  var guide = document.getElementById('dash-guide');
+  if (guide) {
+    if (deficit<0) guide.textContent = '📈 热量盈余 '+Math.abs(deficit)+' kcal';
+    else if (deficit>=500) guide.textContent = '🔥 缺口充足';
+    else if (deficit>=300) guide.textContent = '👍 接近理想';
+    else if (totalIn===0) guide.textContent = '今天还没记录';
+    else guide.textContent = '💪 继续加油';
+  }
+
+  var r = document.getElementById('dash-records');
+  if (r) {
+    if (logs.length===0) { r.innerHTML = '<div class="empty-msg">暂无记录</div>'; return; }
+    logs.sort(function(a,b){ return (a.type||'') > (b.type||'') ? 1 : -1; });
+    r.innerHTML = logs.map(function(l){
+      return '<div class="rec-row"><span class="rec-period">'+escapeHtml(l.type||'')+'</span><span class="rec-name">'+escapeHtml(l.name||'')+'</span><span class="rec-cal">'+(l.calories||0)+'</span></div>';
+    }).join('');
+  }
+}
+function setText(id, v) { var e=document.getElementById(id); if(e) e.textContent=v; }
+
+// ─── 视图切换 ───
+function openView(id) {
+  stack.push(id);
+  document.querySelectorAll('.cal-view').forEach(function(v){ v.classList.remove('active'); });
+  var el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  curView = id;
+  if (id==='view-input') renderPresets();
+  if (id==='view-goals') renderChart();
+  if (id==='view-history') renderHist();
+  if (id==='view-exercise') renderExList();
+}
+function closeView() {
+  if (stack.length<=1) return;
+  stack.pop();
+  var cur = stack[stack.length-1];
+  document.querySelectorAll('.cal-view').forEach(function(v){ v.classList.remove('active'); });
+  var el = document.getElementById(cur);
+  if (el) el.classList.add('active');
+  curView = cur;
+  if (cur==='view-dash') renderDash();
+}
+
+// ─── 导航事件绑定 ───
+document.getElementById('goto-exercise').addEventListener('click', function(){ openView('view-exercise'); });
+document.getElementById('goto-goals').addEventListener('click', function(){ openView('view-goals'); });
+document.getElementById('goto-record').addEventListener('click', function(){ openView('view-input'); });
+document.getElementById('goto-history').addEventListener('click', function(){ openView('view-history'); });
+document.getElementById('back-input').addEventListener('click', closeView);
+document.getElementById('back-confirm').addEventListener('click', function(){
+  if (stack.length<=1) return;
+  stack.pop();
+  var cur = stack[stack.length-1];
+  document.querySelectorAll('.cal-view').forEach(function(v){ v.classList.remove('active'); });
+  var el = document.getElementById(cur);
+  if (el) el.classList.add('active');
+  curView = cur;
+});
+document.getElementById('back-exercise').addEventListener('click', closeView);
+document.getElementById('back-goals').addEventListener('click', closeView);
+document.getElementById('back-history').addEventListener('click', closeView);
+
+// ─── 预填 ───
+var DFLT_PRESETS = [{name:'咖啡',cal:30},{name:'米饭',cal:150},{name:'鸡蛋',cal:70},{name:'面食',cal:250},{name:'牛奶',cal:180},{name:'苹果',cal:45}];
+function getPresets() { try { var s=localStorage.getItem('KANSHI_DIET_PRESETS'); return s?JSON.parse(s):DFLT_PRESETS; } catch(e){return DFLT_PRESETS;} }
+function renderPresets() {
+  var g=document.getElementById('preset-grid'); if(!g)return;
+  g.innerHTML = getPresets().map(function(p){
+    return '<button class="preset-btn" data-cal="'+p.cal+'">'+p.name+'</button>';
+  }).join('');
+  g.querySelectorAll('button').forEach(function(b){
+    b.addEventListener('click', function(){
+      var inp=document.getElementById('diet-cal');
+      if (!inp) return;
+      var cal=parseInt(this.dataset.cal);
+      if (this.classList.contains('slctd')) {
+        this.classList.remove('slctd');
+        inp.value = Math.max(0, (parseInt(inp.value)||0) - cal);
+      } else {
+        this.classList.add('slctd');
+        inp.value = (parseInt(inp.value)||0) + cal;
+      }
+    });
+  });
+}
+function selPeriod(p) { selPeriod=p; document.querySelectorAll('.period-btn').forEach(function(b){ b.className='period-btn '+(b.textContent.trim()===p?'actv':'inactv'); }); }
+
+// ─── 营养分析/确认 ───
+function estMacros(cal) { return {protein:Math.round(cal*0.25/4*10)/10, carbs:Math.round(cal*0.5/4*10)/10, fat:Math.round(cal*0.25/9*10)/10}; }
+
+document.getElementById('do-analyze').addEventListener('click', function(){
+  var ta=document.getElementById('diet-text'), ci=document.getElementById('diet-cal');
+  if (!ta||!ci) return;
+  goConfirm();
+});
+
+document.getElementById('do-confirm').addEventListener('click', goConfirm);
+function goConfirm() {
+  var ta=document.getElementById('diet-text'), ci=document.getElementById('diet-cal');
+  if (!ta||!ci) return;
+  var name=escapeHtml(ta.value.trim())||'未命名食物';
+  var cal=parseInt(ci.value)||0;
+  document.getElementById('cf-name').textContent=name;
+  document.getElementById('cf-period').textContent=selPeriod;
+  document.getElementById('cf-cal').value=cal;
+  var m=estMacros(cal);
+  document.getElementById('cf-protein').value=m.protein;
+  document.getElementById('cf-carbs').value=m.carbs;
+  openView('view-confirm');
+}
+
+document.getElementById('do-submit').addEventListener('click', function(){
+  var name=document.getElementById('cf-name').textContent;
+  var cal=parseFloat(document.getElementById('cf-cal').value)||0;
+  var protein=parseFloat(document.getElementById('cf-protein').value)||0;
+  var carbs=parseFloat(document.getElementById('cf-carbs').value)||0;
+  var rem=document.getElementById('cf-remember').checked;
+  if (!name||cal<=0) return;
+  db.dietLogs.push({id:'diet_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), type:selPeriod, name:name, calories:cal, protein:protein, carbs:carbs, fat:0, timestamp:new Date().toISOString()});
+  if (rem && name) {
+    var fm = db.foodMemory||[];
+    var idx = fm.findIndex(function(m){return m.name===name;});
+    if (idx>=0) { fm[idx].count++; fm[idx].calories=Math.round((fm[idx].calories*(fm[idx].count-1)+cal)/fm[idx].count); }
+    else { fm.push({id:'fm_'+Date.now(), name:name, calories:cal, protein:protein, carbs:carbs, fat:0, count:1}); }
+  }
+  saveDatabase();
+  document.getElementById('diet-text').value='';
+  document.getElementById('diet-cal').value='0';
+  stack=['view-dash'];
+  document.querySelectorAll('.cal-view').forEach(function(v){v.classList.remove('active');});
+  document.getElementById('view-dash').classList.add('active');
+  curView='view-dash';
+  renderDash();
+  triggerToast('✅ 已记录 '+name+' ('+cal+' kcal)');
+});
+
+// ─── 运动 ───
+function renderExList() {
+  var today=getTodayISO();
+  var ex=(db.exerciseLogs||[]).filter(function(l){return l.date===today;});
+  var total=ex.reduce(function(s,l){return s+(l.calories||0);},0);
+  document.getElementById('ex-total').textContent=total+' kcal';
+  var list=document.getElementById('ex-items');
+  if (ex.length===0) list.innerHTML='<p class="exe-empty">暂无记录</p>';
+  else list.innerHTML=ex.map(function(l){return '<div class="exe-item-row"><span class="exe-item-name">'+escapeHtml(l.name)+'</span><span class="exe-item-cal">'+(l.calories||0)+' kcal</span></div>';}).join('');
+}
+document.getElementById('do-add-ex').addEventListener('click', function(){
+  var n=document.getElementById('ex-name'), c=document.getElementById('ex-cal');
+  if(!n||!c||!n.value.trim()||!parseInt(c.value)) return;
+  db.exerciseLogs.push({id:'ex_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), name:n.value.trim(), calories:parseInt(c.value), date:getTodayISO(), timestamp:new Date().toISOString()});
+  saveDatabase(); n.value=''; c.value=''; renderExList(); triggerToast('已记录运动');
+});
+
+// ─── 体重与BMR ───
+function renderChart() {
+  var logs=(db.weightLogs||[]).slice().sort(function(a,b){return (a.date||'').localeCompare(b.date||'');});
+  var target=60;
+  try{var s=localStorage.getItem('KANSHI_DIET_BMR');if(s){var p=JSON.parse(s);target=p.targetWeight||60;document.getElementById('goal-target').value=target;}}catch(e){}
+  var lat=document.getElementById('g-latest'), chg=document.getElementById('g-change');
+  if (logs.length===0) { lat.textContent='—'; chg.textContent='—'; document.getElementById('chart-empty').classList.remove('hidden'); return; }
+  document.getElementById('chart-empty').classList.add('hidden');
+  lat.textContent=logs[logs.length-1].weight+'kg';
+  if (logs.length>=2) { var d=logs[logs.length-1].weight-logs[0].weight; chg.textContent=(d>0?'+':'')+d.toFixed(1)+'kg'; }
+  var weights=logs.map(function(l){return l.weight;});
+  var min=Math.min.apply(null,weights)-1, max=Math.max.apply(null,weights)+1, range=max-min||1;
+  var pts=weights.map(function(w,i){ var x=(i/(weights.length-1))*100; var y=100-((w-min)/range)*80-10; return x+','+y; }).join(' L');
+  document.getElementById('chart-line').setAttribute('d','M'+pts);
+}
+
+document.getElementById('do-weight-record').addEventListener('click', function(){
+  showModal('<div><div class="weight-modal-head"><span class="weight-modal-title">记录体重 ⚖️</span><button onclick="closeModal()" class="weight-modal-close">✕</button></div>' +
+    '<input type="number" id="w-input" step="0.1" placeholder="65.0" class="weight-input-field">' +
+    '<button onclick="submitWeight()" class="weight-submit-btn">记录</button></div>');
+});
+function submitWeight() {
+  var inp=document.getElementById('w-input');
+  var w=parseFloat(inp?inp.value:0);
+  if(!w||w<=0)return;
+  db.weightLogs.push({id:'w_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), weight:w, date:getTodayISO(), timestamp:new Date().toISOString()});
+  saveDatabase(); closeModal(); renderChart();
+}
+
+document.getElementById('do-save-bmr').addEventListener('click', function(){
+  var h=parseFloat(document.getElementById('bmr-h').value)||0;
+  var w=parseFloat(document.getElementById('bmr-w').value)||0;
+  var age=parseInt(document.getElementById('bmr-age').value)||0;
+  var gender=document.getElementById('bmr-gender').value;
+  var bmr=gender==='male'?Math.round(10*w+6.25*h-5*age+5):Math.round(10*w+6.25*h-5*age-161);
+  var target=parseFloat(document.getElementById('goal-target').value)||60;
+  localStorage.setItem('KANSHI_DIET_BMR', JSON.stringify({height:h,weight:w,age:age,gender:gender,bmr:bmr,activity:Math.round(bmr*0.2),targetWeight:target}));
+  triggerToast('BMR: '+bmr+' kcal/d');
+  renderDash();
+});
+
+// ─── 历史 ───
+function renderHist() {
+  var c=document.getElementById('hist-list'); if(!c)return;
+  var logs=db.dietLogs||[];
+  if(logs.length===0){c.innerHTML='<div class="hist-empty">暂无记录</div>';return;}
+  var groups={};
+  logs.forEach(function(l){ var ds=l.timestamp?l.timestamp.slice(0,10):'未知'; if(!groups[ds])groups[ds]=[]; groups[ds].push(l); });
+  var sorted=Object.keys(groups).sort().reverse();
+  c.innerHTML=sorted.map(function(ds){
+    var day=groups[ds];
+    var total=day.reduce(function(s,l){return s+(l.calories||0);},0);
+    return '<div class="hist-day"><div class="hist-day-head"><h4 class="hist-day-title">'+ds+'</h4><span class="hist-day-total">'+total+' kcal</span></div>' +
+      day.map(function(l){return '<div class="hist-row"><span class="hist-period">'+escapeHtml(l.type||'')+'</span><span class="hist-name">'+escapeHtml(l.name||'')+'</span><span class="hist-cal">'+(l.calories||0)+'</span></div>';}).join('')+'</div>';
+  }).join('');
+}
+
+// ─── 启动 ───
+renderDash();
+</script>
+</body>
+</html>

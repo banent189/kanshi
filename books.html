@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>简纸 — books</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+SC:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="shared.js"></script>
+<style>
+
+body.page-books{ margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Outfit',sans-serif; -webkit-tap-highlight-color:transparent; }
+.page-books .app-viewport{ max-width:480px; margin:0 auto; background:#F5F4F0; min-height:100vh; display:flex; flex-direction:column; }
+.page-books .no-scrollbar::-webkit-scrollbar{ display:none; }
+.page-books .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
+
+/* Header */
+.page-books .header-bar{ height:56px; border-bottom:1px solid #EAE7E1; padding:0 16px; display:flex; align-items:center; justify-content:space-between; background:#F5F4F0; }
+.page-books .back-btn{ background:none; border:none; padding:8px; color:#2C2B29; cursor:pointer; }
+.page-books .header-title{ font-size:14px; font-weight:700; color:#2C2B29; }
+.page-books .add-btn-circle{ width:32px; height:32px; border-radius:999px; background:#405140; color:#FBFBFA; border:none; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; text-decoration:none; }
+.page-books .header-spacer{ width:32px; }
+
+/* List area */
+.page-books .list-area{ flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; padding-bottom:96px; }
+.page-books .empty-state{ text-align:center; padding:48px; color:#A1A1AA; font-size:14px; }
+
+/* Cards */
+.page-books .card{ padding:20px; background:#FBFBFA; border:1px solid #EAE7E1; border-radius:20px; box-shadow:0 4px 10px rgba(28,27,26,0.08); transition:all 0.3s cubic-bezier(0.16,1,0.3,1); }
+.page-books .card:active{ transform:scale(0.98); background:#F5F4F0; }
+.page-books .row{ display:flex; justify-content:space-between; align-items:baseline; }
+.page-books .row-center{ display:flex; align-items:center; gap:12px; }
+.page-books .row-gap{ display:flex; align-items:center; gap:12px; flex:1; cursor:pointer; }
+
+/* Text */
+.page-books .text-title{ font-size:12px; font-weight:700; color:#2C2B29; }
+.page-books .text-body{ font-size:12px; color:#5C5854; line-height:1.6; margin-top:8px; }
+.page-books .text-meta{ font-size:9px; color:#A1A1AA; }
+.page-books .text-author{ font-size:9px; color:#A6977F; font-weight:400; }
+.page-books .text-score{ font-size:12px; color:#D97706; }
+.page-books .text-hint{ font-size:10px; color:#5C5854; }
+.page-books .text-subtle{ font-size:10px; color:#A1A1AA; }
+
+/* Card footer */
+.page-books .card-foot{ text-align:right; border-top:1px solid #F5F4F0; padding-top:10px; margin-top:10px; }
+.page-books .del-btn{ background:none; border:none; font-size:10px; color:#BE123C; cursor:pointer; font-family:inherit; }
+
+/* Modal */
+.page-books .modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100; display:flex; align-items:center; justify-content:center; padding:24px; }
+.page-books .modal-overlay.hidden{ display:none; }
+.page-books .modal-content{ background:#F5F4F0; border:1px solid #DDD9CF; width:100%; max-width:360px; border-radius:24px; padding:24px; }
+.page-books .modal-head{ display:flex; justify-content:space-between; padding-bottom:8px; border-bottom:1px solid #EAE7E1; margin-bottom:16px; }
+.page-books .modal-title{ font-size:14px; font-weight:700; color:#2C2B29; }
+.page-books .modal-close{ background:none; border:none; color:#5C5854; font-size:16px; cursor:pointer; }
+
+/* Form */
+.page-books .input-text{ width:100%; height:40px; padding:0 12px; font-size:12px; border:1px solid #EAE7E1; border-radius:8px; margin-bottom:12px; box-sizing:border-box; }
+.page-books .input-text-last{ width:100%; height:40px; padding:0 12px; font-size:12px; border:1px solid #EAE7E1; border-radius:8px; margin-bottom:16px; box-sizing:border-box; }
+.page-books .textarea-field{ width:100%; min-height:96px; padding:12px; font-size:12px; border:1px solid #EAE7E1; border-radius:8px; outline:none; font-family:inherit; box-sizing:border-box; margin-bottom:16px; }
+.page-books .textarea-field-lg{ width:100%; min-height:144px; padding:12px; font-size:12px; border:1px solid #EAE7E1; border-radius:8px; outline:none; font-family:inherit; box-sizing:border-box; margin-bottom:16px; }
+.page-books .select-field{ width:100%; height:36px; font-size:12px; border:1px solid #EAE7E1; border-radius:8px; margin-bottom:12px; }
+
+/* Buttons */
+.page-books .btn-primary{ width:100%; height:44px; background:#405140; color:#FBFBFA; border:none; border-radius:12px; font-size:12px; font-weight:700; cursor:pointer; }
+.page-books .btn-teal{ width:100%; height:44px; background:#065F46; color:#FBFBFA; border:none; border-radius:12px; font-size:12px; font-weight:700; cursor:pointer; }
+.page-books .btn-purple{ width:100%; height:44px; background:#4C1D95; color:#FBFBFA; border:none; border-radius:12px; font-size:12px; font-weight:700; cursor:pointer; }
+
+/* Habits */
+.page-books .habit-icon{ width:40px; height:40px; border-radius:999px; display:flex; align-items:center; justify-content:center; font-size:16px; background:#F5F4F0; color:#A1A1AA; flex-shrink:0; }
+.page-books .habit-icon.done{ background:#D1FAE5; color:#065F46; }
+.page-books .check-btn{ background:#E3E8E3; border:none; border-radius:8px; padding:6px 12px; font-size:11px; cursor:pointer; font-family:inherit; font-weight:600; color:#405140; }
+
+/* PWD */
+.page-books .pwd-card{ padding:20px; background:#FBFBFA; border:1px solid #EAE7E1; border-radius:20px; box-shadow:0 4px 10px rgba(28,27,26,0.08); transition:all 0.3s cubic-bezier(0.16,1,0.3,1); position:relative; overflow:hidden; display:flex; justify-content:space-between; }
+.page-books .pwd-card:active{ transform:scale(0.98); background:#F5F4F0; }
+.page-books .card:active{ transform:scale(0.98); background:#F5F4F0; }
+.page-books .pwd-bar{ position:absolute; left:0; top:0; bottom:0; width:4px; background:#FBBF24; }
+.page-books .pwd-detail{ font-size:10px; color:#5C5854; margin-top:2px; }
+.page-books .pwd-actions{ display:flex; gap:8px; align-items:flex-start; }
+.page-books .pwd-view-btn{ padding:4px 10px; font-size:10px; background:#F5F4F0; border:none; border-radius:8px; cursor:pointer; }
+.page-books .pwd-del-btn{ padding:4px 10px; font-size:10px; background:#FFF1F2; color:#BE123C; border:none; border-radius:8px; cursor:pointer; }
+
+/* Toast */
+.page-books .kanshi-toast{ position:fixed; top:24px; left:50%; transform:translateX(-50%); z-index:999; background:#1C1B1A; color:#FBBF24; border:1px solid #2C2B29; padding:8px 20px; border-radius:999px; font-size:12px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,0.4); animation:toastIn 0.3s ease-out; }
+@keyframes toastIn{ 0%{opacity:0;transform:translateX(-50%)translateY(-12px)} 100%{opacity:1;transform:translateX(-50%)translateY(0)} }
+
+	.page-books .num{font-family:"Inter",Arial,sans-serif;font-weight:700;font-variant-numeric:tabular-nums}
+	</style></head>
+<body class="page-books"><div class="app-viewport">
+  <div class="header-bar">
+    <button onclick="history.back()" class="back-btn"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+    <h3 class="header-title">观感活页册 🎨</h3>
+    <button onclick="openWriteModal()" class="add-btn-circle">+</button>
+  </div>
+  <div class="list-area no-scrollbar" id="books-list"></div>
+</div>
+<div class="modal-overlay hidden" id="global-modal"><div class="modal-content" id="modal-content-area"></div></div>
+<script>
+loadDatabase();
+function render() {
+  var c = document.getElementById('books-list');
+  if (!c) return;
+  c.innerHTML = '';
+  if (db.books.length===0) {c.innerHTML='<div class="empty-state">还没有记录</div>';return;}
+  db.books.forEach(function(b) {
+    c.innerHTML += '<div class="card"><div class="row"><h4 class="text-title">'+escapeHtml(b.title)+' <span class="text-author">by '+escapeHtml(b.author)+'</span></h4><span class="text-score">'+escapeHtml(b.score)+'</span></div>' +
+      '<p class="text-body">'+escapeHtml(b.review)+'</p>' +
+      '<div class="card-foot"><button onclick="del(\''+b.id+'\')" class="del-btn">删除</button></div></div>';
+  });
+}
+function openWriteModal() {
+  showModal('<div><div class="modal-head"><span class="modal-title">记下观感 🎨</span><button onclick="closeModal()" class="modal-close">✕</button></div>' +
+    '<input id="b-title" placeholder="书名" class="input-text">' +
+    '<input id="b-author" placeholder="作者" class="input-text">' +
+    '<select id="b-score" class="select-field"><option value="⭐⭐⭐⭐⭐">⭐⭐⭐⭐⭐</option><option value="⭐⭐⭐⭐">⭐⭐⭐⭐</option><option value="⭐⭐⭐">⭐⭐⭐</option></select>' +
+    '<textarea id="b-review" placeholder="写下感悟..." class="textarea-field"></textarea>' +
+    '<button onclick="submitB()" class="btn-purple">永久封存</button></div>');
+}
+function submitB() {
+  var t=document.getElementById('b-title'), a=document.getElementById('b-author'), s=document.getElementById('b-score'), r=document.getElementById('b-review');
+  if (!t||!t.value.trim()||!r||!r.value.trim()) return;
+  db.books.unshift({id:'book_'+Date.now(), title:t.value.trim(), author:a?a.value.trim():'佚名', score:s?escapeHtml(s.value):'⭐⭐⭐⭐⭐', review:r.value.trim(), date:new Date().toISOString().split('T')[0]});
+  saveDatabase(); closeModal(); render();
+}
+function del(id) { db.books=db.books.filter(function(b){return b.id!==id;}); saveDatabase(); render(); }
+render();
+</script></body></html>

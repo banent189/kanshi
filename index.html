@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>简纸 Kanshi — 今天</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+SC:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="lib/lunar.min.js"></script>
+<script src="shared.js"></script>
+<style>
+/* ═══════ 变量 ═══════ */
+:root {
+  --page-bg: #F5F4F0;
+  --paper: #FBFBFA;
+  --ink: #2C2B29;
+  --muted: #5C5854;
+  --light: #A1A1AA;
+  --faint: #D4D0C8;
+  --line: #EAE7E1;
+  --soft-green: #E3E8E3;
+  --green: #405140;
+  --red: #BE123C;
+  --lavender: #B8A9D4;
+  --weather-shadow: 0 6px 18px rgba(28,27,26,0.08);
+  --card-shadow: 0 4px 10px rgba(28,27,26,0.08);
+}
+
+/* ═══════ 全局 ═══════ */
+body.page-today { margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Outfit',sans-serif; -webkit-tap-highlight-color:transparent; overflow-x:hidden; }
+.page-today .app-viewport { max-width:480px; margin:0 auto; background:var(--page-bg); min-height:100vh; box-shadow:0 0 50px rgba(0,0,0,0.6); display:flex; flex-direction:column; }
+.page-today .scroll-area { flex:1; overflow-y:auto; padding-bottom:110px; }
+.page-today .no-scrollbar::-webkit-scrollbar { display:none; }
+.page-today .no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
+
+/* ═══════ 第一层：页眉 ═══════ */
+.page-today .page-header { padding:24px 22px 6px; }
+
+/* 品牌行：KANSHI 简纸（大） ｜ 搜索（右上轻量） */
+.page-today .top-row { display:flex; justify-content:space-between; align-items:center; }
+.page-today .brand-group { display:flex; align-items:center; gap:12px; }
+.page-today .brand { font-family:'Cinzel',Georgia,serif; font-size:36px; font-weight:700; letter-spacing:0.1em; color:var(--ink); line-height:1; margin:0; }
+.page-today .brand-chip { display:inline-flex; align-items:center; justify-content:center; height:26px; padding:0 12px; border-radius:10px; background:var(--ink); color:var(--paper); font-size:13px; font-weight:600; transform:translateY(2px); }
+.page-today .search-toggle { background:none; border:none; padding:0; cursor:pointer; display:flex; align-items:center; opacity:0.6; transform:translateY(2px); }
+.page-today .search-toggle:active { opacity:1; }
+.page-today .search-toggle img { width:24px; height:24px; display:block; }
+
+/* 日期行：小字一行 */
+.page-today .date-line { margin-top:8px; font-size:11px; color:#B8B4AC; display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+.page-today .date-line-sep { color:#D4D0C8; margin:0 2px; }
+.page-today .weather-mark { display:inline-flex; align-items:center; gap:4px; cursor:pointer; font-size:11px; color:#B8B4AC; }
+.page-today .weather-mark:active { color:var(--muted); }
+.page-today .weather-temp { font-weight:600; color:#7E997E; }
+.page-today .weather-loc { color:#B8B4AC; }
+
+/* ═══════ 第二层：今日签 ═══════ */
+.page-today .fortune-section { padding:12px 22px 22px; }
+.page-today .fortune-card { padding:20px 22px 22px; border:1px solid rgba(82,81,75,0.12); border-radius:24px; background:rgba(255,255,255,0.58); box-shadow:var(--card-shadow); }
+
+/* 标签行：今日运签 + 幸运色pill（同排右上） */
+.page-today .fortune-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+.page-today .fortune-tag { display:inline-flex; align-items:center; justify-content:center; height:28px; padding:0 13px; border-radius:999px; background:var(--soft-green); color:#5C6B5C; font-size:12px; font-weight:600; letter-spacing:0.04em; }
+.page-today .lucky-pill { display:inline-flex; align-items:center; gap:6px; padding:4px 12px 4px 10px; border-radius:999px; background:rgba(248,246,242,0.92); border:1px solid rgba(130,131,124,0.12); color:#9687BD; font-size:14px; font-weight:600; }
+.page-today .lucky-dot { width:14px; height:14px; flex:none; border-radius:50%; background:var(--lavender); border:1px solid rgba(66,59,84,0.16); box-shadow:inset 0 0 0 1px rgba(255,255,255,0.2); display:inline-block; }
+/* zodiac color overrides */
+.page-today .lucky-dot.dot-zihei { background:#1C1B1A; }
+.page-today .lucky-dot.dot-tuhuang { background:#C4A24E; }
+.page-today .lucky-dot.dot-songlv { background:#2D5A27; }
+.page-today .lucky-dot.dot-ouhe { background:#C9A9C6; }
+.page-today .lucky-dot.dot-darkgold { background:#B8860B; }
+.page-today .lucky-dot.dot-zhusha { background:#C04040; }
+.page-today .lucky-dot.dot-yanzhi { background:#B22222; }
+.page-today .lucky-dot.dot-tubai { background:#D2C9B8; }
+.page-today .lucky-dot.dot-yuebai { background:#A8C8D8; }
+.page-today .lucky-dot.dot-liujin { background:#D4AF37; }
+.page-today .lucky-dot.dot-tuose { background:#A0816A; }
+.page-today .lucky-dot.dot-daizi { background:#4A3C5C; }
+
+/* 签文 */
+.page-today .fortune-quote { margin:0 0 16px; font-size:20px; line-height:1.7; font-weight:700; color:var(--ink); letter-spacing:0.02em; padding-left:12px; border-left:2px solid #EAE7E1; }
+
+/* 底部宜忌 */
+.page-today .fortune-footer { padding-top:14px; border-top:1px dashed rgba(104,103,97,0.18); font-size:13px; line-height:1.5; color:var(--muted); display:flex; gap:6px; flex-wrap:wrap; align-items:baseline; }
+.page-today .ff-suit { color:#4A7A5C; font-weight:700; margin-right:4px; }
+.page-today .ff-sep { color:var(--faint); margin:0 12px; }
+.page-today .ff-avoid { color:var(--red); font-weight:700; margin-right:4px; }
+.page-today .ff-text { color:var(--muted); }
+
+/* ═══════ 搜索面板 ═══════ */
+.page-today .search-panel-wrap { display:none; padding:0 22px 16px; }
+.page-today .search-panel-wrap.show { display:block; }
+.page-today .search-input-wrap { position:relative; }
+.page-today .search-input-field { width:100%; height:42px; padding:0 16px 0 40px; border-radius:999px; border:1px solid var(--line); background:var(--paper); font-size:12px; color:var(--ink); outline:none; box-sizing:border-box; font-family:inherit; }
+.page-today .search-input-field:focus { border-color:#7E997E; }
+.page-today .search-icon-left { position:absolute; left:14px; top:13px; width:16px; height:16px; color:var(--muted); }
+.page-today .search-autocomplete { border-radius:16px; border:1px solid var(--line); background:#FFF; margin-top:8px; max-height:256px; overflow-y:auto; display:none; box-shadow:0 8px 24px rgba(0,0,0,0.1); }
+.page-today .search-autocomplete.show { display:block; }
+.page-today .search-empty { padding:12px 16px; font-size:12px; color:var(--light); }
+.page-today .search-item { padding:12px 16px; font-size:12px; color:var(--ink); border-bottom:1px solid #F5F4F0; cursor:pointer; display:flex; justify-content:space-between; }
+.page-today .search-item:last-child { border-bottom:none; }
+.page-today .search-item:hover { background:#F5F4F0; }
+.page-today .search-badge { font-size:9px; background:var(--soft-green); color:var(--green); padding:2px 6px; border-radius:4px; }
+
+/* ═══════ 第三层：今天，留下些什么 ═══════ */
+.page-today .action-section { padding:0 22px 24px; }
+.page-today .section-title { font-size:13px; font-weight:700; color:var(--ink); margin-bottom:14px; letter-spacing:0.02em; }
+.page-today .action-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.page-today .action-card { padding:16px; border:1px solid var(--line); border-radius:16px; text-decoration:none; color:inherit; cursor:pointer; background:var(--paper); box-shadow:var(--card-shadow); transition:all 0.3s cubic-bezier(0.16,1,0.3,1); }
+.page-today .action-card:active { transform:scale(0.97); background:#F5F4F0; }
+.page-today .action-card-icon { margin-bottom:6px; }
+.page-today .action-card-icon img { width:22px; height:22px; display:block; }
+.page-today .action-card-title { font-size:13px; font-weight:700; color:var(--ink); margin-bottom:2px; }
+.page-today .action-card-desc { font-size:10px; color:var(--muted); }
+
+/* ═══════ 第四层：今天的痕迹 ═══════ */
+.page-today .trace-section { padding:0 22px 24px; }
+.page-today .trace-empty { padding:20px 0; text-align:center; color:#C5BFB5; font-size:12px; line-height:1.8; background:transparent; }
+.page-today .trace-empty-btn { display:inline-block; margin-top:8px; padding:6px 16px; background:var(--green); color:#FFF; border:none; border-radius:999px; font-size:10px; font-weight:600; cursor:pointer; font-family:inherit; }
+.page-today .trace-list { display:flex; flex-direction:column; gap:4px; }
+.page-today .trace-item { display:flex; gap:10px; padding:12px 14px; background:var(--paper); border:1px solid var(--line); border-radius:12px; box-shadow:var(--card-shadow); transition:all 0.3s; cursor:pointer; }
+.page-today .trace-item:active { transform:scale(0.98); background:#F5F4F0; }
+.page-today .trace-time { font-size:9px; color:var(--light); flex-shrink:0; width:42px; padding-top:2px; }
+.page-today .trace-body { flex:1; min-width:0; }
+.page-today .trace-type { font-size:9px; color:#7E997E; font-weight:600; margin-bottom:3px; }
+.page-today .trace-preview { font-size:12px; color:var(--ink); line-height:1.5; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* ═══════ 第五层：手边工具 ═══════ */
+.page-today .tools-section { padding:0 22px 24px; }
+.page-today .tools-bar { display:flex; flex-wrap:wrap; gap:8px; }
+.page-today .tool-chip { display:inline-flex; align-items:center; gap:4px; padding:6px 14px; background:var(--paper); border:1px solid var(--line); border-radius:999px; text-decoration:none; color:var(--muted); font-size:11px; cursor:pointer; transition:all 0.2s; font-family:inherit; box-shadow:var(--card-shadow); }
+.page-today .tool-chip:active { background:#F5F4F0; transform:scale(0.97); }
+
+/* ═══════ 底部导航 ═══════ */
+.page-today .nav-bar { position:fixed; bottom:12px; left:50%; transform:translateX(-50%); width:calc(100% - 40px); max-width:430px; height:52px; background:rgba(251,251,250,0.92); backdrop-filter:blur(12px); border:1px solid var(--line); border-radius:20px; display:flex; align-items:center; justify-content:space-around; padding:0 8px; z-index:40; box-shadow:0 4px 20px rgba(0,0,0,0.1); }
+.page-today .nav-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; width:40px; height:40px; border-radius:12px; background:transparent; border:none; cursor:pointer; padding:0; }
+.page-today .nav-icon-wrap { width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:8px; transition:all 0.2s; }
+.page-today .nav-active-pill { background:#E3E8E3; }
+.page-today .nav-icon { width:16px; height:16px; transition:color 0.2s; }
+.page-today .nav-label { font-size:7px; font-weight:600; margin-top:1px; transition:color 0.2s; }
+.page-today .clr-sage { color:var(--green); }
+.page-today .clr-ink { color:var(--muted); }
+
+/* ═══════ 模态框 ═══════ */
+.page-today .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100; display:flex; align-items:center; justify-content:center; padding:24px; }
+.page-today .modal-overlay.hidden { display:none; }
+.page-today .modal-box { background:#F5F4F0; border:1px solid #DDD9CF; width:100%; max-width:360px; border-radius:24px; padding:24px; box-shadow:0 12px 40px rgba(0,0,0,0.3); max-height:85vh; overflow-y:auto; }
+
+/* Toast */
+.page-today .kanshi-toast { position:fixed; top:24px; left:50%; transform:translateX(-50%); z-index:999; background:#1C1B1A; color:#FBBF24; border:1px solid #2C2B29; padding:8px 20px; border-radius:999px; font-size:12px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,0.4); display:flex; align-items:center; gap:8px; animation:toastIn 0.3s ease-out; }
+@keyframes toastIn { 0%{opacity:0;transform:translateX(-50%)translateY(-12px)} 100%{opacity:1;transform:translateX(-50%)translateY(0)} }
+
+/* 快速记账 */
+.page-today .finance-type-bar { display:flex; gap:8px; margin-bottom:16px; }
+.page-today .finance-type-btn { flex:1; height:40px; border-radius:10px; border:1px solid var(--line); background:var(--paper); font-family:inherit; font-size:12px; font-weight:600; cursor:pointer; color:var(--muted); transition:all 0.15s; }
+.page-today .finance-type-btn.active { background:var(--ink); color:#FFF; border-color:var(--ink); }
+.page-today .finance-amount-wrap { display:flex; align-items:center; gap:4px; margin-bottom:16px; }
+.page-today .finance-amount-symbol { font-size:18px; font-weight:700; color:var(--ink); }
+.page-today .finance-amount-input { flex:1; height:52px; border:none; background:transparent; font-size:32px; font-weight:700; outline:none; font-family:'Inter','Outfit',sans-serif; text-align:right; color:var(--ink); }
+.page-today .finance-amount-input::placeholder { color:var(--faint); }
+.page-today .finance-cat-grid { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px; margin-bottom:16px; }
+.page-today .finance-cat-btn { padding:8px 4px; border-radius:8px; border:1px solid var(--line); background:var(--paper); font-size:11px; cursor:pointer; text-align:center; font-family:inherit; color:var(--muted); }
+.page-today .finance-cat-btn.active { background:var(--ink); color:#FFF; border-color:var(--ink); }
+.page-today .finance-note-input { width:100%; height:40px; padding:0 14px; border:1px solid var(--line); border-radius:10px; font-size:12px; outline:none; box-sizing:border-box; font-family:inherit; margin-bottom:20px; }
+.page-today .btn-cancel { flex:1; height:42px; background:#F5F4F0; color:var(--muted); border:none; border-radius:12px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; }
+.page-today .btn-primary { flex:1; height:42px; background:var(--green); color:#FFF; border:none; border-radius:12px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; }
+.page-today .modal-actions { display:flex; gap:10px; }
+
+	.page-today .num{font-family:"Inter",Arial,sans-serif;font-weight:700;font-variant-numeric:tabular-nums}
+	</style>
+</head>
+<body class="page-today">
+<div class="app-viewport">
+
+<div class="scroll-area no-scrollbar">
+
+  <!-- ═══ 第一层：今天的页眉 ═══ -->
+  <div class="page-header">
+    <div class="top-row">
+      <div class="brand-group">
+        <h1 class="brand">KANSHI</h1>
+        <span class="brand-chip">简纸</span>
+      </div>
+      <button class="search-toggle" id="search-toggle-btn"><img src="pic/搜索.png"></button>
+    </div>
+    <div class="date-line"><span id="date-line-text"></span><span class="date-line-sep">|</span><span id="date-lunar"></span><span class="date-line-sep">·</span><span class="weather-mark" id="weather-widget"><span class="weather-temp" id="weather-temp">30°</span><span id="weather-loc">定位中</span></span></div>
+  </div>
+
+<!-- 搜索面板 -->
+  <div class="search-panel-wrap" id="search-panel-wrap">
+    <div class="search-input-wrap">
+      <svg class="search-icon-left" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-input-field" type="text" id="global-search-input" placeholder="搜索你的内容、工具或灵感...">
+    </div>
+    <div class="search-autocomplete" id="search-autocomplete-panel"></div>
+  </div>
+
+  <!-- ═══ 第二层：今日签 ═══ -->
+  <div class="fortune-section">
+    <div class="fortune-card">
+      <div class="fortune-top">
+        <span class="fortune-tag">今日运签</span>
+        <span class="lucky-pill"><span class="lucky-dot" id="fortune-color-dot"></span><span id="fortune-color-name">丁香紫</span></span>
+      </div>
+      <blockquote class="fortune-quote" id="fortune-text">人不知而不愠，不亦君子乎，胸襟开阔。</blockquote>
+      <div class="fortune-footer">
+        <span class="ff-suit">宜</span>
+        <span class="ff-text" id="fortune-suit">——</span>
+        <span class="ff-sep">·</span>
+        <span class="ff-avoid">忌</span>
+        <span class="ff-text" id="fortune-avoid">——</span>
+      </div>
+    </div>
+  </div>
+
+<!-- ═══ 第三层：今天，留下些什么 ═══ -->
+  <div class="action-section">
+    <div class="section-title">今天，留下些什么</div>
+    <div class="action-grid">
+      <a class="action-card" href="timeline.html">
+        <div class="action-card-icon"><img src="pic/动态.png"></div>
+        <div class="action-card-title">记一刻</div>
+        <div class="action-card-desc">留下一句话或一张照片</div>
+      </a>
+      <a class="action-card" href="calories.html">
+        <div class="action-card-icon"><img src="pic/线路-饮食.png"></div>
+        <div class="action-card-title">记饮食</div>
+        <div class="action-card-desc">记下今天吃了什么</div>
+      </a>
+      <div class="action-card" onclick="openFinanceModal()">
+        <div class="action-card-icon"><img src="pic/174_记账.png"></div>
+        <div class="action-card-title">记一笔</div>
+        <div class="action-card-desc">今天的钱花去了哪里</div>
+      </div>
+      <a class="action-card" href="inspiration.html">
+        <div class="action-card-icon"><img src="pic/灵感.png"></div>
+        <div class="action-card-title">存灵感</div>
+        <div class="action-card-desc">收集突然想到的碎片</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- ═══ 第四层：今天的痕迹 ═══ -->
+  <div class="trace-section">
+    <div class="section-title">今天的痕迹</div>
+    <div id="trace-container"></div>
+  </div>
+
+  <!-- ═══ 第五层：手边工具 ═══ -->
+  <div class="tools-section">
+    <div class="section-title">手边工具</div>
+    <div class="tools-bar">
+      <a class="tool-chip" href="img2pdf.html"><span>📄</span> 图片转PDF</a>
+      <a class="tool-chip" href="qrcode.html"><span>📲</span> 二维码</a>
+      <a class="tool-chip" href="watermark.html"><span>💧</span> 去水印</a>
+      <a class="tool-chip" href="tools.html"><span>🔧</span> 更多工具</a>
+      <a class="tool-chip" href="storage.html"><span>📦</span> 收纳盒</a>
+    </div>
+  </div>
+
+</div>
+
+  <!-- ═══ 底部导航 ═══ -->
+  <nav class="nav-bar">
+    <button class="nav-btn" id="nav-today"><div class="nav-icon-wrap nav-active-pill"><svg class="nav-icon clr-sage" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div><span class="nav-label clr-sage">今天</span></button>
+    <button class="nav-btn" id="nav-todo"><div class="nav-icon-wrap"><svg class="nav-icon clr-ink" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div><span class="nav-label clr-ink">待办</span></button>
+    <button class="nav-btn" id="nav-records"><div class="nav-icon-wrap"><svg class="nav-icon clr-ink" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg></div><span class="nav-label clr-ink">记录</span></button>
+    <button class="nav-btn" id="nav-tools"><div class="nav-icon-wrap"><svg class="nav-icon clr-ink" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg></div><span class="nav-label clr-ink">工具</span></button>
+    <button class="nav-btn" id="nav-storage"><div class="nav-icon-wrap"><svg class="nav-icon clr-ink" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-14v14m0-14L4 7m0 0v10l8 4"/></svg></div><span class="nav-label clr-ink">收纳盒</span></button>
+  </nav>
+
+  <div class="modal-overlay hidden" id="global-modal"><div class="modal-box" id="modal-content-area"></div></div>
+
+</div>
+
+<script>
+(function(){
+loadDatabase();
+if (!db.userProfile) db.userProfile = { displayName: '', avatar: '' };
+
+// ═══════ 页眉 ═══════
+var dateEl = document.getElementById('date-line-text');
+var dateLunar = document.getElementById('date-lunar');
+if (dateEl) {
+  var d = new Date();
+  var wk = ['日','一','二','三','四','五','六'];
+  dateEl.textContent = (d.getMonth()+1)+'月'+d.getDate()+'日 星期'+wk[d.getDay()];
+  if (dateLunar && typeof Lunar !== 'undefined') {
+    try {
+      var lunar = Lunar.fromDate(d);
+      dateLunar.textContent = '农历'+lunar.getYearInGanZhi()+'年·'+lunar.getMonthInChinese()+'月'+lunar.getDayInChinese();
+    } catch(e) {}
+  }
+}
+
+// 天气
+function wmoIcon(code) {
+  if (code===0) return '☀️';
+  if (code<=3) return '🌤️';
+  if (code<=48) return '🌫️';
+  if (code<=57) return '🌦️';
+  if (code<=67) return '🌧️';
+  if (code<=77) return '❄️';
+  if (code<=82) return '🌦️';
+  if (code<=99) return '⛈️';
+  return '🌤️';
+}
+function refreshWeather() {
+  var locEl = document.getElementById('weather-loc');
+  var tempEl = document.getElementById('weather-temp');
+  if (!locEl||!tempEl) return;
+  if (!navigator.geolocation) { locEl.textContent='不支持定位'; return; }
+  navigator.geolocation.getCurrentPosition(function(pos){
+    var lat=pos.coords.latitude, lng=pos.coords.longitude;
+    fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lng+'&current_weather=true&timezone=auto')
+      .then(function(r){return r.json()})
+      .then(function(d){
+        if (d.current_weather) {
+          tempEl.textContent=Math.round(d.current_weather.temperature)+'°';
+        }
+      }).catch(function(){});
+    fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lng+'&format=json&accept-language=zh&zoom=10')
+      .then(function(r){return r.json()})
+      .then(function(d){
+        if (d&&d.address) {
+          var a=d.address;
+          locEl.textContent=(a.city||a.town||a.village||a.county||a.state_district||'当前位置');
+        } else locEl.textContent='当前位置';
+      }).catch(function(){locEl.textContent='当前位置'});
+  }, function(){ locEl.textContent='定位失败'; });
+}
+refreshWeather();
+var ww=document.getElementById('weather-widget');
+if(ww) ww.addEventListener('click',function(){ refreshWeather(); });
+
+// 搜索切换
+var searchToggle = document.getElementById('search-toggle-btn');
+var searchWrap = document.getElementById('search-panel-wrap');
+if (searchToggle && searchWrap) {
+  searchToggle.addEventListener('click', function(e) {
+    e.stopPropagation();
+    searchWrap.classList.toggle('show');
+    if (searchWrap.classList.contains('show')) {
+      setTimeout(function(){ document.getElementById('global-search-input').focus(); }, 100);
+    }
+  });
+}
+
+// 搜索逻辑
+var searchCatalog = [
+  { key:"imeline moments 朋友圈", title:"⏳ 今日动态", url:"timeline.html" },
+  { key:"热量 减肥 diet 卡路里", title:"🍴 饮食与热量记账", url:"calories.html" },
+  { key:"图片 pdf converter 转换", title:"📄 批量图片转 PDF", url:"img2pdf.html" },
+  { key:"灵感 spark 创意 小说", title:"💡 灵感归档工坊", url:"inspiration.html" },
+  { key:"密码 安全 密钥 lock", title:"🔑 密码抽屉", url:"password-lock.html" },
+  { key:"打卡 习惯 坚持 streak", title:"🎖️ 习惯进化打卡", url:"habits.html" },
+  { key:"日记 diary 写作 长文", title:"📖 心灵日记本", url:"diary.html" },
+  { key:"读书 观后感 书影 评分", title:"🎨 观感活页册", url:"books.html" },
+  { key:"照片 回忆 瞬间 画廊", title:"🖼️ 影像回忆画廊", url:"gallery.html" },
+  { key:"二维码 qrcode 码上游", title:"📲 码上游离线传输", url:"qrcode.html" }
+];
+var searchInput = document.getElementById('global-search-input');
+var searchPanel = document.getElementById('search-autocomplete-panel');
+if (searchInput && searchPanel) {
+  searchInput.addEventListener('input', function() {
+    var q = this.value.trim().toLowerCase();
+    searchPanel.innerHTML = '';
+    if (!q) { searchPanel.classList.remove('show'); return; }
+    var matched = searchCatalog.filter(function(item) {
+      return item.key.indexOf(q) >= 0 || item.title.indexOf(q) >= 0;
+    });
+    if (matched.length === 0) {
+      searchPanel.innerHTML = '<div class="search-empty">没有搜索到相关的记录...</div>';
+    } else {
+      matched.forEach(function(item) {
+        var div = document.createElement('div');
+        div.className = 'search-item';
+        div.innerHTML = '<span>' + item.title + '</span><span class="search-badge">打开</span>';
+        div.addEventListener('click', function() { window.location.href = item.url; });
+        searchPanel.appendChild(div);
+      });
+    }
+    searchPanel.classList.add('show');
+  });
+  document.addEventListener('click', function(e) {
+    if (e.target !== searchInput && !searchPanel.contains(e.target) && e.target !== searchToggle) {
+      searchPanel.classList.remove('show');
+    }
+  });
+}
+
+
+// ═══════ 记一笔 ═══════
+
+window.openFinanceModal = openFinanceModal;
+window.selectFinanceType = selectFinanceType;
+window.selectFinanceCat = selectFinanceCat;
+window.saveFinance = saveFinance;
+var finType = '支出';
+var finCat = '餐饮';
+
+function openFinanceModal() {
+  finType = '支出';
+  finCat = '餐饮';
+  showModal(
+    '<div class="modal-head"><span class="modal-title">记一笔</span><button onclick="closeModal()" class="modal-close">✕</button></div>' +
+    '<div class="finance-type-bar">' +
+      '<button class="finance-type-btn active" id="ft-expense" onclick="selectFinanceType(\'支出\')">支出</button>' +
+      '<button class="finance-type-btn" id="ft-income" onclick="selectFinanceType(\'收入\')">收入</button>' +
+    '</div>' +
+    '<div class="finance-amount-wrap">' +
+      '<span class="finance-amount-symbol">¥</span>' +
+      '<input type="number" id="fin-amount" class="finance-amount-input" placeholder="0.00" step="0.01" min="0" inputmode="decimal">' +
+    '</div>' +
+    '<div class="finance-cat-grid" id="fin-cat-grid">' +
+      '<button class="finance-cat-btn active" onclick="selectFinanceCat(\'餐饮\')">🍜 餐饮</button>' +
+      '<button class="finance-cat-btn" onclick="selectFinanceCat(\'购物\')">🛍️ 购物</button>' +
+      '<button class="finance-cat-btn" onclick="selectFinanceCat(\'交通\')">🚇 交通</button>' +
+      '<button class="finance-cat-btn" onclick="selectFinanceCat(\'生活\')">🏠 生活</button>' +
+      '<button class="finance-cat-btn" onclick="selectFinanceCat(\'娱乐\')">🎮 娱乐</button>' +
+      '<button class="finance-cat-btn" onclick="selectFinanceCat(\'学习\')">📚 学习</button>' +
+      '<button class="finance-cat-btn" onclick="selectFinanceCat(\'健康\')">💊 健康</button>' +
+      '<button class="finance-cat-btn" onclick="selectFinanceCat(\'其他\')">📌 其他</button>' +
+    '</div>' +
+    '<input type="text" id="fin-note" class="finance-note-input" placeholder="今天买了什么？">' +
+    '<div class="modal-actions">' +
+      '<button onclick="closeModal()" class="btn-cancel">取消</button>' +
+      '<button onclick="saveFinance()" class="btn-primary">保存</button>' +
+    '</div>'
+  );
+  setTimeout(function(){
+    var inp = document.getElementById('fin-amount');
+    if (inp) inp.focus();
+  }, 150);
+}
+
+function selectFinanceType(type) {
+  finType = type;
+  document.getElementById('ft-expense').className = 'finance-type-btn' + (type==='支出' ? ' active' : '');
+  document.getElementById('ft-income').className = 'finance-type-btn' + (type==='收入' ? ' active' : '');
+}
+
+function selectFinanceCat(cat) {
+  finCat = cat;
+  document.querySelectorAll('#fin-cat-grid .finance-cat-btn').forEach(function(b){
+    b.classList.toggle('active', b.textContent.trim().includes(cat));
+  });
+}
+
+function saveFinance() {
+  var amount = document.getElementById('fin-amount');
+  var note = document.getElementById('fin-note');
+  var val = parseFloat(amount.value);
+  if (!val || val <= 0) { amount.focus(); return; }
+  var now = new Date();
+  var iso = now.toISOString().slice(0,10);
+  var timeStr = (now.getMonth()+1)+'月'+now.getDate()+'日 '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  if (!db.financeLogs) db.financeLogs = [];
+  db.financeLogs.unshift({
+    id: 'fin_'+Date.now(),
+    type: finType,
+    amount: val,
+    category: finCat,
+    note: note ? note.value.trim() : '',
+    date: iso,
+    timeStr: timeStr
+  });
+  saveDatabase();
+  closeModal();
+  renderTraces();
+  triggerToast('已记一笔 ' + finType + ' ¥' + val.toFixed(2));
+}
+
+
+// ═══════ 运签 ═══════
+
+var GANZHI_POEMS = {
+  '甲子':'甲子启岁，万象更新。心若向阳，无惧悲伤。今日宜定计划、开新局。','乙丑':'乙丑如牛，负重前行。一步一印，终抵青山。今日宜踏实耕耘，勿求速成。','丙寅':'丙寅虎跃，气势如虹。趁势而起，莫负东风。今日宜大胆进取，敢为人先。','丁卯':'丁卯月明，兔隐桂丛。静待良机，勿妄勿动。今日宜沉潜观察，不宜贸然。','戊辰':'戊辰成龙，潜渊吐珠。蓄力已久，正当出海。今日宜展露才华，大有可为。','己巳':'己巳蛇行，曲中求直。柔能克刚，弱能胜强。今日宜以退为进，智取为上。','庚午':'庚午天马，行空独往。志在千里，何惧路长。今日宜远行出发，开阔眼界。','辛未':'辛未衔草，羊群归巢。温厚待人，自有福报。今日宜施恩惠、广结善缘。','壬申':'壬申金猴，巧智无双。遇山开路，遇水架梁。今日宜智解难题，一展巧思。','癸酉':'癸酉鸡鸣，天色将明。勤者早行，惰者迟醒。今日宜早起步，抢占先机。','甲戌':'甲戌守成，如犬护庭。忠厚持家，风雨不惊。今日宜守业、持家、稳根基。','乙亥':'乙亥归藏，猪卧暖堂。蓄精养锐，来日方长。今日宜休养生息，不宜劳顿。','丙子':'丙子水动，暗流奔涌。顺势而下，不可强攻。今日宜顺势而为，借水力行舟。','丁丑':'丁丑泥深，牛步艰辛。耐心熬过，自有春耕。今日宜坚持隐忍，曙光在前。','戊寅':'戊寅松立，虎卧山脊。风骨不折，傲然独立。今日宜守正不移，行端坐直。','己卯':'己卯春草，兔戏林梢。生机勃发，绿满荒郊。今日宜开拓新域，播种希望。','庚辰':'庚辰鳞动，龙跃云中。扶摇直上，所向皆通。今日宜大展拳脚，事事亨通。','辛巳':'辛巳螣蛇，雾隐深泽。神机莫测，以静制动。今日宜谋定后动，以智取胜。','壬午':'壬午烽火，马踏狼烟。英雄胆色，在此一战。今日宜决断破局，义无反顾。','癸未':'癸未草茂，羊群食饱。温柔敦厚，福自来找。今日宜以善待人，不争不躁。','甲申':'甲申金猴，气贯斗牛。千钧一发，巧手能收。今日宜从容应变，危机化机。','乙酉':'乙酉凤鸣，金鸡报晓。天地清朗，百事正好。今日宜高调行事，正当其时。','丙戌':'丙戌熔金，犬守丹心。烈火真金，岁月可鉴。今日宜表忠心、证价值。','丁亥':'丁亥灯暖，猪卧炉前。围炉夜话，岁岁平安。今日宜亲友相聚，多些温情。','戊子':'戊子山高，鼠登松梢。积微成著，步步登高。今日宜从小事做起，积跬步至千里。','己丑':'己丑沃土，牛耕深亩。春种一粒，秋收万谷。今日宜栽培技能、投资未来。','庚寅':'庚寅松风，虎啸长空。独行天地，谁与争锋。今日宜独当一面，展现实力。','辛卯':'辛卯玉兔，月宫捣药。虽是一隅，功在九霄。今日宜坚守岗位，细小亦有大成。','壬辰':'壬辰潜龙，水底藏锋。云起之时，一跃苍穹。今日宜等待时机，不宜冲动。','癸巳':'癸巳灵蛇，曲径通幽。柳暗花明，终见高楼。今日宜转个思路，换个角度。','甲午':'甲午火盛，骏马奔腾。光芒万丈，正午当空。今日宜意气风发，大有作为。','乙未':'乙未兰香，羊栖芳冈。素心一片，岁月含章。今日宜淡泊明志，宁静致远。','丙申':'丙申烁金，猿臂摘星。灵光乍现，巧计天成。今日宜发挥创造力。','丁酉':'丁酉华羽，凤栖梧桐。高洁不染，何惧风凶。今日宜修身养性，保持清正。','戊戌':'戊戌山岳，犬卧岩壑。厚重不移，风雨不剥。今日宜稳守阵地，以静待变。','己亥':'己亥归流，猪入平洲。随波逐浪，自在悠悠。今日宜随缘自适，不必强求。','庚子':'庚子寒夜，鼠窥残月。暗蓄光芒，待旦而作。今日宜暗中用功，厚积薄发。','辛丑':'辛丑霜降，牛卧草堂。耐得寂寞，方有荣光。今日宜静心修炼，不慕浮华。','壬寅':'壬寅月出，虎啸幽谷。威而不猛，刚中带柔。今日宜以德服人，刚柔并济。','癸卯':'癸卯露重，兔隐月中。清辉遍洒，天地一同。今日宜心怀慈悲，多行善举。','甲辰':'甲辰渊深，龙潜碧浔。一声雷动，飞升入云。今日宜厚积薄发，一鸣惊人。','乙巳':'乙巳风起，蛇蜕旧衣。去故纳新，焕然可期。今日宜断舍离，轻装前行。','丙午':'丙午盛夏，马踏飞花。骄阳似火，烈烈其华。今日宜热情洋溢，大胆示爱。','丁未':'丁未暖阳，羊栖草场。悠然自得，福泽绵长。今日宜享受当下，知足常乐。','戊申':'戊申金秋，猿收百果。辛勤半载，收获满箩。今日宜验收成果、犒劳自己。','己酉':'己酉谷满，鸡唱丰年。仓廪殷实，不愁吃穿。今日宜理财盘点，知足惜福。','庚戌':'庚戌佩印，犬护金库。忠诚守责，邪祟不入。今日宜尽职守、管好财。','辛亥':'辛亥归藏，猪卧粮仓。满腹经纶，不争自彰。今日宜低调内敛，自有识者。','壬子':'壬子寒江，鼠渡苍茫。孤舟一叶，破浪而往。今日宜勇敢尝试，不畏风险。','癸丑':'癸丑冰封，牛困雪中。待得春来，草绿山重。今日宜熬过难关，坚持到底。','甲寅':'甲寅木王，虎踞高岗。万物生长，赖此春光。今日宜带动他人，发挥影响力。','乙卯':'乙卯春分，兔戏芳芬。花期正好，莫负良辰。今日宜约会、出游、享受好时光。','丙辰':'丙辰雷动，龙腾云涌。天降甘霖，泽被万众。今日宜助人施惠，功德无量。','丁巳':'丁巳焰起，蛇行炎地。浴火而生，蜕变可期。今日宜勇敢改变，重塑自我。','戊午':'戊午重峦，马越千山。天地辽阔，任尔往还。今日宜自由奔放，追逐梦想。','己未':'己未草繁，羊聚成团。和衷共济，温暖相伴。今日宜团队合作，众人拾柴。','庚申':'庚申金猿，智取仙丹。千变万化，不拘一端。今日宜灵活变通，多策略并行。','辛酉':'辛酉金鸡，独唱天西。一鸣惊人，万籁俱寂。今日宜展示才华，赢得喝彩。','壬戌':'壬戌海阔，犬守潮波。忠心不二，岁月如歌。今日宜坚守承诺，不负所托。','癸亥':'癸亥终章，猪卧福堂。一岁圆满，来日方长。今日宜收尾总结、感恩辞旧。'
+};
+var ZHI_COLORS={
+  '子':{hex:'#1C1B1A',cls:'dot-zihei',name:'玄黑'},'丑':{hex:'#C4A24E',cls:'dot-tuhuang',name:'土黄'},'寅':{hex:'#2D5A27',cls:'dot-songlv',name:'松绿'},'卯':{hex:'#C9A9C6',cls:'dot-ouhe',name:'藕荷'},'辰':{hex:'#B8860B',cls:'dot-darkgold',name:'缃色'},'巳':{hex:'#C04040',cls:'dot-zhusha',name:'朱砂'},'午':{hex:'#B22222',cls:'dot-yanzhi',name:'胭脂'},'未':{hex:'#D2C9B8',cls:'dot-tubai',name:'荼白'},'申':{hex:'#A8C8D8',cls:'dot-yuebai',name:'月白'},'酉':{hex:'#D4AF37',cls:'dot-liujin',name:'鎏金'},'戌':{hex:'#A0816A',cls:'dot-tuose',name:'驼色'},'亥':{hex:'#4A3C5C',cls:'dot-daizi',name:'黛紫'}
+};
+
+function refreshFortune() {
+  if (typeof Lunar==='undefined') { document.getElementById('fortune-text').textContent='——'; return; }
+  try {
+    var lunar=Lunar.fromDate(new Date());
+    var ganzhiDay=lunar.getDayInGanZhi();
+    var zhi=lunar.getDayZhi();
+    var yiList=lunar.getDayYi();
+    var jiList=lunar.getDayJi();
+    var poem=GANZHI_POEMS[ganzhiDay]||'日升月落平常心。今日宜静不宜躁。';
+    var color=ZHI_COLORS[zhi]||{hex:'#B8860B',cls:'dot-darkgold',name:'暗金'};
+    document.getElementById('fortune-text').innerHTML = poem;
+    var fcd=document.getElementById('fortune-color-dot');
+    if(fcd) fcd.className='lucky-dot '+color.cls;
+    document.getElementById('fortune-color-name').textContent=color.name;
+    document.getElementById('fortune-suit').textContent=yiList?yiList.slice(0,4).join('、')||'诸事皆宜':'诸事皆宜';
+    document.getElementById('fortune-avoid').textContent=jiList?jiList.slice(0,4).join('、')||'无所禁忌':'无所禁忌';
+  } catch(e){ document.getElementById('fortune-text').textContent='——'; }
+}
+refreshFortune();
+
+
+// ═══════ 今天的痕迹 ═══════
+
+function getTodayMD() {
+  var d = new Date();
+  return String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function renderTraces() {
+  var container = document.getElementById('trace-container');
+  if (!container) return;
+  var todayMD = getTodayMD();
+  var traces = [];
+
+  (db.timelinePosts||[]).forEach(function(p) {
+    if (!p.date) return;
+    var m = p.date.match(/(\d+)月(\d+)日/);
+    if (!m) return;
+    var md = String(m[1]).padStart(2,'0')+'-'+String(m[2]).padStart(2,'0');
+    if (md === todayMD) traces.push({ time: p.date, type: '动态', text: p.content, url: 'timeline.html' });
+  });
+  (db.dietLogs||[]).forEach(function(p) {
+    if (!p.date) return;
+    var dd = p.date.slice(5);
+    if (dd === todayMD) traces.push({ time: p.date, type: '饮食', text: (p.items||[]).map(function(i){return i.name;}).join('、')||'记录了一顿饭', url: 'calories.html' });
+  });
+  (db.diaries||[]).forEach(function(p) {
+    if (!p.date) return;
+    var m = p.date.match(/(\d+)月(\d+)日/);
+    if (m) {
+      var md = String(m[1]).padStart(2,'0')+'-'+String(m[2]).padStart(2,'0');
+      if (md === todayMD) traces.push({ time: p.date, type: '日记', text: p.title||'写了一段日记', url: 'diary.html' });
+    } else {
+      var dd = p.date.slice(5,10);
+      if (dd === todayMD) traces.push({ time: p.date, type: '日记', text: p.title||'写了一段日记', url: 'diary.html' });
+    }
+  });
+  (db.inspirations||[]).forEach(function(p) {
+    if (!p.date) return;
+    var dd = p.date.slice(5,10);
+    if (dd === todayMD) traces.push({ time: p.date, type: '灵感', text: p.title||'收藏了一条灵感', url: 'inspiration.html' });
+  });
+  (db.financeLogs||[]).forEach(function(p) {
+    if (!p.date) return;
+    var dd = p.date.slice(5);
+    if (dd === todayMD) traces.push({ time: p.timeStr||p.date, type: '记账', text: p.type+' ¥'+p.amount.toFixed(2)+' · '+(p.category||'')+(p.note?' · '+p.note:''), url: '#' });
+  });
+  traces.sort(function(a,b){ return a.time < b.time ? 1 : -1; });
+  traces = traces.slice(0,4);
+
+  if (traces.length === 0) {
+    container.innerHTML =
+      '<div class="trace-empty">' +
+        '今天还是一张空白的纸。<br>留下一句话、一张照片，或者一顿饭的味道。<br>' +
+        '<button class="trace-empty-btn" onclick="document.querySelector(\'.action-card\').click()">开始记录</button>' +
+      '</div>';
+    return;
+  }
+
+  var html = '<div class="trace-list">';
+  traces.forEach(function(t) {
+    html += '<div class="trace-item" onclick="window.location.href=\''+t.url+'\'"><span class="trace-time">'+escapeHtml(t.time)+'</span><div class="trace-body"><div class="trace-type">'+escapeHtml(t.type)+'</div><div class="trace-preview">'+escapeHtml(t.text)+'</div></div></div>';
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+// ═══ 导航 ═══
+document.getElementById('nav-today').addEventListener('click',function(){ window.location.href='index.html'; });
+document.getElementById('nav-todo').addEventListener('click',function(){ window.location.href='todo.html'; });
+document.getElementById('nav-records').addEventListener('click',function(){ window.location.href='records.html'; });
+document.getElementById('nav-tools').addEventListener('click',function(){ window.location.href='tools.html'; });
+document.getElementById('nav-storage').addEventListener('click',function(){ window.location.href='storage.html'; });
+
+renderTraces();
+
+})();
+</script>
+</body>
+</html>

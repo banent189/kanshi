@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>简纸 — 图片转 PDF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+SC:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="shared.js"></script>
+<script src="lib/pdf-lib.min.js"></script>
+<style>
+body.page-pdf{ margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Outfit',sans-serif; }
+.page-pdf .app-viewport{ max-width:480px; margin:0 auto; background:#F5F4F0; min-height:100vh; display:flex; flex-direction:column; }
+.page-pdf .header-bar{ height:56px; border-bottom:1px solid #EAE7E1; padding:0 16px; display:flex; align-items:center; justify-content:space-between; background:#F5F4F0; }
+.page-pdf .content{ flex:1; overflow-y:auto; padding:20px; padding-bottom:96px; }
+.page-pdf .upload-zone{ border:2px dashed #DDD9CF; border-radius:16px; padding:32px; text-align:center; cursor:pointer; }
+.page-pdf .file-list{ display:flex; flex-direction:column; gap:8px; margin-top:20px; }
+.page-pdf .file-row{ display:flex; align-items:center; gap:12px; padding:12px; background:#FFF; border:1px solid #EAE7E1; border-radius:12px; }
+.page-pdf .kanshi-toast{ position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:999;background:#1C1B1A;color:#FBBF24;border:1px solid #2C2B29;padding:8px 20px;border-radius:999px;font-size:12px;font-weight:700;animation:fadeSlideIn 0.3s ease-out}
+@keyframes fadeSlideIn{0%{opacity:0;transform:translateX(-50%)translateY(-12px)}100%{opacity:1;transform:translateX(-50%)translateY(0)}}
+
+.page-pdf .pdf-thumb-box{width:48px;height:48px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#F5F4F0}
+.page-pdf .pdf-thumb-img{width:100%;height:100%;object-fit:cover}
+.page-pdf .pdf-file-info{flex:1;min-width:0}
+.page-pdf .pdf-file-name{font-size:12px;color:#2C2B29;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.page-pdf .pdf-file-size{font-size:10px;color:#A1A1AA}
+.page-pdf .pdf-remove-btn{width:28px;height:28px;border-radius:999px;background:#F5F4F0;border:none;color:#A1A1AA;cursor:pointer;font-size:14px}
+
+.page-pdf .back-btn{background:none;border:none;padding:8px;color:#2C2B29;cursor:pointer}
+.page-pdf .header-title{font-size:14px;font-weight:700}
+.page-pdf .file-input-hidden{display:none}
+.page-pdf .upload-icon{font-size:48px;margin-bottom:12px}
+.page-pdf .upload-title{font-size:14px;font-weight:700;color:#2C2B29}
+.page-pdf .upload-hint{font-size:10px;color:#5C5854;margin-top:4px}
+.page-pdf .section-gap{margin-top:16px}
+.page-pdf .section-label{font-size:10px;color:#5C5854;margin-bottom:8px}
+.page-pdf .name-row{display:flex;align-items:center;gap:8px;background:#FFF;border:1px solid #EAE7E1;border-radius:12px;padding:8px 12px}
+.page-pdf .name-input{flex:1;border:none;outline:none;font-size:12px;background:transparent}
+.page-pdf .text-hint{font-size:10px;color:#5C5854}
+.page-pdf .convert-btn{display:none;width:100%;margin-top:20px;height:48px;background:#9F1239;color:#FFF;border:none;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer}
+
+	.page-pdf .num{font-family:"Inter",Arial,sans-serif;font-weight:700;font-variant-numeric:tabular-nums}
+	</style>
+</head>
+<body class="page-pdf">
+<div class="app-viewport">
+  <div class="header-bar">
+    <button onclick="history.back()" class="back-btn"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+    <h3 class="header-title">图片转 PDF</h3>
+    <span></span>
+  </div>
+  <div class="content no-scrollbar">
+    <div class="upload-zone" onclick="document.getElementById('file-input').click()">
+      <input type="file" id="file-input" accept="*/*" multiple class="file-input" onchange="handleFiles(this)">
+      <div class="upload-icon">🖼</div>
+      <p class="upload-title" id="upload-text">选择图片</p>
+      <p class="upload-hint">PNG / JPG / WebP</p>
+    </div>
+    <div class="file-list" id="file-list"></div>
+    <div id="name-row" class="hidden">
+      <p class="section-label">输出文件名</p>
+      <div class="name-row">
+        <input type="text" id="pdf-name" value="合并文档" class="name-input">
+        <span class="text-hint">.pdf</span>
+      </div>
+    </div>
+    <button id="convert-btn" disabled onclick="startConvert()" class="convert-btn">开始转换</button>
+  </div>
+</div>
+<script>
+var queue = [];
+var _generating = false;
+
+function handleFiles(input) {
+  var files = Array.from(input.files);
+  if (files.length === 0) return;
+  var loaded = 0;
+  files.forEach(function(file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      queue.push({ id:'pdf_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), base64:e.target.result, name:file.name, size:file.size });
+      loaded++;
+      if (loaded === files.length) renderList();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function renderList() {
+  var area = document.getElementById('file-list');
+  var text = document.getElementById('upload-text');
+  var btn = document.getElementById('convert-btn');
+  var nameRow = document.getElementById('name-row');
+  if (!area) return;
+  if (queue.length === 0) { area.innerHTML = ''; if(text) text.textContent='选择图片'; if(btn){btn.classList.add('hidden');btn.disabled=true;} if(nameRow)nameRow.classList.add('hidden'); return; }
+  if (text) text.textContent = '继续添加 +';
+  if (nameRow) nameRow.classList.remove('hidden');
+  if (btn) { btn.classList.remove('hidden'); btn.disabled = false; }
+  area.innerHTML = queue.map(function(img) {
+    return '<div class="file-row"><div class="pdf-thumb-box"><img src="'+img.base64+'" class="pdf-thumb-img"></div>' +
+      '<div class="pdf-file-info"><p class="pdf-file-name">'+escapeHtml(img.name)+'</p><p class="pdf-file-size">'+(img.size/1024).toFixed(0)+' KB</p></div>' +
+      '<button onclick="remove(\''+img.id+'\')" class="pdf-remove-btn">&times;</button></div>';
+  }).join('');
+}
+
+function remove(id) { queue = queue.filter(function(i){return i.id!==id;}); renderList(); }
+
+async function startConvert() {
+  if (queue.length === 0 || _generating) return;
+  _generating = true;
+  var nameInput = document.getElementById('pdf-name');
+  var filename = nameInput ? (nameInput.value.trim() || '合并文档') : '合并文档';
+  try {
+    var pdfDoc = await PDFLib.PDFDocument.create();
+    for (var i = 0; i < queue.length; i++) {
+      var img = queue[i];
+      var arr = await fetch(img.base64).then(function(r){return r.arrayBuffer();});
+      var u8 = new Uint8Array(arr);
+      var mime = img.base64.split(';')[0].split(':')[1] || 'image/jpeg';
+      var image;
+      try { if (mime === 'image/png') image = await pdfDoc.embedPng(u8); else image = await pdfDoc.embedJpg(u8); } catch(e) { image = null; }
+      if (image) { var page = pdfDoc.addPage([image.width, image.height]); page.drawImage(image, { x:0, y:0, width:image.width, height:image.height }); }
+    }
+    var pdfBytes = await pdfDoc.save();
+    var blob = new Blob([pdfBytes], { type:'application/pdf' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a'); a.href = url; a.download = filename+'.pdf'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(url);}, 10000);
+    queue = []; renderList();
+    triggerToast('PDF 转换完成 ✓');
+  } catch(err) {
+    triggerToast('转换失败: '+(err.message||'').slice(0,60));
+  } finally { _generating = false; }
+}
+</script>
+</body>
+</html>

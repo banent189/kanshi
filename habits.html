@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>简纸 — habits</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+SC:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="shared.js"></script>
+<style>
+
+body.page-habits{ margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Outfit',sans-serif; -webkit-tap-highlight-color:transparent; }
+.page-habits .app-viewport{ max-width:480px; margin:0 auto; background:#F5F4F0; min-height:100vh; display:flex; flex-direction:column; }
+.page-habits .no-scrollbar::-webkit-scrollbar{ display:none; }
+.page-habits .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
+
+/* Header */
+.page-habits .header-bar{ height:56px; border-bottom:1px solid #EAE7E1; padding:0 16px; display:flex; align-items:center; justify-content:space-between; background:#F5F4F0; }
+.page-habits .back-btn{ background:none; border:none; padding:8px; color:#2C2B29; cursor:pointer; }
+.page-habits .header-title{ font-size:14px; font-weight:700; color:#2C2B29; }
+.page-habits .add-btn-circle{ width:32px; height:32px; border-radius:999px; background:#405140; color:#FBFBFA; border:none; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; text-decoration:none; }
+.page-habits .header-spacer{ width:32px; }
+
+/* List area */
+.page-habits .list-area{ flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; padding-bottom:96px; }
+.page-habits .empty-state{ text-align:center; padding:48px; color:#A1A1AA; font-size:14px; }
+
+/* Cards */
+.page-habits .card{ padding:20px; background:#FBFBFA; border:1px solid #EAE7E1; border-radius:20px; box-shadow:0 4px 10px rgba(28,27,26,0.08); transition:all 0.3s cubic-bezier(0.16,1,0.3,1); }
+.page-habits .card:active{ transform:scale(0.98); background:#F5F4F0; }
+.page-habits .row{ display:flex; justify-content:space-between; align-items:baseline; }
+.page-habits .row-center{ display:flex; align-items:center; gap:12px; }
+.page-habits .row-gap{ display:flex; align-items:center; gap:12px; flex:1; cursor:pointer; }
+
+/* Text */
+.page-habits .text-title{ font-size:12px; font-weight:700; color:#2C2B29; }
+.page-habits .text-body{ font-size:12px; color:#5C5854; line-height:1.6; margin-top:8px; }
+.page-habits .text-meta{ font-size:9px; color:#A1A1AA; }
+.page-habits .text-author{ font-size:9px; color:#A6977F; font-weight:400; }
+.page-habits .text-score{ font-size:12px; color:#D97706; }
+.page-habits .text-hint{ font-size:10px; color:#5C5854; }
+.page-habits .text-subtle{ font-size:10px; color:#A1A1AA; }
+
+/* Card footer */
+.page-habits .card-foot{ text-align:right; border-top:1px solid #F5F4F0; padding-top:10px; margin-top:10px; }
+.page-habits .del-btn{ background:none; border:none; font-size:10px; color:#BE123C; cursor:pointer; font-family:inherit; }
+
+/* Modal */
+.page-habits .modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100; display:flex; align-items:center; justify-content:center; padding:24px; }
+.page-habits .modal-overlay.hidden{ display:none; }
+.page-habits .modal-content{ background:#F5F4F0; border:1px solid #DDD9CF; width:100%; max-width:360px; border-radius:24px; padding:24px; }
+.page-habits .modal-head{ display:flex; justify-content:space-between; padding-bottom:8px; border-bottom:1px solid #EAE7E1; margin-bottom:16px; }
+.page-habits .modal-title{ font-size:14px; font-weight:700; color:#2C2B29; }
+.page-habits .modal-close{ background:none; border:none; color:#5C5854; font-size:16px; cursor:pointer; }
+
+/* Form */
+.page-habits .input-text{ width:100%; height:40px; padding:0 12px; font-size:12px; border:1px solid #EAE7E1; border-radius:8px; margin-bottom:12px; box-sizing:border-box; }
+.page-habits .input-text-last{ width:100%; height:40px; padding:0 12px; font-size:12px; border:1px solid #EAE7E1; border-radius:8px; margin-bottom:16px; box-sizing:border-box; }
+.page-habits .textarea-field{ width:100%; min-height:96px; padding:12px; font-size:12px; border:1px solid #EAE7E1; border-radius:8px; outline:none; font-family:inherit; box-sizing:border-box; margin-bottom:16px; }
+.page-habits .textarea-field-lg{ width:100%; min-height:144px; padding:12px; font-size:12px; border:1px solid #EAE7E1; border-radius:8px; outline:none; font-family:inherit; box-sizing:border-box; margin-bottom:16px; }
+.page-habits .select-field{ width:100%; height:36px; font-size:12px; border:1px solid #EAE7E1; border-radius:8px; margin-bottom:12px; }
+
+/* Buttons */
+.page-habits .btn-primary{ width:100%; height:44px; background:#405140; color:#FBFBFA; border:none; border-radius:12px; font-size:12px; font-weight:700; cursor:pointer; }
+.page-habits .btn-teal{ width:100%; height:44px; background:#065F46; color:#FBFBFA; border:none; border-radius:12px; font-size:12px; font-weight:700; cursor:pointer; }
+.page-habits .btn-purple{ width:100%; height:44px; background:#4C1D95; color:#FBFBFA; border:none; border-radius:12px; font-size:12px; font-weight:700; cursor:pointer; }
+
+/* Habits */
+.page-habits .habit-icon{ width:40px; height:40px; border-radius:999px; display:flex; align-items:center; justify-content:center; font-size:16px; background:#F5F4F0; color:#A1A1AA; flex-shrink:0; }
+.page-habits .habit-icon.done{ background:#D1FAE5; color:#065F46; }
+.page-habits .check-btn{ background:#E3E8E3; border:none; border-radius:8px; padding:6px 12px; font-size:11px; cursor:pointer; font-family:inherit; font-weight:600; color:#405140; }
+
+/* PWD */
+.page-habits .pwd-card{ padding:20px; background:#FBFBFA; border:1px solid #EAE7E1; border-radius:20px; box-shadow:0 4px 10px rgba(28,27,26,0.08); transition:all 0.3s cubic-bezier(0.16,1,0.3,1); position:relative; overflow:hidden; display:flex; justify-content:space-between; }
+.page-habits .pwd-card:active{ transform:scale(0.98); background:#F5F4F0; }
+.page-habits .card:active{ transform:scale(0.98); background:#F5F4F0; }
+.page-habits .pwd-bar{ position:absolute; left:0; top:0; bottom:0; width:4px; background:#FBBF24; }
+.page-habits .pwd-detail{ font-size:10px; color:#5C5854; margin-top:2px; }
+.page-habits .pwd-actions{ display:flex; gap:8px; align-items:flex-start; }
+.page-habits .pwd-view-btn{ padding:4px 10px; font-size:10px; background:#F5F4F0; border:none; border-radius:8px; cursor:pointer; }
+.page-habits .pwd-del-btn{ padding:4px 10px; font-size:10px; background:#FFF1F2; color:#BE123C; border:none; border-radius:8px; cursor:pointer; }
+
+/* Toast */
+.page-habits .kanshi-toast{ position:fixed; top:24px; left:50%; transform:translateX(-50%); z-index:999; background:#1C1B1A; color:#FBBF24; border:1px solid #2C2B29; padding:8px 20px; border-radius:999px; font-size:12px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,0.4); animation:toastIn 0.3s ease-out; }
+@keyframes toastIn{ 0%{opacity:0;transform:translateX(-50%)translateY(-12px)} 100%{opacity:1;transform:translateX(-50%)translateY(0)} }
+
+	.page-habits .num{font-family:"Inter",Arial,sans-serif;font-weight:700;font-variant-numeric:tabular-nums}
+	</style></head>
+<body class="page-habits"><div class="app-viewport">
+  <div class="header-bar">
+    <button onclick="history.back()" class="back-btn"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+    <h3 class="header-title">习惯打卡 🎖️</h3>
+    <button onclick="openWriteModal()" class="add-btn-circle">+</button>
+  </div>
+  <div class="list-area no-scrollbar" id="habits-list"></div>
+</div>
+<div class="modal-overlay hidden" id="global-modal"><div class="modal-content" id="modal-content-area"></div></div>
+<script>
+loadDatabase();
+function render() {
+  var c = document.getElementById('habits-list');
+  if (!c) return;
+  c.innerHTML = '';
+  if (db.habits.length===0) {c.innerHTML='<div class="empty-state">还没有习惯</div>';return;}
+  var today = new Date().toISOString().split('T')[0];
+  db.habits.forEach(function(h) {
+    var done = h.logs.indexOf(today) >= 0;
+    c.innerHTML += '<div class="card"><div class="row-center">' +
+      '<span class="habit-icon'+(done?' done':'')+'">'+(done?'✓':'📖')+'</span>' +
+      '<div><div class="text-title">'+escapeHtml(h.name)+'</div>' +
+      '<div class="text-subtle">'+(done?'今日已打卡':'待打卡')+'</div></div></div>' +
+      '<button onclick="toggleHabit(\''+h.id+'\')" class="check-btn">打卡</button></div>';
+  });
+}
+function toggleHabit(id) {
+  var h = db.habits.find(function(x){return x.id===id;});
+  if (!h) return;
+  var today = new Date().toISOString().split('T')[0];
+  var idx = h.logs.indexOf(today);
+  if (idx >= 0) h.logs.splice(idx,1); else h.logs.push(today);
+  saveDatabase(); render();
+}
+function openWriteModal() {
+  showModal('<div><div class="modal-head"><span class="modal-title">开启好习惯 🎖️</span><button onclick="closeModal()" class="modal-close">✕</button></div>' +
+    '<input id="h-name" placeholder="习惯名称" class="input-text-last">' +
+    '<button onclick="submitHabit()" class="btn-primary">确定</button></div>');
+}
+function submitHabit() {
+  var inp = document.getElementById('h-name');
+  if (!inp||!inp.value.trim()) return;
+  db.habits.push({id:'habit_'+Date.now(), name:inp.value.trim(), category:'健康', streak:0, logs:[]});
+  saveDatabase(); closeModal(); render();
+}
+render();
+</script></body></html>

@@ -21,9 +21,9 @@ function loadDatabase() {
     try { db = { ...db, ...JSON.parse(stored) }; } catch(e) { console.error("DB load error"); }
   } else {
     db.todos = [
-      { id:"t1", title:"散步 30 分钟，感受自然风光", completed:false, scope:"today" },
-      { id:"t2", title:"都记今日的灵感小火花", completed:true, scope:"today" },
-      { id:"t3", title:"补充阅读《新古典主义》章节", completed:false, scope:"week" }
+      { id:"t1", title:"散步 30 分钟，感受自然风光", status:"pending", scheduledDate:new Date().toISOString().slice(0,10), createdAt:new Date().toISOString(), completedAt:null, notes:"", repeatRule:"" },
+      { id:"t2", title:"都记今日的灵感小火花", status:"completed", scheduledDate:new Date().toISOString().slice(0,10), createdAt:new Date(Date.now()-86400000).toISOString(), completedAt:new Date().toISOString(), notes:"", repeatRule:"" },
+      { id:"t3", title:"补充阅读《新古典主义》章节", status:"pending", scheduledDate:null, createdAt:new Date().toISOString(), completedAt:null, notes:"", repeatRule:"" }
     ];
     db.timelinePosts = [
       { id:"tp1", content:"下班路过花店，看到向日葵开得很好，买了一束回家\n生活需要一点仪式感", image:"https://images.unsplash.com/photo-1597848212624-a19eb35e2651?auto=format&fit=crop&w=600&q=80", tags:["日常"], date:"7月7日 18:30", mood:"🌱 快乐" },

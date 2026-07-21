@@ -7,88 +7,127 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+SC:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
 <script src="shared.js"></script>
 <style>
-/* ═══════ 基础 ═══════ */
-body.page-todo { margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Outfit',sans-serif;
-  -webkit-tap-highlight-color:transparent; }
+body.page-todo { margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Outfit',sans-serif; -webkit-tap-highlight-color:transparent; }
 .page-todo .app-viewport { max-width:480px; margin:0 auto; background:#F5F4F0; min-height:100vh; box-shadow:0 0 50px rgba(0,0,0,0.6); display:flex; flex-direction:column; }
 .page-todo .no-scrollbar::-webkit-scrollbar { display:none; }
 .page-todo .no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
-.page-todo .paper-card { background:#FBFBFA; border:1px solid #EAE7E1; border-radius:20px; transition:all 0.3s cubic-bezier(0.16,1,0.3,1); }
-.page-todo .paper-card:active { transform:scale(0.98); background:#F5F4F0; }
-
-/* Toast */
 .page-todo .kanshi-toast { position:fixed; top:24px; left:50%; transform:translateX(-50%); z-index:999; background:#1C1B1A; color:#FBBF24; border:1px solid #2C2B29; padding:8px 20px; border-radius:999px; font-size:12px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,0.4); display:flex; align-items:center; gap:8px; animation:fadeSlideIn 0.3s ease-out; }
 @keyframes fadeSlideIn { 0%{opacity:0;transform:translateX(-50%) translateY(-12px)} 100%{opacity:1;transform:translateX(-50%) translateY(0)} }
 
 /* Nav */
 .page-todo .nav-bar { position:fixed; bottom:12px; left:50%; transform:translateX(-50%); width:calc(100% - 40px); max-width:430px; height:56px; background:rgba(251,251,250,0.92); backdrop-filter:blur(12px); border:1px solid #EAE7E1; border-radius:20px; display:flex; align-items:center; justify-content:space-around; padding:0 6px; z-index:40; box-shadow:0 4px 20px rgba(0,0,0,0.1); }
-.page-todo .nav-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; width:48px; height:48px; border-radius:16px; background:transparent; border:none; cursor:pointer; padding:0; }
-.page-todo .nav-btn-inner { width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:12px; }
+.page-todo .nav-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; width:44px; height:44px; border-radius:12px; background:transparent; border:none; cursor:pointer; padding:0; }
+.page-todo .nav-btn-inner { width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:8px; }
 .page-todo .nav-active-pill { background:#E3E8E3; }
-.page-todo .nav-icon { width:20px; height:20px; }
-.page-todo .nav-label { font-size:8px; font-weight:700; margin-top:2px; }
+.page-todo .nav-icon { width:18px; height:18px; }
+.page-todo .nav-label { font-size:7px; font-weight:600; margin-top:1px; }
 .page-todo .text-sage-800 { color:#405140; }
-.page-todo .text-ink-500 { color:#5C5854; }
+.page-todo .text-ink-500 { color:#8B8B80; }
 
 /* Modal */
 .page-todo .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100; display:flex; align-items:center; justify-content:center; padding:24px; }
 .page-todo .modal-overlay.hidden { display:none; }
 .page-todo .modal-content { background:#F5F4F0; border:1px solid #DDD9CF; width:100%; max-width:360px; border-radius:24px; padding:24px; box-shadow:0 12px 40px rgba(0,0,0,0.3); max-height:85vh; overflow-y:auto; }
 
-/* Todo 特有 */
-.page-todo .todo-scroll { flex:1; overflow-y:auto; padding-bottom:128px; }
+/* Header */
 .page-todo .todo-header { height:56px; border-bottom:1px solid #EAE7E1; padding:0 16px; display:flex; align-items:center; justify-content:space-between; background:#F5F4F0; }
-.page-todo .todo-title { font-size:14px; font-weight:700; color:#2C2B29; }
-.page-todo .todo-memo { margin:16px; }
-.page-todo .todo-memo textarea { width:100%; min-height:80px; padding:12px; font-size:12px; background:#FFF; border:1px solid #EAE7E1; border-radius:16px; outline:none; font-family:inherit; resize:vertical; }
-.page-todo .todo-filters { display:flex; gap:8px; padding:0 16px 12px; }
-.page-todo .filter-btn { padding:6px 16px; border-radius:999px; font-size:12px; border:1px solid #EAE7E1; cursor:pointer; transition:all 0.2s; }
+.page-todo .todo-header-title { font-size:14px; font-weight:700; color:#2C2B29; }
+.page-todo .todo-header-count { font-size:10px; color:#5C5854; }
+
+/* Scroll */
+.page-todo .todo-scroll { flex:1; overflow-y:auto; padding-bottom:128px; }
+
+/* 今日小笺 */
+.page-todo .todo-note { margin:12px 16px; padding:10px 14px; background:#FBFBFA; border:1px solid #EAE7E1; border-radius:12px; cursor:pointer; }
+.page-todo .todo-note.hide { display:none; }
+.page-todo .todo-note-top { display:flex; align-items:center; justify-content:space-between; }
+.page-todo .todo-note-left { display:flex; align-items:center; gap:12px; }
+.page-todo .todo-note-label { font-size:9px; color:#A1A1AA; font-weight:600; flex-shrink:0; }
+.page-todo .todo-note-preview { font-size:11px; color:#5C5854; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; flex:1; line-height:1.5; }
+.page-todo .todo-note-arrow { font-size:10px; color:#D4D0C8; flex-shrink:0; }
+.page-todo .todo-note-body { margin-top:10px; display:none; }
+.page-todo .todo-note-body.open { display:block; }
+.page-todo .todo-note-text { width:100%; font-size:11px; color:#5C5854; line-height:1.6; background:none; border:none; outline:none; font-family:inherit; resize:vertical; min-height:40px; padding:0; }
+
+/* Filter + Input */
+.page-todo .todo-filters { display:flex; gap:8px; padding:0 16px 10px; }
+.page-todo .filter-btn { padding:5px 14px; border-radius:999px; font-size:11px; border:1px solid #EAE7E1; cursor:pointer; transition:all 0.2s; font-family:inherit; }
 .page-todo .filter-btn.active { background:#405140; color:#FBFBFA; border-color:#405140; }
 .page-todo .filter-btn.inactive { background:#FBFBFA; color:#5C5854; }
-.page-todo .todo-input-row { display:flex; gap:8px; margin:0 16px 16px; }
-.page-todo .todo-input-row input { flex:1; height:40px; padding:0 12px; font-size:12px; border:1px solid #EAE7E1; border-radius:12px; background:#FFF; outline:none; }
-.page-todo .todo-input-row button { width:40px; height:40px; border-radius:12px; background:#405140; color:#FBFBFA; border:none; font-size:18px; cursor:pointer; }
-.page-todo .todo-item { padding:16px; display:flex; align-items:center; justify-content:space-between; }
-.page-todo .todo-item.checked { opacity:0.6; }
-.page-todo .todo-check { width:24px; height:24px; border-radius:999px; border:1px solid #DDD9CF; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:all 0.2s; }
-.page-todo .todo-check.done { background:#7E997E; border-color:#7E997E; }
-.page-todo .strike-through { position:relative; }
-.page-todo .strike-through::after { content:''; position:absolute; left:0; top:55%; width:100%; height:1.5px; background:#7E997E; transform:scaleX(0); transform-origin:left; transition:transform 0.25s ease-out; }
-.page-todo .checked .strike-through::after { transform:scaleX(1); }
+.page-todo .todo-input-row { display:flex; gap:0; margin:0 16px 12px; border:1px solid #EAE7E1; border-radius:12px; background:#FFF; overflow:hidden; }
+.page-todo .todo-input-row input { flex:1; height:40px; padding:0 12px; font-size:12px; border:none; background:transparent; outline:none; font-family:inherit; }
+.page-todo .todo-input-row button { width:36px; height:40px; background:#405140; color:#FBFBFA; border:none; font-size:16px; cursor:pointer; flex-shrink:0; }
 
-/* Todo item dynamic classes */
-.page-todo .todo-item-inner { display:flex; align-items:center; gap:12px; flex:1; cursor:pointer; }
-.page-todo .todo-item-text { font-size:12px; color:#2C2B29; }
-.page-todo .todo-del-btn { background:none; border:none; color:#A1A1AA; cursor:pointer; padding:4px; font-size:14px; }
-.page-todo .todo-count { font-size:10px; color:#5C5854; }
-.page-todo .todo-list-wrap { padding:0 16px; display:flex; flex-direction:column; gap:4px; }
+/* Groups */
+.page-todo .todo-group { padding:0 16px; }
+.page-todo .todo-group-head { display:flex; justify-content:space-between; align-items:center; padding:8px 2px 6px; }
+.page-todo .todo-group-label { font-size:10px; font-weight:600; color:#5C5854; letter-spacing:0.02em; }
+.page-todo .todo-group-num { font-weight:400; color:#C5BFB5; margin-left:2px; }
+.page-todo .todo-group-sub { font-size:9px; color:#C5BFB5; margin-left:6px; font-weight:400; }
+.page-todo .todo-group-toggle { background:none; border:none; font-size:9px; color:#C5BFB5; cursor:pointer; font-family:inherit; padding:2px; }
+.page-todo .todo-group-toggle:active { color:#A1A1AA; }
+.page-todo .todo-group-list { display:flex; flex-direction:column; gap:2px; }
+.page-todo .todo-group-list.collapsed { display:none; }
 
-	.page-todo .num{font-family:"Inter",Arial,sans-serif;font-weight:700;font-variant-numeric:tabular-nums}
-	</style>
+/* Items */
+.page-todo .todo-item { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:#FBFBFA; border:1px solid #EAE7E1; border-radius:12px; transition:all 0.2s; }
+.page-todo .todo-item:active { background:#F5F4F0; }
+.page-todo .todo-item.done { opacity:0.6; }
+.page-todo .todo-item-inner { display:flex; align-items:center; gap:10px; flex:1; cursor:pointer; min-width:0; }
+.page-todo .todo-check { width:20px; height:20px; border-radius:999px; border:1px solid #DDD9CF; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.2s; }
+.page-todo .todo-check.done { background:#C5D6C5; border-color:#C5D6C5; transform:scale(0.85); }
+.page-todo .todo-check.done svg { width:10px; height:10px; color:#FFF; stroke-width:3; }
+.page-todo .todo-item-text { font-size:12px; color:#2C2B29; line-height:1.4; }
+.page-todo .done .todo-item-text { color:#A1A1AA; text-decoration:line-through; text-decoration-color:#D4D0C8; }
+.page-todo .todo-empty { text-align:center; padding:24px 16px; color:#D4D0C8; font-size:12px; }
+.page-todo .todo-del-btn { background:none; border:none; color:#C5BFB5; cursor:pointer; padding:6px; display:flex; align-items:center; justify-content:center; border-radius:6px; transition:all 0.15s; flex-shrink:0; }
+.page-todo .todo-del-btn:active { background:#EAE7E1; color:#A1A1AA; }
+.page-todo .todo-date-badge { font-size:8px; color:#A1A1AA; background:#FAF9F6; padding:1px 6px; border-radius:4px; margin-left:6px; }
+.page-todo .num { font-family:"Inter",Arial,sans-serif; font-weight:700; font-variant-numeric:tabular-nums; }
+
+/* Confirm modal */
+.page-todo .modal-confirm { text-align:center; padding:4px 0; }
+.page-todo .modal-confirm-title { font-size:12px; color:#5C5854; margin:0 0 20px; }
+.page-todo .modal-btn-row { display:flex; gap:12px; justify-content:center; }
+.page-todo .modal-btn-cancel { flex:1; padding:8px; border:1px solid #EAE7E1; border-radius:8px; background:#FBFBFA; color:#5C5854; font-size:12px; cursor:pointer; font-family:inherit; }
+.page-todo .modal-btn-danger { flex:1; padding:8px; border:none; border-radius:8px; background:#9B4B4B; color:#FFF; font-size:12px; cursor:pointer; font-family:inherit; }
+</style>
 </head>
 <body class="page-todo">
 <div class="app-viewport">
   <div class="todo-header">
-    <h2 class="todo-title">待办 ☑</h2>
-    <span class="todo-count" id="todo-count"></span>
+    <h2 class="todo-header-title">待办 ☑</h2>
+    <span class="todo-header-count" id="todo-count"></span>
   </div>
   <div class="todo-scroll no-scrollbar">
-    <div class="todo-memo">
-      <textarea id="todo-note-textarea" oninput="saveMemoNote(this.value)" placeholder="今天的备忘录..."></textarea>
+    <!-- 今日小笺(仅今日标签) -->
+    <div class="todo-note hide" id="todo-note-card" onclick="toggleNote()">
+      <div class="todo-note-top">
+        <div class="todo-note-left">
+          <span class="todo-note-label">今日小笺</span>
+          <span class="todo-note-preview" id="todo-note-preview">今天的松花酿酒，春水煎茶。</span>
+        </div>
+        <span class="todo-note-arrow" id="todo-note-arrow">⌄</span>
+      </div>
+      <div class="todo-note-body" id="todo-note-body">
+        <textarea class="todo-note-text" id="todo-note-textarea" oninput="saveMemoNote(this.value)" placeholder="今天的松花酿酒，春水煎茶。"></textarea>
+      </div>
     </div>
+    <!-- 筛选 -->
     <div class="todo-filters" id="todo-filter-bar">
       <button class="filter-btn active" id="todo-filter-today" onclick="filterTodo('today')">今日</button>
       <button class="filter-btn inactive" id="todo-filter-week" onclick="filterTodo('week')">本周</button>
       <button class="filter-btn inactive" id="todo-filter-all" onclick="filterTodo('all')">全部</button>
     </div>
+    <!-- 新增 -->
     <div class="todo-input-row">
-      <input type="text" id="todo-title-input" placeholder="新增待办..." onkeydown="if(event.key==='Enter')addTodoItem()">
+      <input type="text" id="todo-title-input" placeholder="今天还想完成什么？" onkeydown="if(event.key==='Enter')addTodoItem()">
       <button onclick="addTodoItem()">+</button>
     </div>
-    <div id="todo-list-container" class="todo-list-wrap"></div>
+    <!-- 列表 -->
+    <div id="todo-list-container"></div>
   </div>
   <!-- Nav -->
   <nav class="nav-bar">
@@ -98,68 +137,300 @@ body.page-todo { margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Outf
     <button class="nav-btn" onclick="redirectTo('tools.html')"><div class="nav-btn-inner"><svg class="nav-icon text-ink-500" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div><span class="nav-label text-ink-500">工具</span></button>
     <button class="nav-btn" onclick="redirectTo('storage.html')"><div class="nav-btn-inner"><svg class="nav-icon text-ink-500" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 7l-9-5-9 5m18 0l-9 5m9-5v10l-9 5m0-15v14"/><path d="M3.97 12.08L12 17l8.03-4.92"/></svg></div><span class="nav-label text-ink-500">收纳盒</span></button>
   </nav>
-  <!-- Modal -->
   <div class="modal-overlay hidden" id="global-modal"><div class="modal-content" id="modal-content-area"></div></div>
 </div>
 
 <script>
 loadDatabase();
+
+// ─── 数据迁移：旧格式→新格式 ───
+function migrateTodo(t) {
+  if (t.status) return t;
+  var now = new Date();
+  var today = now.toISOString().slice(0,10);
+  var createdAt = t.createdAt || today;
+  var scheduledDate = t.scheduledDate || null;
+  if (!scheduledDate && t.scope === 'week') scheduledDate = today;
+  if (!scheduledDate && t.scope === 'all') scheduledDate = null;
+  if (!scheduledDate && t.scope === 'today') scheduledDate = today;
+  return {
+    id: t.id,
+    title: t.title,
+    status: t.completed ? 'completed' : 'pending',
+    scheduledDate: scheduledDate,
+    createdAt: createdAt,
+    completedAt: t.completed ? (t.completedAt || now.toISOString()) : null,
+    notes: t.notes || '',
+    repeatRule: t.repeatRule || ''
+  };
+}
+
+if (db.todos && db.todos.length > 0 && !db.todos[0].status) {
+  db.todos = db.todos.map(migrateTodo);
+  saveDatabase();
+}
+
 var activeTodoFilter = 'today';
+var collapsedGroups = {};
+var noteOpen = false;
 
-function saveMemoNote(val) { db.memoNote = val; saveDatabase(); }
+// ─── 工具函数 ───
+function getTodayISO() { var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function getWeekRange() {
+  var d=new Date(); var day=d.getDay()||7; var diff=d.getDate()-day+1;
+  var mon=new Date(d); mon.setDate(diff);
+  var sun=new Date(mon); sun.setDate(mon.getDate()+6);
+  return {mon:mon.toISOString().slice(0,10), sun:sun.toISOString().slice(0,10)};
+}
+function formatDate(iso) {
+  if (!iso) return '';
+  var m=parseInt(iso.slice(5,7)), d=parseInt(iso.slice(8,10));
+  return m+'月'+d+'日';
+}
+function formatWeekday(iso) {
+  if (!iso) return '';
+  var wk=['日','一','二','三','四','五','六'];
+  var da=new Date(iso+'T00:00:00');
+  return '周'+wk[da.getDay()];
+}
 
+// ─── 小笺 ───
+function toggleNote() {
+  noteOpen = !noteOpen;
+  var body = document.getElementById('todo-note-body');
+  var arrow = document.getElementById('todo-note-arrow');
+  if (body) body.classList.toggle('open', noteOpen);
+  if (arrow) arrow.textContent = noteOpen ? '⌃' : '⌄';
+  if (noteOpen) setTimeout(function(){ var ta = document.getElementById('todo-note-textarea'); if (ta) ta.focus(); }, 100);
+}
+function saveMemoNote(val) { db.memoNote = val; saveDatabase(); updateNotePreview(); }
+function updateNotePreview() {
+  var preview = document.getElementById('todo-note-preview');
+  var ta = document.getElementById('todo-note-textarea');
+  if (preview && ta) preview.textContent = ta.value.trim() || '今天的松花酿酒，春水煎茶。';
+}
+
+// ─── 筛选逻辑 ───
+function isOverdue(t) {
+  if (t.status !== 'pending' || !t.scheduledDate) return false;
+  return t.scheduledDate < getTodayISO();
+}
+function isToday(t) {
+  return t.scheduledDate === getTodayISO();
+}
+function isNext7(t) {
+  if (!t.scheduledDate) return false;
+  var td = getTodayISO();
+  var d = new Date(td+'T00:00:00');
+  var end = new Date(d); end.setDate(d.getDate()+7);
+  return t.scheduledDate > td && t.scheduledDate <= end.toISOString().slice(0,10);
+}
+function isFuture(t) {
+  if (!t.scheduledDate) return false;
+  var td = getTodayISO();
+  var d = new Date(td+'T00:00:00');
+  var end = new Date(d); end.setDate(d.getDate()+7);
+  return t.scheduledDate > end.toISOString().slice(0,10);
+}
+function isNoDate(t) { return !t.scheduledDate; }
+
+// ─── 渲染 ───
 function renderTodos() {
   var ta = document.getElementById('todo-note-textarea');
-  if (ta) ta.value = db.memoNote || '';
+  if (ta) { ta.value = db.memoNote || ''; updateNotePreview(); }
+  var noteCard = document.getElementById('todo-note-card');
+  if (noteCard) noteCard.classList.toggle('hide', activeTodoFilter !== 'today');
   var container = document.getElementById('todo-list-container');
   if (!container) return;
   container.innerHTML = '';
-  var filtered = db.todos;
-  if (activeTodoFilter === 'today') filtered = db.todos.filter(function(t){return t.scope==='today';});
-  else if (activeTodoFilter === 'week') filtered = db.todos.filter(function(t){return t.scope==='week';});
-  filtered.forEach(function(item) {
-    var div = document.createElement('div');
-    div.className = 'todo-item paper-card' + (item.completed ? ' checked' : '');
-    div.innerHTML = '<div class="todo-item-inner" onclick="toggleTodoCompleted(\''+item.id+'\')">' +
-      '<span class="todo-check' + (item.completed ? ' done' : '') + '">' +
-      (item.completed ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="3.5" viewBox="0 0 24 24"><path d="M4.5 12.75l6 6 9-13.5"></path></svg>' : '') + '</span>' +
-      '<span class="strike-through todo-item-text">'+escapeHtml(item.title)+'</span></div>' +
-      '<button class="todo-del-btn" onclick="deleteTodoItem(\''+item.id+'\')">&times;</button>';
-    container.appendChild(div);
-  });
-  var count = document.getElementById('todo-count');
-  if (count) count.textContent = filtered.length + '/' + db.todos.length;
+  var allTodos = db.todos || [];
+  var countEl = document.getElementById('todo-count');
+  if (activeTodoFilter === 'today') { renderTodayView(container, allTodos, countEl); }
+  else if (activeTodoFilter === 'week') { renderWeekView(container, allTodos, countEl); }
+  else { renderAllView(container, allTodos, countEl); }
 }
 
+// ─── 今日视图 ───
+function renderTodayView(container, todos, countEl) {
+  var today = getTodayISO();
+  var overdue = todos.filter(function(t){ return isOverdue(t); });
+  var todayPending = todos.filter(function(t){ return t.status==='pending' && t.scheduledDate===today; });
+  var todayDone = todos.filter(function(t){
+    if (t.status!=='completed'||!t.completedAt) return false;
+    return t.completedAt.slice(0,10)===today;
+  });
+  todayDone.sort(function(a,b){ return a.completedAt < b.completedAt ? 1 : -1; });
+  var totalPending = overdue.length + todayPending.length;
+  if (countEl) {
+    if (totalPending === 0) { countEl.textContent = '今日已清空'; }
+    else { countEl.textContent = '还剩 ' + totalPending + ' 项'; }
+  }
+  if (todos.length===0) { container.innerHTML='<div class="todo-empty">还没有待办</div>'; return; }
+  var html = '';
+  if (overdue.length) html += renderGroup('逾期', overdue.length, '', overdue, 'today-overdue', false);
+  if (todayPending.length) html += renderGroup('待完成', todayPending.length, '', todayPending, 'today-today', false);
+  if (todayDone.length) html += renderGroup('今日已完成', todayDone.length, '', todayDone, 'today-done', false);
+  if (!overdue.length && !todayPending.length && !todayDone.length) html = '<div class="todo-empty">还没有待办</div>';
+  container.innerHTML = html;
+}
+
+// ─── 本周视图 ───
+function renderWeekView(container, todos, countEl) {
+  var r = getWeekRange();
+  var weekPending = todos.filter(function(t){
+    return t.status==='pending' && t.scheduledDate && t.scheduledDate>=r.mon && t.scheduledDate<=r.sun;
+  });
+  var weekDone = todos.filter(function(t){
+    if (t.status!=='completed'||!t.completedAt) return false;
+    var cd=t.completedAt.slice(0,10); return cd>=r.mon && cd<=r.sun;
+  });
+  if (countEl) countEl.textContent = '本周还剩 ' + weekPending.length + ' 项';
+  if (todos.length===0) { container.innerHTML='<div class="todo-empty">还没有待办</div>'; return; }
+  var dayGroups = {};
+  weekPending.forEach(function(t) { if (!dayGroups[t.scheduledDate]) dayGroups[t.scheduledDate] = []; dayGroups[t.scheduledDate].push(t); });
+  var html = '';
+  var sortedDays = Object.keys(dayGroups).sort();
+  sortedDays.forEach(function(day) {
+    html += renderGroup(formatWeekday(day)+' '+formatDate(day), dayGroups[day].length, '', dayGroups[day], 'week-'+day, false);
+  });
+  if (weekDone.length) html += renderGroup('已完成', weekDone.length, '', weekDone, 'week-done', true);
+  if (!sortedDays.length && !weekDone.length) html = '<div class="todo-empty">本周没有待办</div>';
+  container.innerHTML = html;
+}
+
+// ─── 全部视图 ───
+function renderAllView(container, todos, countEl) {
+  var pending = todos.filter(function(t){ return t.status==='pending'; });
+  var done = todos.filter(function(t){ return t.status==='completed'; });
+  if (countEl) countEl.textContent = '共 ' + pending.length + ' 项待完成';
+  if (todos.length===0) { container.innerHTML='<div class="todo-empty">还没有待办</div>'; return; }
+  var overdue = pending.filter(isOverdue);
+  var todayP = pending.filter(isToday);
+  var next7 = pending.filter(isNext7);
+  var future = pending.filter(isFuture);
+  var noDate = pending.filter(isNoDate);
+  var html = '';
+  if (overdue.length) html += renderGroup('逾期', overdue.length, '', overdue, 'all-overdue', false);
+  if (todayP.length) html += renderGroup('今天', todayP.length, '', todayP, 'all-today', false);
+  if (next7.length) html += renderGroup('未来7天', next7.length, '', next7, 'all-next7', false);
+  if (future.length) html += renderGroup('以后', future.length, '', future, 'all-future', false);
+  if (noDate.length) html += renderGroup('无日期', noDate.length, '', noDate, 'all-nodate', false);
+  if (done.length) html += renderGroup('已完成', done.length, '', done, 'all-done', true);
+  if (!overdue.length && !todayP.length && !next7.length && !future.length && !noDate.length && !done.length) html = '<div class="todo-empty">还没有待办</div>';
+  container.innerHTML = html;
+}
+
+// ─── 通用分组渲染 ───
+function renderGroup(label, count, sub, items, key, defaultCollapsed) {
+  var isCollapsed = collapsedGroups[key];
+  if (isCollapsed === undefined) isCollapsed = defaultCollapsed || false;
+  var itemsHtml = '';
+  items.forEach(function(t) { itemsHtml += renderItem(t); });
+  return '<div class="todo-group">' +
+    '<div class="todo-group-head">' +
+    '<span class="todo-group-label">' + label + '<span class="todo-group-num">' + count + '</span></span>' +
+    '<button class="todo-group-toggle" onclick="toggleGroupCollapse(\''+key+'\')">' + (isCollapsed ? '展开' : '收起') + '</button>' +
+    '</div>' +
+    '<div class="todo-group-list' + (isCollapsed ? ' collapsed' : '') + '">' + itemsHtml + '</div>' +
+    '</div>';
+}
+function toggleGroupCollapse(key) {
+  collapsedGroups[key] = !collapsedGroups[key];
+  renderTodos();
+}
+
+// ─── 单条任务渲染 ───
+function renderItem(t) {
+  var checked = t.status === 'completed';
+  var checkHtml = checked
+    ? '<span class="todo-check done"><svg fill="none" stroke="currentColor" stroke-width="3.5" viewBox="0 0 24 24"><path d="M4.5 12.75l6 6 9-13.5"/></svg></span>'
+    : '<span class="todo-check"></span>';
+  var dateHtml = '';
+  if (activeTodoFilter === 'all') {
+    if (t.scheduledDate) dateHtml = '<span class="todo-date-badge">'+formatDate(t.scheduledDate)+'</span>';
+  } else if (t.status === 'pending' && t.scheduledDate && t.scheduledDate < getTodayISO()) {
+    var daysAgo = Math.round((Date.now() - new Date(t.scheduledDate+'T00:00:00').getTime()) / 86400000);
+    var hint = daysAgo === 1 ? '昨天' : formatDate(t.scheduledDate);
+    dateHtml = '<span class="todo-date-badge">'+hint+'</span>';
+  }
+  return '<div class="todo-item' + (checked ? ' done' : '') + '">' +
+    '<div class="todo-item-inner" onclick="toggleTodoCompleted(\''+t.id+'\')">' +
+    '<span class="todo-check' + (checked ? ' done' : '') + '">'+checkHtml+'</span>' +
+    '<span class="todo-item-text">'+escapeHtml(t.title)+'</span>'+dateHtml+'</div>' +
+    '<button class="todo-del-btn" onclick="deleteTodoItem(\''+t.id+'\',event)">' +
+    '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button></div>';
+}
+
+// ─── 完成/取消 ───
 function toggleTodoCompleted(id) {
   var todo = db.todos.find(function(t){return t.id===id;});
-  if (todo) { todo.completed = !todo.completed; saveDatabase(); renderTodos(); }
+  if (!todo) return;
+  if (todo.status === 'completed') {
+    todo.status = 'pending'; todo.completedAt = null;
+  } else {
+    todo.status = 'completed'; todo.completedAt = new Date().toISOString();
+  }
+  saveDatabase(); renderTodos();
 }
 
+// ─── 新增 ───
 function addTodoItem() {
   var input = document.getElementById('todo-title-input');
   if (!input) return;
   var title = input.value.trim();
   if (!title) return;
-  db.todos.push({ id:'todo_'+Date.now(), title:title, completed:false, scope:activeTodoFilter==='all'?'today':activeTodoFilter });
-  saveDatabase();
-  input.value = '';
-  renderTodos();
+  var now = new Date();
+  var today = now.toISOString().slice(0,10);
+  var scheduledDate = today;
+  if (activeTodoFilter === 'all') scheduledDate = null;
+  db.todos.push({
+    id: 'todo_'+Date.now(),
+    title: title,
+    status: 'pending',
+    scheduledDate: scheduledDate,
+    createdAt: now.toISOString(),
+    completedAt: null,
+    notes: '',
+    repeatRule: ''
+  });
+  saveDatabase(); input.value = ''; renderTodos();
 }
 
-function deleteTodoItem(id) {
+// ─── 删除（垃圾桶图标 → 确认弹窗） ───
+function deleteTodoItem(id, e) {
+  if (e) e.stopPropagation();
+  var html =
+    '<div class="modal-confirm">' +
+    '<p class="modal-confirm-title">确认删除这条待办？</p>' +
+    '<div class="modal-btn-row">' +
+    '<button class="modal-btn-cancel" onclick="closeModal()">取消</button>' +
+    '<button class="modal-btn-danger" onclick="confirmDelete(\''+id+'\')">删除</button>' +
+    '</div></div>';
+  showModal(html);
+}
+
+function confirmDelete(id) {
   db.todos = db.todos.filter(function(t){return t.id!==id;});
-  saveDatabase();
-  renderTodos();
+  saveDatabase(); closeModal(); renderTodos();
 }
 
+// ─── 筛选切换 ───
 function filterTodo(scope) {
   activeTodoFilter = scope;
   document.querySelectorAll('.filter-btn').forEach(function(btn) {
     btn.className = 'filter-btn ' + (btn.id === 'todo-filter-'+scope ? 'active' : 'inactive');
   });
+  var inp = document.getElementById('todo-title-input');
+  if (inp) {
+    if (scope === 'today') inp.placeholder = '今天还想完成什么？';
+    else if (scope === 'week') inp.placeholder = '这周还想安排什么？';
+    else inp.placeholder = '新增一件待办……';
+  }
   renderTodos();
 }
+
+var inp = document.getElementById('todo-title-input');
+if (inp) inp.placeholder = '今天还想完成什么？';
 
 renderTodos();
 </script>

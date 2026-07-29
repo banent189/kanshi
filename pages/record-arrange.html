@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>简纸 — 编排记录</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+SC:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="../shared.js"></script>
+<style>
+body.page-arrange{ margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Outfit',sans-serif; -webkit-tap-highlight-color:transparent; }
+.page-arrange .app-viewport{ max-width:480px; margin:0 auto; background:#F5F4F0; min-height:100vh; display:flex; flex-direction:column; }
+.page-arrange .no-scrollbar::-webkit-scrollbar{ display:none; }
+.page-arrange .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
+.page-arrange .header-bar{ height:56px; border-bottom:1px solid #EAE7E1; padding:0 16px; display:flex; align-items:center; justify-content:space-between; background:#F5F4F0; }
+.page-arrange .header-left{ display:flex; align-items:center; gap:4px; }
+.page-arrange .back-btn{ background:none; border:none; padding:8px; color:#2C2B29; cursor:pointer; }
+.page-arrange .header-title{ font-size:14px; font-weight:700; color:#2C2B29; }
+.page-arrange .header-right{ display:flex; align-items:center; gap:8px; }
+.page-arrange .save-btn{ background:none; border:none; font-size:11px; color:#7E997E; cursor:pointer; font-family:inherit; font-weight:600; padding:8px 12px; border-radius:8px; }
+.page-arrange .save-btn:active{ background:#EAE7E1; }
+.page-arrange .list-area{ flex:1; overflow-y:auto; padding:16px 16px 100px; }
+.page-arrange .arrange-note{ font-size:10px; color:#A1A1AA; padding:0 4px 12px; }
+.page-arrange .arrange-item{ display:flex; align-items:center; gap:12px; padding:14px 16px; background:#FBFBFA; border:1px solid #EAE7E1; border-radius:14px; margin-bottom:8px; }
+.page-arrange .arrange-icon{ width:20px; height:20px; color:#7E997E; flex-shrink:0; }
+.page-arrange .arrange-name{ flex:1; font-size:12px; font-weight:600; color:#2C2B29; }
+.page-arrange .arrange-toggle{ width:36px; height:24px; border-radius:12px; border:1px solid #D4D0C8; background:#FBFBFA; cursor:pointer; position:relative; transition:all 0.2s; flex-shrink:0; }
+.page-arrange .arrange-toggle.on{ background:#405140; border-color:#405140; }
+.page-arrange .arrange-toggle::after{ content:''; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:999px; background:#FFF; transition:all 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.15); }
+.page-arrange .arrange-toggle.on::after{ left:14px; }
+.page-arrange .arrange-move{ display:flex; flex-direction:column; gap:2px; flex-shrink:0; }
+.page-arrange .arrange-move-btn{ width:24px; height:20px; border:none; background:none; cursor:pointer; color:#BFBBB0; display:flex; align-items:center; justify-content:center; border-radius:4px; padding:0; }
+.page-arrange .arrange-move-btn:active{ background:#EAE7E1; color:#8B8B80; }
+.page-arrange .arrange-move-btn svg{ width:12px; height:12px; }
+.page-arrange .empty-state{ text-align:center; padding:40px; color:#BFBBB0; font-size:12px; }
+</style>
+</head>
+<body class="page-arrange">
+<div class="app-viewport">
+  <div class="header-bar">
+    <div class="header-left">
+      <button onclick="history.back()" class="back-btn"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+    </div>
+    <span class="header-title">编排记录</span>
+    <div class="header-right">
+      <button class="save-btn" onclick="saveArrange()">保存</button>
+    </div>
+  </div>
+  <div class="list-area no-scrollbar" id="arrange-list">
+    <div class="arrange-note">今日动态固定在顶部，其他模块可排序、显示或隐藏。</div>
+    <div class="arrange-item" data-type="timeline">
+      <svg class="arrange-icon" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span class="arrange-name">今日动态</span>
+      <span style="font-size:9px;color:#A1A1AA">固定</span>
+    </div>
+  </div>
+</div>
+<script>
+var items=[
+  {type:'diet',name:'饮食与体重',icon:'<svg class="arrange-icon" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 20c-3.3 0-6-2.7-6-6 0-3.3 6-10 6-10s6 6.7 6 10c0 3.3-2.7 6-6 6z"/><path d="M9 14c0 1.7 1.3 3 3 3"/></svg>'},
+  {type:'accounting',name:'记账',icon:'<svg class="arrange-icon" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="12" y1="7" x2="12" y2="17"/></svg>'},
+  {type:'inspiration',name:'灵感',icon:'<svg class="arrange-icon" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9.66 17.25l-6.73 2.82 2.82-6.73L16.07 3a2.12 2.12 0 013 3L9.66 17.25z"/></svg>'},
+  {type:'habit',name:'习惯打卡',icon:'<svg class="arrange-icon" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 01-10 10A10 10 0 1112 2a10 10 0 019.95 8.5"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'},
+  {type:'book',name:'书评',icon:'<svg class="arrange-icon" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5a2.5 2.5 0 010-5H20"/><path d="M10 8h6M10 12h4"/></svg>'},
+  {type:'travel',name:'旅行',icon:'<svg class="arrange-icon" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="2 12 22 12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>'},
+];
+var state=[];
+
+function loadArrange(){
+  var saved=null;
+  try{saved=JSON.parse(localStorage.getItem('KANSHI_RECORD_LAYOUT'));}catch(e){}
+  if(saved&&saved.order){
+    state=saved.order.map(function(o){return{type:o,hidden:saved.hidden&&saved.hidden.indexOf(o)>=0};});
+    // Add any missing items
+    items.forEach(function(it){if(!state.some(function(s){return s.type===it.type;}))state.push({type:it.type,hidden:false});});
+  }else{
+    state=items.map(function(it){return{type:it.type,hidden:false};});
+  }
+  renderArrange();
+}
+
+function renderArrange(){
+  var list=document.getElementById('arrange-list');
+  if(!list)return;
+  // Keep the first child (note + timeline fixed)
+  list.innerHTML='<div class="arrange-note">今日动态固定在顶部，其他模块可排序、显示或隐藏。</div><div class="arrange-item" data-type="timeline"><svg class="arrange-icon" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="arrange-name">今日动态</span><span style="font-size:9px;color:#A1A1AA">固定</span></div>';
+  state.forEach(function(s,idx){
+    var item=items.find(function(it){return it.type===s.type;});
+    if(!item)return;
+    var isFirst=idx===0,isLast=idx===state.length-1;
+    var div=document.createElement('div');
+    div.className='arrange-item';
+    div.dataset.type=s.type;
+    div.innerHTML=item.icon+
+      '<span class="arrange-name">'+item.name+'</span>'+
+      '<div class="arrange-move">'+
+      '<button class="arrange-move-btn" onclick="moveItem('+idx+',-1)" '+(isFirst?'disabled style="opacity:0.2"':'')+'><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></button>'+
+      '<button class="arrange-move-btn" onclick="moveItem('+idx+',1)" '+(isLast?'disabled style="opacity:0.2"':'')+'><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>'+
+      '</div>'+
+      '<button class="arrange-toggle'+(s.hidden?'':' on')+'" onclick="toggleItem('+idx+')"></button>';
+    list.appendChild(div);
+  });
+}
+
+function moveItem(idx,dir){
+  var newIdx=idx+dir;
+  if(newIdx<0||newIdx>=state.length)return;
+  var temp=state[idx];state[idx]=state[newIdx];state[newIdx]=temp;
+  renderArrange();
+}
+
+function toggleItem(idx){
+  state[idx].hidden=!state[idx].hidden;
+  renderArrange();
+}
+
+function saveArrange(){
+  var order=state.map(function(s){return s.type;});
+  var hidden=state.filter(function(s){return s.hidden;}).map(function(s){return s.type;});
+  localStorage.setItem('KANSHI_RECORD_LAYOUT',JSON.stringify({order:order,hidden:hidden}));
+  var btn=document.querySelector('.save-btn');
+  if(btn){btn.textContent='已保存';setTimeout(function(){btn.textContent='保存';},1500);}
+}
+
+loadArrange();
+</script>
+</body>
+</html>

@@ -7,8 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+SC:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="lib/lunar.min.js"></script>
-<script src="shared.js"></script>
+<script src="../lib/lunar.min.js"></script>
+<script src="../shared.js"></script>
 <style>
 /* ═══════ 变量 ═══════ */
 :root {
@@ -366,16 +366,16 @@ if (searchToggle && searchWrap) {
 
 // 搜索逻辑
 var searchCatalog = [
-  { key:"imeline moments 朋友圈", title:"⏳ 今日动态", url:"timeline.html" },
-  { key:"热量 减肥 diet 卡路里", title:"🍴 饮食与热量记账", url:"calories.html" },
-  { key:"图片 pdf converter 转换", title:"📄 批量图片转 PDF", url:"img2pdf.html" },
-  { key:"灵感 spark 创意 小说", title:"💡 灵感归档工坊", url:"inspiration.html" },
-  { key:"密码 安全 密钥 lock", title:"🔑 密码抽屉", url:"password-lock.html" },
-  { key:"打卡 习惯 坚持 streak", title:"🎖️ 习惯进化打卡", url:"habits.html" },
-  { key:"日记 diary 写作 长文", title:"📖 心灵日记本", url:"diary.html" },
-  { key:"读书 观后感 书影 评分", title:"🎨 观感活页册", url:"books.html" },
-  { key:"照片 回忆 瞬间 画廊", title:"🖼️ 影像回忆画廊", url:"gallery.html" },
-  { key:"二维码 qrcode 码上游", title:"📲 码上游离线传输", url:"qrcode.html" }
+  { key:"imeline moments 朋友圈", title:"⏳ 今日动态", url:"../page-records/timeline.html" },
+  { key:"热量 减肥 diet 卡路里", title:"🍴 饮食与热量记账", url:"../page-records/calories.html" },
+  { key:"图片 pdf converter 转换", title:"📄 批量图片转 PDF", url:"../page-tools/img2pdf.html" },
+  { key:"灵感 spark 创意 小说", title:"💡 灵感归档工坊", url:"../page-records/inspiration.html" },
+  { key:"密码 安全 密钥 lock", title:"🔑 密码抽屉", url:"../page-storage/password-lock.html" },
+  { key:"打卡 习惯 坚持 streak", title:"🎖️ 习惯进化打卡", url:"../page-records/habits.html" },
+  { key:"日记 diary 写作 长文", title:"📖 心灵日记本", url:"../page-records/diary.html" },
+  { key:"读书 观后感 书影 评分", title:"🎨 观感活页册", url:"../page-records/books.html" },
+  { key:"照片 回忆 瞬间 画廊", title:"🖼️ 影像回忆画廊", url:"../page-records/gallery.html" },
+  { key:"二维码 qrcode 码上游", title:"📲 码上游离线传输", url:"../page-tools/qrcode.html" }
 ];
 var searchInput = document.getElementById('global-search-input');
 var searchPanel = document.getElementById('search-autocomplete-panel');
@@ -538,28 +538,28 @@ function renderTraces() {
     var m = p.date.match(/(\d+)月(\d+)日/);
     if (!m) return;
     var md = String(m[1]).padStart(2,'0')+'-'+String(m[2]).padStart(2,'0');
-    if (md === todayMD) traces.push({ time: m[1]+'月'+m[2]+'日', type: '🌤 记录一刻', text: p.content, url: 'timeline.html' });
+    if (md === todayMD) traces.push({ time: m[1]+'月'+m[2]+'日', type: '🌤 记录一刻', text: p.content, url: '../page-records/timeline/' });
   });
   (db.dietLogs||[]).forEach(function(p) {
     if (!p.date) return;
     var dd = p.date.slice(5);
-    if (dd === todayMD) traces.push({ time: p.date.slice(5), type: '🍜 饮食', text: (p.items||[]).map(function(i){return i.name;}).join('、')||'记录了一顿饭', url: 'calories.html' });
+    if (dd === todayMD) traces.push({ time: p.date.slice(5), type: '🍜 饮食', text: (p.items||[]).map(function(i){return i.name;}).join('、')||'记录了一顿饭', url: '../page-records/calories/' });
   });
   (db.diaries||[]).forEach(function(p) {
     if (!p.date) return;
     var m = p.date.match(/(\d+)月(\d+)日/);
     if (m) {
       var md = String(m[1]).padStart(2,'0')+'-'+String(m[2]).padStart(2,'0');
-      if (md === todayMD) traces.push({ time: m[1]+'月'+m[2]+'日', type: '📖 日记', text: p.title||'写了一段日记', url: 'diary.html' });
+      if (md === todayMD) traces.push({ time: m[1]+'月'+m[2]+'日', type: '📖 日记', text: p.title||'写了一段日记', url: '../page-records/diary/' });
     } else {
       var dd = p.date.slice(5,10);
-      if (dd === todayMD) traces.push({ time: p.date.slice(5), type: '📖 日记', text: p.title||'写了一段日记', url: 'diary.html' });
+      if (dd === todayMD) traces.push({ time: p.date.slice(5), type: '📖 日记', text: p.title||'写了一段日记', url: '../page-records/diary/' });
     }
   });
   (db.inspirations||[]).forEach(function(p) {
     if (!p.date) return;
     var dd = p.date.slice(5,10);
-    if (dd === todayMD) traces.push({ time: dd, type: '💡 灵感', text: p.title||'收藏了一条灵感', url: 'inspiration.html' });
+    if (dd === todayMD) traces.push({ time: dd, type: '💡 灵感', text: p.title||'收藏了一条灵感', url: '../page-records/inspiration/' });
   });
   (db.financeLogs||[]).forEach(function(p) {
     if (!p.date) return;
@@ -586,11 +586,11 @@ function renderTraces() {
 }
 
 // ═══ 导航 ═══
-document.getElementById('nav-today').addEventListener('click',function(){ window.location.href='index.html'; });
-document.getElementById('nav-todo').addEventListener('click',function(){ window.location.href='todo.html'; });
-document.getElementById('nav-records').addEventListener('click',function(){ window.location.href='records.html'; });
-document.getElementById('nav-tools').addEventListener('click',function(){ window.location.href='tools.html'; });
-document.getElementById('nav-storage').addEventListener('click',function(){ window.location.href='storage.html'; });
+document.getElementById('nav-today').addEventListener('click',function(){ window.location.href='../page-today/index.html'; });
+document.getElementById('nav-todo').addEventListener('click',function(){ window.location.href='../page-todo/todo.html'; });
+document.getElementById('nav-records').addEventListener('click',function(){ window.location.href='../page-records/records.html'; });
+document.getElementById('nav-tools').addEventListener('click',function(){ window.location.href='../page-tools/tools.html'; });
+document.getElementById('nav-storage').addEventListener('click',function(){ window.location.href='../page-storage/storage.html'; });
 
 renderTraces();
 

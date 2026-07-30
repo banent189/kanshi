@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+SC:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-<script src="shared.js"></script>
+<script src="../shared.js"></script>
 <style>
 body.page-tools{ margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Outfit',sans-serif; }
 .page-tools .app-viewport{ max-width:480px; margin:0 auto; background:#F5F4F0; min-height:100vh; display:flex; flex-direction:column; }
@@ -51,11 +51,11 @@ body.page-tools{ margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Outf
     <a class="tool-card" href="calories.html"><span class="icon-lg">🍴</span><div class="text-title">热量计算</div></a>
   </div>
   <nav class="nav-bar">
-    <button class="nav-btn" onclick="redirectTo('index.html')"><div class="nav-btn-inner"><svg class="nav-icon text-ink-500" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h2M20 12h2M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></div><span class="nav-label text-ink-500">今天</span></button>
-    <button class="nav-btn" onclick="redirectTo('todo.html')"><div class="nav-btn-inner"><svg class="nav-icon text-ink-500" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div><span class="nav-label text-ink-500">待办</span></button>
-    <button class="nav-btn" onclick="redirectTo('records.html')"><div class="nav-btn-inner"><svg class="nav-icon text-ink-500" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5a2.5 2.5 0 010-5H20"/><path d="M10 8h6M10 12h4"/></svg></div><span class="nav-label text-ink-500">记录</span></button>
+    <button class="nav-btn" onclick="redirectTo('../page-today/index.html')"><div class="nav-btn-inner"><svg class="nav-icon text-ink-500" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h2M20 12h2M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></div><span class="nav-label text-ink-500">今天</span></button>
+    <button class="nav-btn" onclick="redirectTo('../page-todo/todo.html')"><div class="nav-btn-inner"><svg class="nav-icon text-ink-500" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div><span class="nav-label text-ink-500">待办</span></button>
+    <button class="nav-btn" onclick="redirectTo('../page-records/records.html')"><div class="nav-btn-inner"><svg class="nav-icon text-ink-500" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5a2.5 2.5 0 010-5H20"/><path d="M10 8h6M10 12h4"/></svg></div><span class="nav-label text-ink-500">记录</span></button>
     <button class="nav-btn" id="nav-tools"><div class="nav-btn-inner nav-active-pill"><svg class="nav-icon text-sage-800" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div><span class="nav-label text-sage-800">工具</span></button>
-    <button class="nav-btn" onclick="redirectTo('storage.html')"><div class="nav-btn-inner"><svg class="nav-icon text-ink-500" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 7l-9-5-9 5m18 0l-9 5m9-5v10l-9 5m0-15v14"/><path d="M3.97 12.08L12 17l8.03-4.92"/></svg></div><span class="nav-label text-ink-500">收纳盒</span></button>
+    <button class="nav-btn" onclick="redirectTo('../page-storage/storage.html')"><div class="nav-btn-inner"><svg class="nav-icon text-ink-500" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 7l-9-5-9 5m18 0l-9 5m9-5v10l-9 5m0-15v14"/><path d="M3.97 12.08L12 17l8.03-4.92"/></svg></div><span class="nav-label text-ink-500">收纳盒</span></button>
   </nav>
 </div>
 </body>

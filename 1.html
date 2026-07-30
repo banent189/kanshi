@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>简纸 — 记录</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+SC:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-bg: #F4F2EC;
+  --paper-grain: #EFECE4;
+  --ink-deep: #2B2D28;
+  --ink-title: #222420;
+  --ink-body: #4F544A;
+  --ink-mid: #7A7F73;
+  --ink-soft: #999E92;
+  --ink-faint: #B8BCB2;
+  --ink-date: #8F9488;
+  
+  --sage-accent: #6B7C63;
+  --sage-dark: #4E5D47;
+  --sage-light: #A7B59F;
+  --sage-bg: #EEF2E9;
+  
+  --card-warm: #FAF8F3;
+  --card-cream: #F8F5EC;
+  --card-green: #F0F4EC;
+  --card-rose: #F9F4F2;
+  --card-border: rgba(107, 124, 99, 0.12);
+  --card-border-hover: rgba(107, 124, 99, 0.28);
+  
+  --shadow-sm: 0 2px 8px rgba(43, 45, 40, 0.03);
+  --shadow-md: 0 8px 20px -4px rgba(43, 45, 40, 0.05), 0 2px 6px rgba(0,0,0,0.02);
+  --shadow-lg: 0 14px 32px -6px rgba(43, 45, 40, 0.09);
+  --safe-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+}
+
+* { box-sizing: border-box; }
+
+body.page-records {
+  margin: 0;
+  background: #121312;
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+  color: var(--ink-deep);
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  justify-content: center;
+}
+
+.record-page-shell {
+  width: 100%;
+  max-width: 480px;
+  background: var(--page-bg);
+  color: var(--ink-deep);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  box-shadow: 0 0 60px rgba(0,0,0,0.7);
+}
+
+.record-page {
+  padding: 0 0 var(--safe-bottom);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.record-header {
+  position: sticky; top: 0; z-index: 30;
+  display: grid; grid-template-columns: 80px 1fr 80px; align-items: center;
+  min-height: 60px; padding: env(safe-area-inset-top, 0) 18px 0;
+  background: rgba(244, 242, 236, 0.88);
+  border-bottom: 1px solid rgba(107, 124, 99, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.record-header__side { display: flex; align-items: center; gap: 8px; }
+.record-header__side--right { justify-content: flex-end; }
+.record-header__title {
+  font-size: 21px; font-weight: 600; letter-spacing: 0.12em; margin: 0;
+  text-align: center; color: var(--ink-title);
+  font-family: 'Noto Serif SC', serif;
+}
+.hdr-btn {
+  background: transparent; border: none; width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--ink-mid); border-radius: 12px; transition: all 0.2s;
+}
+.hdr-btn:active { background: rgba(107, 124, 99, 0.08); transform: scale(0.95); }
+.hdr-btn svg { width: 20px; height: 20px; stroke-width: 1.8; }
+
+.hdr-text-btn {
+  background: rgba(107, 124, 99, 0.07); border: 1px solid rgba(107, 124, 99, 0.15);
+  height: 32px; padding: 0 14px; font-size: 13px; color: var(--sage-dark);
+  cursor: pointer; font-family: inherit; font-weight: 500; border-radius: 20px;
+  white-space: nowrap; transition: all 0.2s ease;
+}
+.hdr-text-btn:active { background: rgba(107, 124, 99, 0.18); transform: scale(0.96); }
+
+.record-scroll { padding: 16px 16px 20px; flex: 1; }
+
+/* Featured Card: 今日动态 */
+.featured-card {
+  display: grid; grid-template-columns: 52% 48%; min-height: 165px;
+  overflow: hidden; border-radius: 20px; border: 1px solid var(--card-border);
+  background: var(--card-warm); box-shadow: var(--shadow-md); margin-bottom: 16px;
+  cursor: pointer; transition: all 0.22s cubic-bezier(0.25, 1, 0.5, 1);
+  text-decoration: none; color: inherit; position: relative;
+}
+.featured-card:active { transform: scale(0.985); box-shadow: var(--shadow-sm); }
+.featured-img-wrap {
+  min-height: 165px; background: #E6E2D8; overflow: hidden; position: relative;
+}
+.featured-img {
+  width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;
+  transition: transform 0.4s ease;
+}
+.featured-card:hover .featured-img { transform: scale(1.04); }
+.featured-img-placeholder {
+  width: 100%; height: 100%; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #EAE6DC, #DDD8CC);
+  position: absolute; inset: 0; gap: 6px; color: #9E998A;
+}
+.featured-img-placeholder svg { width: 32px; height: 32px; opacity: 0.6; }
+.featured-body {
+  padding: 16px 16px 14px; display: flex; flex-direction: column;
+  justify-content: space-between; min-width: 0; background: var(--card-warm);
+}
+.featured-tag-row { display: flex; align-items: center; justify-content: space-between; }
+.featured-label {
+  font-size: 11px; color: var(--sage-dark); letter-spacing: 0.08em;
+  font-weight: 600; background: rgba(107, 124, 99, 0.1);
+  padding: 2px 8px; border-radius: 6px; display: inline-block;
+}
+.featured-text {
+  font-size: 14px; color: #383C34; line-height: 1.55;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  overflow: hidden; margin: 8px 0 6px; font-family: 'Noto Serif SC', serif;
+}
+.featured-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: auto; padding-top: 6px; border-top: 1px dashed rgba(107, 124, 99, 0.12);
+}
+.featured-date { font-size: 11px; color: var(--ink-date); font-family: 'Outfit', sans-serif; }
+.featured-enter {
+  font-size: 12px; color: var(--sage-accent); font-weight: 600;
+  display: flex; align-items: center; gap: 3px;
+}
+
+/* Mosaic Layout */
+.record-mosaic {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas:
+    "diet inspiration"
+    "accounting inspiration"
+    "habits habits"
+    "book travel";
+  gap: 14px;
+}
+
+/* Module Common Base */
+.record-module {
+  position: relative; min-width: 0; overflow: hidden; border-radius: 20px;
+  box-shadow: var(--shadow-md); border: 1px solid var(--card-border);
+  transition: all 0.22s cubic-bezier(0.25, 1, 0.5, 1); padding: 16px;
+  display: flex; flex-direction: column; cursor: pointer;
+  text-decoration: none; color: inherit; background: var(--card-warm);
+}
+.record-module:active { transform: scale(0.985); box-shadow: var(--shadow-sm); }
+.record-module[hidden] { display: none; }
+
+.record-module--diet { grid-area: diet; background: var(--card-green); min-height: 185px; }
+.record-module--accounting { grid-area: accounting; background: var(--card-warm); min-height: 155px; }
+.record-module--inspiration { grid-area: inspiration; background: var(--card-cream); min-height: 354px; }
+.record-module--habits { grid-area: habits; background: var(--card-warm); min-height: 155px; }
+.record-module--book { grid-area: book; background: var(--card-warm); min-height: 160px; }
+.record-module--travel { grid-area: travel; background: var(--card-rose); min-height: 160px; }
+
+/* Header inside Module */
+.mod-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.mod-title-row { display: flex; align-items: center; gap: 6px; }
+.mod-icon { width: 17px; height: 17px; color: var(--sage-accent); flex-shrink: 0; }
+.mod-title {
+  font-size: 15px; font-weight: 600; color: var(--ink-title);
+  letter-spacing: 0.02em; font-family: 'Noto Serif SC', serif;
+}
+
+/* Add Button (+) */
+.record-add-button {
+  width: 28px; height: 28px; display: grid; place-items: center;
+  padding: 0; border: none; background: rgba(107, 124, 99, 0.08);
+  color: var(--sage-dark); cursor: pointer; flex-shrink: 0; border-radius: 50%;
+  transition: all 0.2s;
+}
+.record-add-button:hover { background: rgba(107, 124, 99, 0.16); }
+.record-add-button:active { transform: scale(0.9); }
+.record-add-button__visual { font-size: 16px; font-weight: 400; line-height: 1; }
+
+.mod-body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+.diet-meals { margin-top: 6px; display: flex; flex-direction: column; gap: 6px; }
+.diet-meal {
+  display: grid; grid-template-columns: 34px 1fr 10px; align-items: center;
+  gap: 6px; font-size: 12px; color: var(--ink-body);
+}
+.diet-meal-label { font-size: 12px; color: var(--ink-mid); font-weight: 500; }
+.diet-meal-food { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; color: var(--ink-body); }
+.diet-meal-food.tbd { color: var(--ink-faint); font-style: italic; }
+.diet-meal-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  border: 1.5px solid var(--sage-light); background: transparent; justify-self: end;
+}
+.diet-meal-dot.done { background: var(--sage-accent); border-color: var(--sage-accent); }
+.diet-footer {
+  margin-top: auto; padding: 6px 10px; border-radius: 10px;
+  background: rgba(107, 124, 99, 0.08); display: flex;
+  justify-content: space-between; align-items: center; font-size: 11px; color: var(--ink-mid);
+}
+.diet-footer .num { font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--sage-dark); font-size: 13px; }
+
+.fin-items { margin-top: 4px; display: flex; flex-direction: column; }
+.fin-item {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px; color: var(--ink-body); padding: 5px 0;
+  border-bottom: 1px dashed rgba(107, 124, 99, 0.1);
+}
+.fin-item:last-child { border-bottom: none; }
+.fin-item-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100px; }
+.fin-item-amt { font-family: 'Outfit', sans-serif; font-weight: 500; font-size: 12.5px; }
+.fin-item-amt.neg { color: #A65D52; }
+.fin-item-amt.pos { color: #4E7C59; }
+.fin-footer {
+  margin-top: auto; padding-top: 6px; font-size: 12px; color: var(--ink-mid);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.fin-footer-amt { font-family: 'Outfit', sans-serif; font-weight: 700; color: var(--ink-deep); font-size: 14px; }
+
+.record-module--inspiration { padding: 18px 16px 16px; position: relative; }
+.inspiration-quote-mark {
+  position: absolute; top: 46px; left: 14px; font-size: 60px; line-height: 1;
+  color: rgba(107, 124, 99, 0.12); pointer-events: none;
+  font-family: 'Cinzel', serif; user-select: none;
+}
+.inspiration-text {
+  display: -webkit-box; margin: 30px 0 0; overflow: hidden;
+  -webkit-box-orient: vertical; -webkit-line-clamp: 8;
+  font-size: 13.5px; line-height: 1.75; color: #3C4038;
+  font-family: 'Noto Serif SC', serif; position: relative; z-index: 1;
+}
+.inspiration-date {
+  margin-top: auto; padding-top: 12px; font-size: 11px;
+  color: var(--ink-date); font-family: 'Outfit', sans-serif;
+  letter-spacing: 0.03em; border-top: 1px solid rgba(107, 124, 99, 0.08);
+}
+
+.habit-aux { font-size: 11px; color: var(--ink-mid); margin-top: 2px; display: flex; justify-content: space-between; }
+.habit-aux .num { font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--sage-dark); }
+.habit-grid {
+  display: grid; grid-template-columns: 60px repeat(7, minmax(0, 1fr));
+  align-items: center; row-gap: 10px; margin-top: 10px;
+}
+.habit-grid__weekday { text-align: center; font-size: 10px; color: var(--ink-soft); font-family: 'Outfit', sans-serif; font-weight: 500; }
+.habit-grid__name { overflow: hidden; font-size: 11.5px; color: var(--ink-body); text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.habit-dot {
+  width: 18px; height: 18px; justify-self: center; border: 1.5px solid rgba(107, 124, 99, 0.25);
+  border-radius: 50%; background: transparent; cursor: pointer; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex; align-items: center; justify-content: center;
+}
+.habit-dot:hover { border-color: var(--sage-accent); transform: scale(1.15); }
+.habit-dot.is-complete {
+  background: var(--sage-accent); border-color: var(--sage-accent); color: #FFF;
+  box-shadow: 0 2px 6px rgba(107, 124, 99, 0.3);
+}
+.habit-dot.is-complete::after { content: '✓'; font-size: 10px; font-weight: bold; }
+
+.book-layout { display: flex; gap: 10px; flex: 1; align-items: center; margin-top: 4px; }
+.book-cover-wrap {
+  width: 44px; height: 62px; border-radius: 6px; background: #E6E2D8;
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  overflow: hidden; box-shadow: 2px 3px 8px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.05);
+}
+.book-info { flex: 1; min-width: 0; }
+.book-title { font-size: 13px; font-weight: 600; color: var(--ink-deep); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.book-author { font-size: 10.5px; color: var(--ink-soft); margin: 1px 0 3px; }
+.book-review { font-size: 11px; color: var(--ink-body); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
+.book-score { font-size: 11px; color: #C4983E; margin-top: 2px; }
+
+.travel-img-area {
+  height: 60px; border-radius: 10px; background: #E7ECE2; overflow: hidden;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 6px;
+  position: relative; border: 1px solid rgba(107, 124, 99, 0.1);
+}
+.travel-img-area img { width: 100%; height: 100%; object-fit: cover; }
+.travel-name { font-size: 12.5px; font-weight: 600; color: var(--ink-deep); }
+.travel-hint { font-size: 10.5px; color: var(--ink-soft); margin-top: 2px; }
+
+.nav-bar {
+  position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
+  width: calc(100% - 32px); max-width: 430px; height: 58px;
+  background: rgba(251, 250, 247, 0.92); backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(107, 124, 99, 0.15); border-radius: 24px;
+  display: flex; align-items: center; justify-content: space-around;
+  padding: 0 8px; z-index: 40; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+.nav-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 52px; height: 46px; border-radius: 14px; background: transparent;
+  border: none; cursor: pointer; padding: 0; color: var(--ink-soft); transition: all 0.2s;
+}
+.nav-btn-inner {
+  width: 32px; height: 26px; display: flex; align-items: center; justify-content: center;
+  border-radius: 12px; transition: all 0.2s;
+}
+.nav-active-pill { background: var(--sage-bg); }
+.nav-icon { width: 19px; height: 19px; }
+.nav-label { font-size: 9px; font-weight: 600; margin-top: 2px; font-family: 'Noto Serif SC', serif; }
+.text-sage-800 { color: var(--sage-dark); }
+.text-ink-500 { color: var(--ink-soft); }
+
+/* Toast Notifications */
+.toast-msg {
+  position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-10px);
+  background: rgba(43, 45, 40, 0.9); color: #FAF8F3; padding: 8px 16px;
+  border-radius: 20px; font-size: 12px; z-index: 99; opacity: 0; pointer-events: none;
+  transition: all 0.25s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.toast-msg.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Responsive Adjustments */
+@media(max-width: 360px) {
+  .record-mosaic {
+    grid-template-columns: 1fr;
+    grid-template-areas: "diet" "accounting" "inspiration" "habits" "book" "travel";
+  }
+  .record-module--inspiration { min-height: auto; }
+}
+</style>
+</head>
+<body class="page-records">
+<div class="record-page-shell">
+<div class="record-page">
+
+  <!-- Header -->
+  <header class="record-header">
+    <div class="record-header__side"></div>
+    <h1 class="record-header__title">记录</h1>
+    <div class="record-header__side record-header__side--right">
+      <button class="hdr-btn" onclick="showToast('打开搜索')" aria-label="搜索">
+        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <button class="hdr-text-btn" onclick="showToast('开启模块编排模式')">编排</button>
+    </div>
+  </header>
+
+  <!-- Toast -->
+  <div id="toast" class="toast-msg">记录已更新</div>
+
+  <!-- Main Scrollable Content -->
+  <main class="record-scroll no-scrollbar" id="record-scroll">
+
+    <!-- ═══ Featured: 今日动态 ═══ -->
+    <a class="featured-card" href="javascript:void(0)" onclick="showToast('进入今日动态')" id="featured-timeline">
+      <div class="featured-img-wrap">
+        <img class="featured-img" id="ft-img" src="" alt="今日动态图片" style="display:none" />
+        <div class="featured-img-placeholder" id="ft-placeholder">
+          <svg fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+          <span style="font-size:10px;">记录生活</span>
+        </div>
+      </div>
+      <div class="featured-body">
+        <div class="featured-tag-row">
+          <span class="featured-label">今日动态</span>
+        </div>
+        <span class="featured-text" id="ft-text">阳光穿过窗帘的下午，沏一杯清茶，静静享受难得的惬意时光。</span>
+        <div class="featured-foot">
+          <span class="featured-date" id="ft-date">7月29日</span>
+          <span class="featured-enter">阅读 <span>→</span></span>
+        </div>
+      </div>
+    </a>
+
+    <!-- ═══ Mosaic Modules ═══ -->
+    <div class="record-mosaic" id="record-mosaic">
+
+      <!-- 饮食与体重 -->
+      <article class="record-module record-module--diet" data-record-type="diet" onclick="showToast('查看饮食明细')">
+        <div class="mod-head">
+          <div class="mod-title-row">
+            <svg class="mod-icon" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 20c-3.3 0-6-2.7-6-6 0-3.3 6-10 6-10s6 6.7 6 10c0 3.3-2.7 6-6 6z"/><path d="M9 14c0 1.7 1.3 3 3 3"/></svg>
+            <span class="mod-title">饮食体重</span>
+          </div>
+          <button class="record-add-button" onclick="event.stopPropagation();showToast('新增饮食记录')" aria-label="新增饮食记录"><span class="record-add-button__visual">＋</span></button>
+        </div>
+        <div class="mod-body" id="mod-diet-body"><!-- JS populated --></div>
+      </article>
+
+      <!-- 记账 -->
+      <article class="record-module record-module--accounting" data-record-type="accounting" onclick="showToast('查看记账明细')">
+        <div class="mod-head">
+          <div class="mod-title-row">
+            <svg class="mod-icon" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="12" y1="7" x2="12" y2="17"/><path d="M8 9h2"/><path d="M14 15h2"/></svg>
+            <span class="mod-title">账本</span>
+          </div>
+          <button class="record-add-button" onclick="event.stopPropagation();showToast('新增记账')" aria-label="新增记账"><span class="record-add-button__visual">＋</span></button>
+        </div>
+        <div class="mod-body" id="mod-fin-body"><!-- JS populated --></div>
+      </article>
+
+      <!-- 灵感 -->
+      <article class="record-module record-module--inspiration" data-record-type="inspiration" onclick="showToast('查看灵感卡片')">
+        <div class="mod-head">
+          <div class="mod-title-row">
+            <svg class="mod-icon" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9.66 17.25l-6.73 2.82 2.82-6.73L16.07 3a2.12 2.12 0 013 3L9.66 17.25z"/><path d="M15.07 6.93l2.12 2.12"/></svg>
+            <span class="mod-title">灵感</span>
+          </div>
+          <button class="record-add-button" onclick="event.stopPropagation();showToast('记录新灵感')" aria-label="新增灵感"><span class="record-add-button__visual">＋</span></button>
+        </div>
+        <div class="inspiration-quote-mark">“</div>
+        <div class="inspiration-text" id="mod-insp-body">文字是时间的标本，捕捉闪现的想法，不让美好的灵感溜走。</div>
+        <div class="inspiration-date" id="mod-insp-date">今日 14:20</div>
+      </article>
+
+      <!-- 习惯打卡 -->
+      <article class="record-module record-module--habits" data-record-type="habit" onclick="showToast('习惯管理')">
+        <div class="mod-head">
+          <div class="mod-title-row">
+            <svg class="mod-icon" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 01-10 10A10 10 0 1112 2a10 10 0 019.95 8.5"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span class="mod-title">习惯打卡</span>
+          </div>
+          <button class="record-add-button" onclick="event.stopPropagation();showToast('新建习惯')" aria-label="新增习惯"><span class="record-add-button__visual">＋</span></button>
+        </div>
+        <div class="mod-body" id="mod-habit-body"><!-- JS populated --></div>
+      </article>
+
+      <!-- 书评 -->
+      <article class="record-module record-module--book" data-record-type="book" onclick="showToast('打开读书笔记')">
+        <div class="mod-head">
+          <div class="mod-title-row">
+            <svg class="mod-icon" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5a2.5 2.5 0 010-5H20"/><path d="M10 8h6M10 12h4"/></svg>
+            <span class="mod-title">书评</span>
+          </div>
+          <button class="record-add-button" onclick="event.stopPropagation();showToast('添加书评')" aria-label="新增书评"><span class="record-add-button__visual">＋</span></button>
+        </div>
+        <div class="mod-body" id="mod-book-body"><!-- JS populated --></div>
+      </article>
+
+      <!-- 旅行 -->
+      <article class="record-module record-module--travel" data-record-type="travel" onclick="showToast('打开旅行足迹')">
+        <div class="mod-head">
+          <div class="mod-title-row">
+            <svg class="mod-icon" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="2 12 22 12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+            <span class="mod-title">旅行</span>
+          </div>
+          <button class="record-add-button" onclick="event.stopPropagation();showToast('添加旅行路线')" aria-label="新增旅行"><span class="record-add-button__visual">＋</span></button>
+        </div>
+        <div class="mod-body" id="mod-travel-body"><!-- JS populated --></div>
+      </article>
+
+    </div><!-- /record-mosaic -->
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="nav-bar">
+    <button class="nav-btn" onclick="showToast('切换至今天')">
+      <div class="nav-btn-inner">
+        <svg class="nav-icon text-ink-500" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h2M20 12h2M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+      </div>
+      <span class="nav-label text-ink-500">今天</span>
+    </button>
+    <button class="nav-btn" onclick="showToast('切换至待办')">
+      <div class="nav-btn-inner">
+        <svg class="nav-icon text-ink-500" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      </div>
+      <span class="nav-label text-ink-500">待办</span>
+    </button>
+    <button class="nav-btn" id="nav-records">
+      <div class="nav-btn-inner nav-active-pill">
+        <svg class="nav-icon text-sage-800" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5a2.5 2.5 0 010-5H20"/><path d="M10 8h6M10 12h4"/></svg>
+      </div>
+      <span class="nav-label text-sage-800">记录</span>
+    </button>
+    <button class="nav-btn" onclick="showToast('切换至工具')">
+      <div class="nav-btn-inner">
+        <svg class="nav-icon text-ink-500" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+      </div>
+      <span class="nav-label text-ink-500">工具</span>
+    </button>
+    <button class="nav-btn" onclick="showToast('切换至收纳盒')">
+      <div class="nav-btn-inner">
+        <svg class="nav-icon text-ink-500" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 7l-9-5-9 5m18 0l-9 5m9-5v10l-9 5m0-15v14"/><path d="M3.97 12.08L12 17l8.03-4.92"/></svg>
+      </div>
+      <span class="nav-label text-ink-500">收纳盒</span>
+    </button>
+  </nav>
+
+</div><!-- /record-page -->
+</div><!-- /record-page-shell -->
+
+<script>
+
+// Helper Toast Notification
+function showToast(text) {
+  var t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = text;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 1800);
+}
+
+// Global Database Mock & Storage Loader
+var db = window.db || {};
+
+function loadDatabase() {
+  // Setup safe defaults if local db script isn't present
+  var today = new Date();
+  var todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+
+  if (!db.timelinePosts) {
+    db.timelinePosts = [
+      {
+        id: 1,
+        title: '夏日午后记',
+        content: '阳光穿过窗帘的下午，沏一杯清茶，静静享受难得的惬意时光。',
+        image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
+        date: '07月29日'
+      }
+    ];
+  }
+
+  if (!db.dietLogs) {
+    db.dietLogs = [
+      { type: 'breakfast', name: '全麦吐司 + 美式', calories: 280, timestamp: todayStr + ' 08:30' },
+      { type: 'lunch', name: '鸡胸肉沙拉', calories: 420, timestamp: todayStr + ' 12:15' },
+      { type: 'dinner', name: '蒸鱼 + 燕麦米饭', calories: 510, timestamp: todayStr + ' 18:40' }
+    ];
+  }
+
+  if (!db.financeLogs) {
+    db.financeLogs = [
+      { type: 'expense', category: '餐饮', note: '精选咖啡', amount: 28.00 },
+      { type: 'expense', category: '图书', note: '设计心理学', amount: 59.00 },
+      { type: 'income', category: '理财', note: '收益结算', amount: 120.00 }
+    ];
+  }
+
+  if (!db.inspirations) {
+    db.inspirations = [
+      { id: 1, title: '灵感标本', ref: '文字是时间的标本，捕捉闪现的想法，不让美好的灵感溜走。', date: '今日 14:20' }
+    ];
+  }
+
+  if (!db.habits) {
+    db.habits = [
+      { id: 'h1', name: '晨间阅读', streak: 5, logs: [todayStr] },
+      { id: 'h2', name: '冥想呼吸', streak: 12, logs: [todayStr] },
+      { id: 'h3', name: '喝水2L', streak: 3, logs: [] }
+    ];
+  }
+
+  if (!db.books) {
+    db.books = [
+      { title: '瓦尔登湖', author: '梭罗', score: '★★★★★', review: '在简朴中找到生命的丰盈与宁静。' }
+    ];
+  }
+
+  if (!db.travel) {
+    db.travel = [
+      { title: '京都秋日漫步', hint: '计划于 10月出发', img: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=300&q=80' }
+    ];
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  loadDatabase();
+
+  // 1. 今日动态
+  try {
+    var posts = db.timelinePosts || [];
+    if (posts.length > 0) {
+      var last = posts[posts.length - 1];
+      var ftImg = document.getElementById('ft-img');
+      var ftPh = document.getElementById('ft-placeholder');
+      var ftText = document.getElementById('ft-text');
+      var ftDate = document.getElementById('ft-date');
+
+      if (last.image) {
+        ftImg.src = last.image;
+        ftImg.style.display = 'block';
+        if (ftPh) ftPh.style.display = 'none';
+      }
+      if (last.content) {
+        var txt = last.content.replace(/\n/g, ' ');
+        ftText.textContent = txt.length > 50 ? txt.slice(0, 50) + '…' : txt;
+      }
+      if (last.date) ftDate.textContent = last.date;
+    }
+  } catch (e) { console.error('[记录]今日动态 error:', e); }
+
+  // 2. 饮食与体重
+  try {
+    var logs = db.dietLogs || [];
+    var today = new Date();
+    var todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+    var todayDiet = logs.filter(function(l) { return l.timestamp && l.timestamp.slice(0, 10) === todayStr; });
+    var body = document.getElementById('mod-diet-body');
+
+    var mealLabels = ['早餐', '午餐', '晚餐', '加餐'];
+    var mealLbs = ['breakfast', 'lunch', 'dinner', 'snack'];
+
+    var totalCal = 0;
+    var h = '<div class="diet-meals">';
+    mealLabels.forEach(function(lb, i) {
+      var match = todayDiet.find(function(x) { return x.type === mealLbs[i]; });
+      totalCal += match ? (match.calories || 0) : 0;
+      if (match) {
+        h += '<div class="diet-meal"><span class="diet-meal-label">' + lb + '</span><span class="diet-meal-food">' + (match.name || '') + '</span><span class="diet-meal-dot done"></span></div>';
+      } else {
+        h += '<div class="diet-meal"><span class="diet-meal-label">' + lb + '</span><span class="diet-meal-food tbd">待记录</span><span class="diet-meal-dot"></span></div>';
+      }
+    });
+    h += '</div><div class="diet-footer"><span>今日摄入</span><span class="num">' + (totalCal || 1210) + ' kcal</span></div>';
+    if (body) body.innerHTML = h;
+  } catch (e) { console.error('[记录]饮食 error:', e); }
+
+  // 3. 记账
+  try {
+    var fins = db.financeLogs || [];
+    var body2 = document.getElementById('mod-fin-body');
+    if (body2) {
+      if (fins.length > 0) {
+        var h2 = '<div class="fin-items">';
+        var monthlyTotal = 0;
+        fins.slice(0, 3).forEach(function(f) {
+          var isInc = f.type === 'income';
+          var sign = isInc ? '+' : '-';
+          var amt = Math.abs(f.amount || 0);
+          monthlyTotal += isInc ? amt : -amt;
+          h2 += '<div class="fin-item"><span class="fin-item-name">' + (f.note || f.category || '未分类') + '</span><span class="fin-item-amt ' + (isInc ? 'pos' : 'neg') + '">' + sign + '¥' + amt.toFixed(2) + '</span></div>';
+        });
+        h2 += '</div>';
+        var mTotalStr = monthlyTotal >= 0 ? '+¥' + monthlyTotal.toFixed(2) : '-¥' + Math.abs(monthlyTotal).toFixed(2);
+        h2 += '<div class="fin-footer"><span>本月结余</span><span class="fin-footer-amt">' + mTotalStr + '</span></div>';
+        body2.innerHTML = h2;
+      }
+    }
+  } catch (e) { console.error('[记录]记账 error:', e); }
+
+  // 4. 灵感
+  try {
+    var insp = db.inspirations || [];
+    var body3 = document.getElementById('mod-insp-body');
+    var dateEl = document.getElementById('mod-insp-date');
+    if (body3 && insp.length > 0) {
+      var lastInsp = insp[insp.length - 1];
+      body3.textContent = lastInsp.ref || lastInsp.title || '';
+      if (dateEl) dateEl.textContent = lastInsp.date || '今日';
+    }
+  } catch (e) { console.error('[记录]灵感 error:', e); }
+
+  // 5. 习惯打卡（交互式点阵）
+  try {
+    var habits = db.habits || [];
+    var body4 = document.getElementById('mod-habit-body');
+    if (body4 && habits.length > 0) {
+      var today = new Date();
+      var dow = today.getDay(); if (dow === 0) dow = 7;
+      var mon = new Date(today); mon.setDate(today.getDate() - dow + 1);
+      var wdNames = ['一', '二', '三', '四', '五', '六', '日'];
+      
+      var maxStreak = 0;
+      habits.forEach(function(h) { if (h.streak && h.streak > maxStreak) maxStreak = h.streak; });
+
+      var h4 = '<div class="habit-aux"><span>本周打卡</span>' + (maxStreak > 0 ? '<span>最高连续 <span class="num">' + maxStreak + '</span> 天</span>' : '') + '</div>';
+      h4 += '<div class="habit-grid">';
+      
+      // Header weekdays
+      wdNames.forEach(function(n) { h4 += '<span class="habit-grid__weekday">' + n + '</span>'; });
+
+      // Rows for each habit
+      habits.slice(0, 2).forEach(function(h, hIdx) {
+        h4 += '<span class="habit-grid__name">' + (h.name || '') + '</span>';
+        for (var i = 0; i < 7; i++) {
+          var d = new Date(mon.getTime() + i * 86400000);
+          var ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+          var isDone = h.logs && h.logs.indexOf(ds) >= 0;
+          
+          h4 += '<div class="habit-dot ' + (isDone ? 'is-complete' : '') + '" onclick="event.stopPropagation();toggleHabitDot(' + hIdx + ', \'' + ds + '\', this)" title="' + ds + '"></div>';
+        }
+      });
+      h4 += '</div>';
+      body4.innerHTML = h4;
+    }
+  } catch (e) { console.error('[记录]习惯 error:', e); }
+
+  // 6. 书评
+  try {
+    var books = db.books || [];
+    var body5 = document.getElementById('mod-book-body');
+    if (body5 && books.length > 0) {
+      var bk = books[0];
+      body5.innerHTML = 
+        '<div class="book-layout">' +
+          '<div class="book-cover-wrap">' +
+            '<svg style="width:22px;height:22px;color:var(--sage-accent)" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5a2.5 2.5 0 010-5H20"/></svg>' +
+          '</div>' +
+          '<div class="book-info">' +
+            '<div class="book-title">' + (bk.title || '') + '</div>' +
+            '<div class="book-author">' + (bk.author || '') + '</div>' +
+            '<div class="book-review">' + (bk.review || '') + '</div>' +
+            '<div class="book-score">' + (bk.score || '★★★★★') + '</div>' +
+          '</div>' +
+        '</div>';
+    }
+  } catch (e) { console.error('[记录]书评 error:', e); }
+
+  // 7. 旅行
+  try {
+    var travels = db.travel || [];
+    var body6 = document.getElementById('mod-travel-body');
+    if (body6 && travels.length > 0) {
+      var tr = travels[0];
+      body6.innerHTML = 
+        '<div class="travel-img-area">' +
+          (tr.img ? '<img src="' + tr.img + '" alt="旅行"/>' : '<svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>') +
+        '</div>' +
+        '<div class="travel-name">' + (tr.title || '') + '</div>' +
+        '<div class="travel-hint">' + (tr.hint || '') + '</div>';
+    }
+  } catch (e) { console.error('[记录]旅行 error:', e); }
+});
+
+// Interactive Habit Dot Toggler
+function toggleHabitDot(habitIndex, dateStr, element) {
+  if (element.classList.contains('is-complete')) {
+    element.classList.remove('is-complete');
+    showToast('取消打卡');
+  } else {
+    element.classList.add('is-complete');
+    showToast('打卡成功 ✦');
+  }
+}
+</script>
+</body>
+</html>

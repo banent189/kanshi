@@ -145,13 +145,13 @@ body.page-timeline { margin:0; background:#0F0F0E; font-family:'Noto Serif SC','
 </div>
 
 <script>
-// ─── 智能返回：记录页来→回记录页，今天页来→回今天页 ───
+// ─── 智能返回 ───
 function smartBack(){
   try{
     var ref=document.referrer||'';
-    if(ref.indexOf('records.html')>=0){window.location.href='records.html';return;}
+    if(ref.indexOf('records')>=0||ref.indexOf('Records')>=0){window.location.href='/page-records/records.html';return;}
   }catch(e){}
-  window.location.href='index.html';
+  window.location.href='/page-today/index.html';
 }
 
 (function(){

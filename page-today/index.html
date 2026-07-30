@@ -224,7 +224,7 @@ body.page-today { margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Out
   <div class="action-section">
     <div class="section-title">今天，留下些什么</div>
     <div class="action-grid">
-      <a class="action-card" href="timeline.html">
+      <a class="action-card" href="../page-records/timeline/">
         <div class="action-card-icon"><svg class="action-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
         <div class="action-card-title">记一刻</div>
         <div class="action-card-desc">留下一句话或一张照片</div>
@@ -234,12 +234,12 @@ body.page-today { margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Out
         <div class="action-card-title">记一笔</div>
         <div class="action-card-desc">今天的钱花去了哪里</div>
       </div>
-      <a class="action-card" href="calories.html">
+      <a class="action-card" href="../page-records/calories/">
         <div class="action-card-icon"><svg class="action-icon" viewBox="0 0 1024 1024" fill="currentColor" width="22" height="22"><path d="M434.517 0c-11.797 0-21.354 9.557-21.333 21.355V331.22c0 66.368-48.704 121.43-112.213 131.691V21.355C300.97 9.557 291.37 0 279.595 0c-11.776 0-21.376 9.557-21.376 21.355v441.557c-63.488-10.283-112.171-65.344-112.171-131.69V21.354C146.048 9.557 136.491 0 124.693 0c-11.818 0-21.376 9.557-21.397 21.355v309.888c0 89.962 67.755 164.288 154.923 174.869v496.512c0 11.819 9.578 21.376 21.376 21.376 11.797 0 21.376-9.557 21.376-21.376V506.112c87.146-10.603 154.922-84.907 154.922-174.89V21.354C455.893 9.557 446.336 0 434.517 0zM705.664 0c-11.797 0-21.355 9.557-21.355 21.355v981.269c0 11.819 9.558 21.376 21.355 21.376 11.819 0 21.376-9.557 21.376-21.376V559.211h172.288c11.84 0 21.355-9.536 21.355-21.376C920.683 236.245 826.24 0 705.664 0z m21.376 516.459V46.677c87.04 32.278 146.944 258.304 150.741 469.782H727.04z"/></svg></div>
         <div class="action-card-title">记饮食</div>
         <div class="action-card-desc">记下今天吃了什么</div>
       </a>
-      <a class="action-card" href="inspiration.html">
+      <a class="action-card" href="../page-records/inspiration/">
         <div class="action-card-icon"><svg class="action-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg></div>
         <div class="action-card-title">存灵感</div>
         <div class="action-card-desc">收集突然想到的碎片</div>
@@ -581,7 +581,7 @@ function renderTraces() {
     html += '<div class="trace-item" onclick="window.location.href=\''+t.url+'\'"><span class="trace-time">'+escapeHtml(t.time)+'</span><div class="trace-body"><div class="trace-type">'+escapeHtml(t.type)+'</div><div class="trace-preview">'+escapeHtml(t.text)+'</div></div></div>';
   });
   html += '</div>';
-  html += '<button class="trace-all" onclick="window.location.href=\'timeline.html\'">查看今天的全部记录 →</button>';
+  html += '<button class="trace-all" onclick="window.location.href=\'../page-records/timeline/\'">查看今天的全部记录 →</button>';
   container.innerHTML = html;
 }
 

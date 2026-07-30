@@ -103,7 +103,7 @@ body.page-timeline { margin:0; background:#0F0F0E; font-family:'Noto Serif SC','
   <!-- 粘性头部 -->
   <div class="header-wrap">
     <div class="header-bar">
-      <button onclick="window.location.href='index.html'" class="back-btn"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+      <button onclick="smartBack()" class="back-btn"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
       <span class="hdr-center">今日动态 <span class="hdr-cloud">☁️</span></span>
       <div class="hdr-right">
         <button onclick="toggleCalendar()" id="cal-toggle-btn" class="hdr-btn" title="日历">📅</button>
@@ -145,6 +145,15 @@ body.page-timeline { margin:0; background:#0F0F0E; font-family:'Noto Serif SC','
 </div>
 
 <script>
+// ─── 智能返回：记录页来→回记录页，今天页来→回今天页 ───
+function smartBack(){
+  try{
+    var ref=document.referrer||'';
+    if(ref.indexOf('records.html')>=0){window.location.href='records.html';return;}
+  }catch(e){}
+  window.location.href='index.html';
+}
+
 (function(){
 loadDatabase();
 

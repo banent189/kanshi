@@ -27,6 +27,13 @@
   --card-habit:#F1F4EE;
   --shadow:0 6px 18px rgba(48,54,45,0.035);
   --safe-bottom:calc(72px + env(safe-area-inset-bottom,0) + 52px);
+  --records-bg:#F6F4EE;
+  --records-surface:#FFFDF8;
+  --records-text:#30342F;
+  --records-muted:#858B82;
+  --records-line:#E6E3DA;
+  --records-accent:#4E5D49;
+  --records-accent-soft:#E9EDE5;
 }
 
 body.page-records{ margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Outfit',sans-serif; -webkit-tap-highlight-color:transparent; }
@@ -56,9 +63,9 @@ body.page-records{ margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Ou
 .record-page-shell .record-scroll{ padding:18px 16px 0; }
 
 /* ═══ 今日动态 ═══ */
-.record-page-shell .featured-card{ display:grid; grid-template-columns:57% 43%; min-height:158px; max-height:162px; overflow:hidden; border-radius:20px; border:1px solid rgba(82,90,77,0.07); background:var(--card-warm); box-shadow:var(--shadow); margin-bottom:14px; cursor:pointer; transition:transform 180ms ease; text-decoration:none; color:inherit; }
+.record-page-shell .featured-card{ display:grid; grid-template-columns:52% 48%; min-height:138px; max-height:148px; overflow:hidden; border-radius:20px; border:1px solid rgba(82,90,77,0.07); background:var(--card-warm); box-shadow:var(--shadow); margin-bottom:14px; cursor:pointer; transition:transform 180ms ease; text-decoration:none; color:inherit; }
 .record-page-shell .featured-card:active{ transform:scale(0.992); }
-.record-page-shell .featured-img-wrap{ min-height:158px; background:#eae8e0; overflow:hidden; position:relative; }
+.record-page-shell .featured-img-wrap{ min-height:138px; background:#eae8e0; overflow:hidden; position:relative; }
 .record-page-shell .featured-img{ width:100%; height:100%; object-fit:cover; position:absolute; inset:0; }
 .record-page-shell .featured-img-placeholder{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#eae8e0,#ddd9d0); position:absolute; inset:0; }
 .record-page-shell .featured-img-placeholder svg{ width:34px; height:34px; color:#bbb8ac; opacity:0.5; }
@@ -66,9 +73,8 @@ body.page-records{ margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Ou
 .record-page-shell .featured-label{ font-size:12px; color:var(--green); letter-spacing:0.08em; font-weight:500; }
 .record-page-shell .featured-text{ font-size:15px; color:#41463E; line-height:1.55; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin:8px 0 4px; font-family:'Noto Serif SC',serif; }
 .record-page-shell .featured-date{ font-size:11px; color:var(--ink-date); }
-.record-page-shell .featured-foot{ display:flex; align-items:center; gap:5px; margin-top:auto; padding-top:4px; }
-.record-page-shell .featured-enter{ font-size:13px; color:var(--green); font-weight:500; }
-.record-page-shell .featured-arrow{ color:var(--green); font-size:15px; line-height:1; }
+.record-page-shell .featured-foot{ display:flex; align-items:center; justify-content:space-between; margin-top:auto; padding-top:4px; }
+.record-page-shell .featured-enter{ font-size:12px; color:var(--green); font-weight:500; opacity:0.7; }
 
 /* ═══ Mosaic ═══ */
 .record-page-shell .record-mosaic{
@@ -203,7 +209,7 @@ body.page-records{ margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Ou
     <div class="record-header__side"></div>
     <h1 class="record-header__title">记录</h1>
     <div class="record-header__side record-header__side--right">
-      <button class="hdr-btn" onclick="redirectTo('index.html')" aria-label="搜索">
+      <button class="hdr-btn" onclick="showRecordSearch()" aria-label="搜索">
         <svg fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </button>
       <button class="hdr-text-btn" onclick="redirectTo('pages/record-arrange.html')">编排</button>
@@ -225,8 +231,8 @@ body.page-records{ margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Ou
         <span class="featured-text" id="ft-text">记录生活中的点滴瞬间</span>
         <span class="featured-date" id="ft-date"></span>
         <div class="featured-foot">
-          <span class="featured-enter">进入</span>
-          <span class="featured-arrow">→</span>
+          <span class="featured-enter">查看全部</span>
+          <span style="font-size:10px;color:var(--ink-soft)" id="ft-count"></span>
         </div>
       </div>
     </a>
@@ -247,13 +253,13 @@ body.page-records{ margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Ou
       </article>
 
       <!-- 记账 -->
-      <article class="record-module record-module--accounting" data-record-type="accounting" onclick="redirectTo('index.html')">
+      <article class="record-module record-module--accounting" data-record-type="accounting" onclick="redirectTo('pages/accounting.html')">
         <div class="mod-head">
           <div class="mod-title-row">
             <svg class="mod-icon" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="12" y1="7" x2="12" y2="17"/><path d="M8 9h2"/><path d="M14 15h2"/></svg>
             <span class="mod-title">记账</span>
           </div>
-          <button class="record-add-button" onclick="event.stopPropagation();redirectTo('index.html')" aria-label="新增记账"><span class="record-add-button__visual">＋</span></button>
+          <button class="record-add-button" onclick="event.stopPropagation();redirectTo('pages/accounting.html')" aria-label="新增记账"><span class="record-add-button__visual">＋</span></button>
         </div>
         <div class="mod-body" id="mod-fin-body"><!-- JS --></div>
       </article>
@@ -333,10 +339,17 @@ body.page-records{ margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Ou
 </div><!-- /record-page-shell -->
 
 <script>
-loadDatabase();
+// ─── 保存滚动位置 ───
+var recScroll=document.getElementById('record-scroll');
+if(recScroll){var savedY=localStorage.getItem('KANSHI_RECORD_SCROLL');if(savedY)setTimeout(function(){recScroll.scrollTop=parseInt(savedY);},50);recScroll.addEventListener('scroll',function(){localStorage.setItem('KANSHI_RECORD_SCROLL',recScroll.scrollTop);});}
+
+// ─── 记录搜索 ───
+function showRecordSearch(){var q=prompt('搜索记录类型、标题或内容');if(!q||!q.trim())return;q=q.trim().toLowerCase();var found=[];var t=db.timelinePosts||[];t.forEach(function(p){if(p.content&&p.content.toLowerCase().indexOf(q)>=0||p.title&&p.title.toLowerCase().indexOf(q)>=0)found.push({type:'今日动态',title:p.title||p.content.slice(0,30),url:'timeline.html'});});var d=db.dietLogs||[];d.forEach(function(p){if(p.name&&p.name.toLowerCase().indexOf(q)>=0)found.push({type:'饮食',title:p.name,url:'calories.html'});});var f=db.financeLogs||[];f.forEach(function(p){if((p.note||p.category||'').toLowerCase().indexOf(q)>=0)found.push({type:'记账',title:p.note||p.category,url:'index.html'});});var i=db.inspirations||[];i.forEach(function(p){if((p.ref||p.title||'').toLowerCase().indexOf(q)>=0)found.push({type:'灵感',title:p.title||(p.ref||'').slice(0,30),url:'inspiration.html'});});var b=db.books||[];b.forEach(function(p){if((p.title||'').toLowerCase().indexOf(q)>=0||(p.author||'').toLowerCase().indexOf(q)>=0)found.push({type:'书评',title:p.title,url:'books.html'});});if(found.length===0){showToast('未找到"'+q+'"相关记录');return;}var msg='找到 '+found.length+' 条结果:\n';found.slice(0,8).forEach(function(r){msg+='\n【'+r.type+'】'+r.title;});msg+='\n\n点击确定前往第一条';showToast('找到 '+found.length+' 条记录');}
 
 try{
   var posts=db.timelinePosts||[];
+  var ftCount=document.getElementById('ft-count');
+  if(ftCount)ftCount.textContent=posts.length+' 条记录';
   if(posts.length>0){
     var last=posts[posts.length-1];
     var ftImg=document.getElementById('ft-img'), ftPh=document.getElementById('ft-placeholder');

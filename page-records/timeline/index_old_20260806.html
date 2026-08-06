@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>简纸 — 今日动态</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+SC:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="../../shared.js"></script>
+<style>
+/* ═══ 变量 ═══ */
+body.page-timeline{ --bg:#F5F4F0; --card:#FBFBFA; --ink:#2C2B29; --body:#4A4D44; --muted:#7F847A; --soft:#A1A1AA; --line:#EAE7E1; --green:#405140; --green-soft:#7E997E; --green-light:#E3E8E3; --safe-bottom:calc(80px + env(safe-area-inset-bottom,0px)); }
+body.page-timeline{ margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Outfit',sans-serif; -webkit-tap-highlight-color:transparent; }
+.page-timeline .app-viewport{ max-width:480px; margin:0 auto; background:var(--bg); min-height:100vh; display:flex; flex-direction:column; position:relative; box-shadow:0 0 50px rgba(0,0,0,0.6); }
+.page-timeline .no-scrollbar::-webkit-scrollbar{ display:none; }
+.page-timeline .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
+
+/* ═══ Header ═══ */
+.page-timeline .tl-header{ position:sticky; top:0; z-index:30; background:rgba(245,244,240,0.94); border-bottom:1px solid var(--line); backdrop-filter:blur(14px); padding-top:env(safe-area-inset-top,0); }
+.page-timeline .tl-header-inner{ height:56px; padding:0 16px; display:flex; align-items:center; justify-content:space-between; }
+.page-timeline .tl-hdr-left{ display:flex; align-items:center; gap:4px; }
+.page-timeline .tl-hdr-center{ display:flex; flex-direction:column; align-items:center; }
+.page-timeline .tl-hdr-title{ font-size:16px; font-weight:600; color:var(--ink); font-family:'Noto Serif SC',serif; }
+.page-timeline .tl-hdr-sub{ font-size:10px; color:var(--soft); margin-top:1px; }
+.page-timeline .tl-hdr-right{ display:flex; align-items:center; gap:2px; }
+.page-timeline .tl-hdr-btn{ background:none; border:none; width:40px; height:40px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted); border-radius:8px; }
+.page-timeline .tl-hdr-btn:active{ background:var(--green-light); }
+.page-timeline .tl-hdr-btn svg{ width:20px; height:20px; stroke-width:1.5; }
+
+/* ═══ Search Bar ═══ */
+.page-timeline .tl-search{ display:none; padding:6px 16px; border-bottom:1px solid var(--line); background:#FAF9F6; align-items:center; gap:6px; }
+.page-timeline .tl-search.show{ display:flex; }
+.page-timeline .tl-search input{ flex:1; height:34px; padding:0 12px; border:1px solid var(--line); border-radius:999px; font-size:12px; outline:none; font-family:inherit; background:var(--card); color:var(--ink); }
+.page-timeline .tl-search input:focus{ border-color:var(--green-soft); }
+.page-timeline .tl-search-clear{ background:none; border:none; color:var(--soft); font-size:11px; cursor:pointer; padding:6px; white-space:nowrap; }
+
+/* ═══ Tag Filter Bar ═══ */
+.page-timeline .tl-tag-bar{ display:none; padding:8px 16px; font-size:12px; color:var(--green); font-weight:600; background:#FAF9F6; border-bottom:1px solid var(--line); align-items:center; }
+.page-timeline .tl-tag-bar.show{ display:flex; }
+.page-timeline .tl-tag-bar .tag-clear{ background:none; border:none; color:var(--soft); font-size:10px; cursor:pointer; margin-left:auto; text-decoration:underline; font-family:inherit; }
+
+/* ═══ Feed Container ═══ */
+.page-timeline .tl-feed{ flex:1; overflow-y:auto; padding-bottom:60px; }
+
+/* ═══ Date Bar ═══ */
+.page-timeline .tl-date-row{ padding:14px 16px 6px; display:flex; align-items:baseline; gap:6px; }
+.page-timeline .tl-date-label{ font-size:15px; font-weight:600; color:var(--ink); font-family:'Noto Serif SC',serif; }
+.page-timeline .tl-date-count{ font-size:10px; color:var(--soft); font-weight:400; }
+
+/* ═══ Post Item ═══ */
+.page-timeline .tl-post{ display:flex; gap:10px; padding:12px 16px 14px; border-bottom:1px solid #F0EFEA; }
+.page-timeline .tl-avatar{ width:40px; height:40px; border-radius:999px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#FFF; background:linear-gradient(135deg,#405140,#7E997E); overflow:hidden; }
+.page-timeline .tl-avatar img{ width:100%; height:100%; object-fit:cover; }
+.page-timeline .tl-body{ flex:1; min-width:0; }
+.page-timeline .tl-author{ font-size:14px; font-weight:700; color:var(--ink); }
+.page-timeline .tl-pin-tag{ font-size:9px; color:var(--soft); margin-left:4px; }
+.page-timeline .tl-text{ font-size:15px; color:var(--body); line-height:1.7; white-space:pre-wrap; margin:4px 0 8px; font-family:'Noto Serif SC',serif; }
+.page-timeline .tl-text.clamped{ display:-webkit-box; -webkit-line-clamp:6; -webkit-box-orient:vertical; overflow:hidden; }
+.page-timeline .tl-text-more{ font-size:12px; color:var(--green-soft); cursor:pointer; display:inline-block; margin-bottom:6px; }
+.page-timeline .tl-text-more.hide{ display:none; }
+
+/* ═══ 九宫格图片 ═══ */
+.page-timeline .tl-imgs{ display:grid; gap:3px; border-radius:6px; overflow:hidden; margin-bottom:8px; width:240px; max-width:100%; }
+.page-timeline .tl-img{ width:100%; aspect-ratio:1; object-fit:cover; cursor:pointer; background:#EAE7E1; display:block; border-radius:4px; }
+/* 1张 */
+.page-timeline .tl-imgs.c1{ width:180px; }
+.page-timeline .tl-imgs.c1 .tl-img{ aspect-ratio:auto; width:180px; height:180px; border-radius:6px; }
+/* 2张 */
+.page-timeline .tl-imgs.c2{ grid-template-columns:1fr 1fr; width:200px; }
+/* 3张 */
+.page-timeline .tl-imgs.c3{ grid-template-columns:1fr 1fr 1fr; width:240px; }
+/* 4张 */
+.page-timeline .tl-imgs.c4{ grid-template-columns:1fr 1fr; width:200px; }
+/* 5-9张 */
+.page-timeline .tl-imgs.c5,.c6,.c7,.c8,.c9{ grid-template-columns:repeat(3,1fr); width:240px; }
+
+/* ═══ Tags & Meta ═══ */
+.page-timeline .tl-tags{ display:flex; flex-wrap:wrap; gap:4px; margin-bottom:4px; }
+.page-timeline .tl-tag{ font-size:10px; color:var(--green-soft); background:rgba(126,153,126,0.1); padding:2px 8px; border-radius:999px; cursor:pointer; line-height:1.6; }
+.page-timeline .tl-tag:active{ background:rgba(126,153,126,0.2); }
+.page-timeline .tl-meta{ display:flex; flex-wrap:wrap; align-items:center; gap:4px; font-size:10px; color:var(--soft); }
+.page-timeline .tl-meta .tl-time{ color:var(--muted); }
+.page-timeline .tl-meta .tl-loc{ display:flex; align-items:center; gap:2px; }
+.page-timeline .tl-meta .tl-mood{ font-size:11px; }
+.page-timeline .tl-post-foot{ display:flex; justify-content:space-between; align-items:center; }
+.page-timeline .tl-more{ background:none; border:none; width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:var(--soft); cursor:pointer; border-radius:6px; font-size:14px; letter-spacing:1px; }
+.page-timeline .tl-more:active{ background:var(--green-light); }
+
+/* ═══ Empty ═══ */
+.page-timeline .tl-empty{ text-align:center; padding:80px 24px; }
+.page-timeline .tl-empty svg{ width:40px; height:40px; color:#D4D0C8; margin-bottom:10px; }
+.page-timeline .tl-empty-text{ font-size:14px; color:var(--soft); line-height:1.7; }
+.page-timeline .tl-empty-btn{ display:inline-block; margin-top:14px; padding:10px 28px; border-radius:999px; background:var(--green); color:#FFF; border:none; font-size:13px; cursor:pointer; font-family:inherit; font-weight:600; }
+
+/* ═══ FAB ═══ */
+.page-timeline .tl-fab{ position:fixed; bottom:calc(76px + env(safe-area-inset-bottom,0)); right:max(16px,calc(50% - 200px)); width:50px; height:50px; border-radius:999px; background:var(--green); color:#FFF; border:none; font-size:26px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(64,81,64,0.3); z-index:20; font-weight:300; padding:0; transition:transform 0.15s; }
+.page-timeline .tl-fab:active{ transform:scale(0.92); }
+
+/* ═══ Calendar Modal ═══ */
+.page-timeline .modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:100; display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.25s; }
+.page-timeline .modal-overlay.show{ opacity:1; pointer-events:auto; }
+.page-timeline .modal-sheet{ width:100%; max-width:480px; background:var(--bg); border-radius:20px 20px 0 0; transform:translateY(100%); transition:transform 0.3s cubic-bezier(0.16,1,0.3,1); max-height:75vh; overflow-y:auto; padding:0 0 calc(env(safe-area-inset-bottom,0) + 12px); }
+.page-timeline .modal-overlay.show .modal-sheet{ transform:translateY(0); }
+.page-timeline .modal-handle{ width:32px; height:4px; background:#D4D0C8; border-radius:2px; margin:10px auto 6px; }
+.page-timeline .modal-title{ font-size:15px; font-weight:600; color:var(--ink); text-align:center; padding:8px 20px 12px; }
+.page-timeline .cal-nav{ display:flex; justify-content:space-between; align-items:center; padding:0 20px 6px; }
+.page-timeline .cal-nav-btn{ background:none; border:none; width:36px; height:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted); border-radius:8px; font-size:16px; }
+.page-timeline .cal-nav-btn:active{ background:var(--green-light); }
+.page-timeline .cal-month{ font-size:14px; font-weight:600; color:var(--ink); }
+.page-timeline .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:2px; padding:0 20px; }
+.page-timeline .cal-wd{ text-align:center; font-size:10px; color:var(--soft); padding:6px 0; font-weight:500; }
+.page-timeline .cal-day{ text-align:center; padding:6px 0; font-size:12px; border-radius:999px; cursor:pointer; color:var(--ink); position:relative; }
+.page-timeline .cal-day:active{ background:var(--green-light); }
+.page-timeline .cal-day.today{ border:1px solid var(--green-soft); }
+.page-timeline .cal-day.selected{ background:var(--green); color:#FFF; }
+.page-timeline .cal-day .cal-dot{ width:4px; height:4px; border-radius:999px; background:var(--green-soft); margin:1px auto 0; }
+.page-timeline .cal-day.selected .cal-dot{ background:#FFF; }
+
+/* ═══ Context Menu ═══ */
+.page-timeline .ctx-menu{ position:fixed; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:4px 0; box-shadow:0 8px 30px rgba(0,0,0,0.1); z-index:150; min-width:140px; }
+.page-timeline .ctx-item{ width:100%; padding:12px 16px; background:none; border:none; font-size:12px; color:var(--ink); cursor:pointer; font-family:inherit; text-align:left; display:flex; align-items:center; gap:8px; }
+.page-timeline .ctx-item:active{ background:var(--green-light); }
+.page-timeline .ctx-item.danger{ color:#A56868; }
+.page-timeline .ctx-item svg{ width:16px; height:16px; flex-shrink:0; color:var(--soft); }
+.page-timeline .ctx-divider{ height:1px; background:var(--line); margin:4px 0; }
+
+/* ═══ Image Viewer ═══ */
+.page-timeline .viewer-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:200; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.25s; }
+.page-timeline .viewer-overlay.show{ opacity:1; pointer-events:auto; }
+.page-timeline .viewer-close{ position:absolute; top:60px; right:16px; background:rgba(255,255,255,0.1); border:none; width:36px; height:36px; border-radius:999px; color:#FFF; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:1; }
+.page-timeline .viewer-img{ max-width:95%; max-height:85vh; object-fit:contain; }
+.page-timeline .viewer-nav{ position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.08); border:none; width:36px; height:36px; border-radius:999px; color:#FFF; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.page-timeline .viewer-nav:active{ background:rgba(255,255,255,0.15); }
+.page-timeline .viewer-nav.prev{ left:10px; }
+.page-timeline .viewer-nav.next{ right:10px; }
+.page-timeline .viewer-count{ position:absolute; bottom:40px; left:50%; transform:translateX(-50%); color:rgba(255,255,255,0.5); font-size:11px; }
+
+/* ═══ Toast ═══ */
+.page-timeline .toast{ position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:var(--green); color:#FFF; padding:6px 18px; border-radius:999px; font-size:12px; z-index:99; opacity:0; transition:opacity 0.25s; pointer-events:none; white-space:nowrap; }
+.page-timeline .toast.show{ opacity:1; }
+
+/* ═══ Publish Layer ═══ */
+.page-timeline .pub-overlay{ position:fixed; inset:0; background:var(--bg); z-index:100; display:flex; flex-direction:column; opacity:0; pointer-events:none; transition:opacity 0.25s; }
+.page-timeline .pub-overlay.show{ opacity:1; pointer-events:auto; }
+.page-timeline .pub-header{ display:flex; align-items:center; justify-content:space-between; padding:0 16px; height:56px; border-bottom:1px solid var(--line); flex-shrink:0; padding-top:env(safe-area-inset-top,0); }
+.page-timeline .pub-hdr-left{ display:flex; align-items:center; gap:10px; }
+.page-timeline .pub-cancel{ background:none; border:none; font-size:14px; color:var(--muted); cursor:pointer; font-family:inherit; padding:8px 0; }
+.page-timeline .pub-title{ font-size:16px; font-weight:600; color:var(--ink); }
+.page-timeline .pub-send{ background:var(--green); border:none; padding:8px 22px; border-radius:999px; color:#FFF; font-size:12px; cursor:pointer; font-family:inherit; font-weight:600; }
+.page-timeline .pub-send:disabled{ opacity:0.4; }
+.page-timeline .pub-overlay{ height:100%; }
+.page-timeline .pub-scroll{ flex:1; overflow-y:auto; padding:16px 16px 40px; }
+.page-timeline .pub-avatar-row{ display:flex; align-items:flex-start; gap:10px; margin-bottom:6px; }
+.page-timeline .pub-avatar{ width:36px; height:36px; border-radius:999px; background:linear-gradient(135deg,#405140,#7E997E); display:flex; align-items:center; justify-content:center; color:#FFF; font-weight:700; flex-shrink:0; overflow:hidden; }
+.page-timeline .pub-avatar img{ width:100%; height:100%; object-fit:cover; }
+.page-timeline .pub-textarea{ flex:1; width:100%; min-height:120px; padding:0; font-size:16px; border:none; outline:none; background:transparent; color:var(--ink); font-family:'Noto Serif SC',serif; resize:none; line-height:1.7; }
+.page-timeline .pub-textarea::placeholder{ color:#BFBBB0; }
+.page-timeline .pub-photos{ display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
+.page-timeline .pub-photo-item{ width:72px; height:72px; border-radius:8px; overflow:hidden; position:relative; flex-shrink:0; }
+.page-timeline .pub-photo-item img{ width:100%; height:100%; object-fit:cover; }
+.page-timeline .pub-photo-del{ position:absolute; top:2px; right:2px; width:18px; height:18px; border-radius:999px; background:rgba(0,0,0,0.5); color:#FFF; border:none; font-size:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; }
+.page-timeline .pub-add-photo{ width:72px; height:72px; border-radius:8px; border:1px dashed #BFBBB0; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+.page-timeline .pub-add-photo svg{ width:24px; height:24px; color:var(--soft); }
+.page-timeline .pub-tag-chips{ display:flex; flex-wrap:wrap; gap:4px; margin:8px 0; }
+.page-timeline .pub-tag-chip{ font-size:11px; color:var(--green-soft); background:rgba(126,153,126,0.1); padding:3px 10px; border-radius:999px; display:inline-flex; align-items:center; gap:4px; }
+.page-timeline .pub-tag-del{ cursor:pointer; opacity:0.6; font-size:10px; }
+.page-timeline .pub-settings{ border-top:1px solid var(--line); margin-top:4px; }
+.page-timeline .pub-set-row{ display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid #F0EFEA; cursor:pointer; min-height:44px; }
+.page-timeline .pub-set-row:active{ background:rgba(0,0,0,0.02); }
+.page-timeline .pub-set-left{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink); }
+.page-timeline .pub-set-left svg{ width:18px; height:18px; color:var(--green-soft); flex-shrink:0; }
+.page-timeline .pub-set-right{ display:flex; align-items:center; gap:4px; font-size:12px; color:var(--soft); }
+.page-timeline .pub-set-right .arrow{ color:#BFBBB0; font-size:14px; }
+
+/* ═══ Tag Selector Modal ═══ */
+.page-timeline .tag-input{ width:100%; padding:10px 14px; border:1px solid var(--line); border-radius:10px; font-size:13px; outline:none; font-family:inherit; background:var(--card); margin-bottom:10px; }
+.page-timeline .tag-input:focus{ border-color:var(--green-soft); }
+.page-timeline .tag-grid{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+.page-timeline .tag-item{ padding:6px 14px; border-radius:999px; font-size:11px; border:1px solid var(--line); cursor:pointer; background:transparent; color:var(--ink); font-family:inherit; }
+.page-timeline .tag-item.selected{ background:var(--green); color:#FFF; border-color:var(--green); }
+.page-timeline .tag-new{ display:flex; gap:6px; }
+.page-timeline .tag-new input{ flex:1; padding:8px 12px; border:1px solid var(--line); border-radius:999px; font-size:12px; outline:none; font-family:inherit; }
+.page-timeline .tag-new input:focus{ border-color:var(--green-soft); }
+.page-timeline .tag-new button{ padding:8px 16px; border-radius:999px; border:none; background:var(--green); color:#FFF; font-size:11px; cursor:pointer; font-family:inherit; }
+</style>
+</head>
+<body class="page-timeline">
+<div class="app-viewport">
+
+  <!-- Header -->
+  <div class="tl-header">
+    <div class="tl-header-inner">
+      <div class="tl-hdr-left">
+        <button class="tl-hdr-btn" onclick="smartBack()" aria-label="返回"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>
+      </div>
+      <div class="tl-hdr-center">
+        <span class="tl-hdr-title">今日动态</span>
+        <span class="tl-hdr-sub" id="tl-hdr-sub">加载中...</span>
+      </div>
+      <div class="tl-hdr-right">
+        <button class="tl-hdr-btn" onclick="toggleSearch()" aria-label="搜索"><svg fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+        <button class="tl-hdr-btn" onclick="openCalendar()" aria-label="日历"><svg fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>
+      </div>
+    </div>
+    <div class="tl-search" id="tl-search"><input type="text" id="tl-search-q" placeholder="搜索正文、标签、地点..." oninput="doSearch(this.value)"/><button class="tl-search-clear" onclick="clearSearch()">取消</button></div>
+    <div class="tl-tag-bar" id="tl-tag-bar"><span id="tl-tag-label"></span><button class="tag-clear" onclick="clearTagFilter()">清除</button></div>
+  </div>
+
+  <!-- Feed -->
+  <div class="tl-feed no-scrollbar" id="tl-feed"></div>
+
+  <!-- FAB -->
+  <button class="tl-fab" id="tl-fab" onclick="openPublish()" aria-label="发布">＋</button>
+
+</div>
+
+<!-- Calendar / Confirm Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<!-- Image Viewer -->
+<div class="viewer-overlay" id="viewer-overlay" onclick="if(event.target===this)closeViewer()">
+  <button class="viewer-close" onclick="closeViewer()">✕</button>
+  <button class="viewer-nav prev" id="viewer-prev" onclick="viewerNav(-1)">‹</button>
+  <img id="viewer-img" class="viewer-img" src="" alt="" />
+  <button class="viewer-nav next" id="viewer-next" onclick="viewerNav(1)">›</button>
+  <span class="viewer-count" id="viewer-count"></span>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<script>
+// ═══ Smart Back ═══
+function smartBack(){try{var r=document.referrer||'';if(r.indexOf('records')>=0){window.location.href='/page-records/records.html';return;}}catch(e){}window.location.href='/page-today/index.html';}
+
+loadDatabase();
+
+// ═══ Date Helpers ═══
+function _t(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function _f(i){if(!i)return'';return parseInt(i.slice(5,7))+'月'+parseInt(i.slice(8,10))+'日';}
+function _w(i){return['日','一','二','三','四','五','六'][new Date(i+'T00:00:00').getDay()];}
+function _y(i){var d=new Date(i+'T00:00:00');d.setDate(d.getDate()-1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
+// ═══ State ═══
+var curDate=_t(),mode='day',tagFilter='',searchQ='',hlDate='';
+var pubPhotos=[],pubTags=[],pubMood='',editId=null;
+var S='KANSHI_TL_';
+
+// ═══ Migrate Old Data ═══
+(function(){
+  (db.timelinePosts||[]).forEach(function(p){
+    if(!p.occurDate){
+      if(p.date){var m=p.date.match(/(\d+)月(\d+)日/);p.occurDate=m?_t().slice(0,4)+'-'+String(parseInt(m[1])).padStart(2,'0')+'-'+String(parseInt(m[2])).padStart(2,'0'):_t();}else{p.occurDate=_t();}
+    }
+    if(!p.createdAt)p.createdAt=new Date().toISOString();
+    if(!p.tags)p.tags=[];if(!p.images)p.images=p.image?[p.image]:[];if(!p.location)p.location='';if(!p.mood)p.mood='';
+  });
+  saveDatabase();
+})();
+
+// ═══ Render ═══
+function render(){
+  var feed=document.getElementById('tl-feed');if(!feed)return;
+  feed.innerHTML='';
+
+  // Subtitle
+  var sub=document.getElementById('tl-hdr-sub');
+  if(mode==='tag')sub.textContent='#'+tagFilter+' · 筛选';
+  else if(mode==='search')sub.textContent='搜索 · "'+searchQ+'"';
+  else sub.textContent=curDate===_t()?'今天 · '+_f(curDate)+' · 周'+_w(curDate):_f(curDate)+' · 周'+_w(curDate);
+
+  // Tag bar
+  var tb=document.getElementById('tl-tag-bar');
+  if(mode==='tag'){tb.classList.add('show');document.getElementById('tl-tag-label').textContent='#'+tagFilter+' · '+((db.timelinePosts||[]).filter(function(p){return p.tags&&p.tags.indexOf(tagFilter)>=0;}).length)+' 条';}else{tb.classList.remove('show');}
+
+  var posts=db.timelinePosts||[];
+  var filtered=posts.slice();
+  if(mode==='tag'&&tagFilter)filtered=filtered.filter(function(p){return p.tags&&p.tags.indexOf(tagFilter)>=0;});
+  if(mode==='search'&&searchQ){var q=searchQ.toLowerCase();filtered=filtered.filter(function(p){return(p.content&&p.content.toLowerCase().indexOf(q)>=0)||(p.tags&&p.tags.some(function(t){return t.toLowerCase().indexOf(q)>=0;}))||(p.location&&p.location.toLowerCase().indexOf(q)>=0);});}
+  if(mode==='day')filtered=filtered.filter(function(p){return p.occurDate===curDate;});
+
+  if(!filtered.length){
+    feed.innerHTML='<div class="tl-empty"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg><div class="tl-empty-text">'+(mode==='day'?(curDate===_t()?'今天还没有留下记录':'这一天还没有记录'):'没有找到匹配的动态')+'</div>'+(mode==='day'&&curDate===_t()?'<button class="tl-empty-btn" onclick="openPublish()">记录此刻</button>':'<button class="tl-empty-btn" onclick="setToday()">回到今天</button>')+'</div>';
+    return;
+  }
+
+  filtered.sort(function(a,b){if(a.pinned&&!b.pinned)return -1;if(!a.pinned&&b.pinned)return 1;return (a.createdAt||'')>(b.createdAt||'')?-1:1;});
+
+  feed.innerHTML+='<div class="tl-date-row"><span class="tl-date-label">'+(curDate===_t()?'今天':_f(curDate))+'</span><span class="tl-date-count">'+filtered.length+' 条</span></div>';
+
+  filtered.forEach(function(post,idx){
+    var aD=(post.displayName||'K').charAt(0).toUpperCase();
+    var aH=post.avatar?'<img src="'+escapeHtml(post.avatar)+'">':'';
+    var txt=post.content||'';
+
+    feed.innerHTML+='<div class="tl-post" id="p-'+post.id+'"><div class="tl-avatar">'+aH+(aH?'':aD)+'</div><div class="tl-body">';
+    feed.innerHTML+='<span class="tl-author">'+escapeHtml(post.displayName||'K')+'</span>'+(post.pinned?'<span class="tl-pin-tag">· 置顶</span>':'');
+
+    if(txt.length>120){
+      feed.innerHTML+='<div class="tl-text clamped" id="tx-'+post.id+'">'+escapeHtml(txt)+'</div><span class="tl-text-more" onclick="var e=document.getElementById(\'tx-'+post.id+'\');e.classList.remove(\'clamped\');this.classList.add(\'hide\');">展开全文</span>';
+    }else{feed.innerHTML+='<div class="tl-text">'+escapeHtml(txt)+'</div>';}
+
+    var imgs=post.images||[];
+    if(imgs.length>0){
+      var c=Math.min(imgs.length,9);
+      feed.innerHTML+='<div class="tl-imgs c'+c+'">';
+      imgs.slice(0,9).forEach(function(s,i){feed.innerHTML+='<img class="tl-img" src="'+escapeHtml(s)+'" onclick="openViewer(\''+post.id+'\','+i+')" loading="lazy" />';});
+      feed.innerHTML+='</div>';
+    }
+
+    if(post.tags&&post.tags.length){
+      feed.innerHTML+='<div class="tl-tags">';
+      post.tags.forEach(function(t){feed.innerHTML+='<span class="tl-tag" onclick="filterByTag(\''+escapeHtml(t)+'\')">#'+escapeHtml(t)+'</span>';});
+      feed.innerHTML+='</div>';
+    }
+
+    var ts='';
+    if(post.occurDate===curDate){ts='今天';if(post.date){var tm=post.date.match(/\d+:\d+/);if(tm)ts+=' '+tm[0];}}
+    else{ts=_f(post.occurDate);if(post.date){var tm=post.date.match(/\d+:\d+/);if(tm)ts+=' '+tm[0];}}
+    feed.innerHTML+='<div class="tl-meta"><span class="tl-time">'+ts+'</span>';
+    if(post.location)feed.innerHTML+='<span class="tl-loc">📍'+escapeHtml(post.location)+'</span>';
+    if(post.mood)feed.innerHTML+='<span class="tl-mood">'+escapeHtml(post.mood)+'</span>';
+    feed.innerHTML+='</div><div class="tl-post-foot"><span></span><button class="tl-more" onclick="openMenu(event,\''+post.id+'\')">···</button></div></div></div>';
+  });
+
+  // Highlight new post
+  if(hlDate&&curDate===hlDate){
+    setTimeout(function(){
+      feed.querySelectorAll('.tl-post').forEach(function(el){if(el.id==='p-'+hlDate)el.style.background='rgba(126,153,126,0.08)';setTimeout(function(){el.style.background='';},1500);});
+      hlDate='';
+    },100);
+  }
+}
+
+// ═══ Search ═══
+function toggleSearch(){var s=document.getElementById('tl-search');if(s.classList.contains('show')){clearSearch();}else{s.classList.add('show');document.getElementById('tl-search-q').focus();}}
+function doSearch(q){q=q.trim();if(!q){clearSearch();return;}searchQ=q;mode='search';tagFilter='';render();}
+function clearSearch(){searchQ='';mode='day';tagFilter='';document.getElementById('tl-search').classList.remove('show');document.getElementById('tl-search-q').value='';render();}
+function filterByTag(t){tagFilter=t;mode='tag';searchQ='';render();}
+function clearTagFilter(){tagFilter='';mode='day';render();}
+function setToday(){curDate=_t();mode='day';tagFilter='';searchQ='';render();}
+
+// ═══ Calendar ═══
+var cy,cm;
+function openCalendar(){var n=new Date();cy=n.getFullYear();cm=n.getMonth();calRender();openModal();}
+function calRender(){
+  var dim=new Date(cy,cm+1,0).getDate(),fd=new Date(cy,cm,1).getDay();
+  var posts=db.timelinePosts||[],dots={};
+  posts.forEach(function(p){if(p.occurDate&&p.occurDate.slice(0,7)===cy+'-'+String(cm+1).padStart(2,'0'))dots[p.occurDate]=true;});
+  var h='<div class="modal-title">'+cy+'年'+(cm+1)+'月</div><div class="cal-nav"><button class="cal-nav-btn" onclick="cm--;if(cm<0){cm=11;cy--;}calRender();">‹</button><span class="cal-month"></span><button class="cal-nav-btn" onclick="cm++;if(cm>11){cm=0;cy++;}calRender();">›</button></div><div class="cal-grid">';
+  ['日','一','二','三','四','五','六'].forEach(function(w){h+='<span class="cal-wd">'+w+'</span>';});
+  for(var i=0;i<fd;i++)h+='<span></span>';
+  for(var d=1;d<=dim;d++){
+    var ds=cy+'-'+String(cm+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var cl='cal-day';if(ds===_t())cl+=' today';if(ds===curDate)cl+=' selected';
+    h+='<div class="'+cl+'" onclick="pickDate(\''+ds+'\')">'+d+(dots[ds]?'<div class="cal-dot"></div>':'')+'</div>';
+  }
+  h+='</div>';
+  document.getElementById('modal-content').innerHTML=h;
+}
+function pickDate(ds){closeModal();curDate=ds;mode='day';tagFilter='';searchQ='';render();}
+
+// ═══ Publish ═══
+function openPublish(date){editId=null;pubPhotos=[];pubTags=[];pubMood='';showPub(date||curDate,'','');}
+function showPub(date,text,loc){
+  document.getElementById('tl-fab').style.display='none';
+  var o=document.createElement('div');o.className='pub-overlay show';o.id='pub-layer';
+  var aD=((db.userProfile&&db.userProfile.displayName)||'K').charAt(0).toUpperCase();
+  var aH=(db.userProfile&&db.userProfile.avatar)?'<img src="'+escapeHtml(db.userProfile.avatar)+'">':'';
+  o.innerHTML='<div class="pub-header"><div class="pub-hdr-left"><button class="pub-cancel" onclick="closePub()">取消</button><span class="pub-title">'+(editId?'编辑动态':'记录此刻')+'</span></div><button class="pub-send" id="pub-sb" onclick="submitPub()" disabled>发布</button></div>'+
+    '<div class="pub-scroll"><div class="pub-avatar-row"><div class="pub-avatar">'+aH+(aH?'':aD)+'</div><textarea class="pub-textarea" id="pub-t" placeholder="此刻想记下什么..." oninput="pubCheck()">'+escapeHtml(text)+'</textarea></div>'+
+    '<div class="pub-photos" id="pub-ph"></div><div class="pub-add-photo" onclick="document.getElementById(\'pub-f\').click()"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div><input type="file" id="pub-f" accept="image/*" multiple style="display:none" onchange="onPubFiles(this.files)">'+
+    '<div class="pub-tag-chips" id="pub-tc"></div>'+
+    '<div class="pub-settings">'+
+    '<div class="pub-set-row" onclick="showTagSel()"><div class="pub-set-left"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>标签</div><div class="pub-set-right"><span id="pub-tl">添加标签</span><span class="arrow">›</span></div></div>'+
+    '<div class="pub-set-row" onclick="showDatePick()"><div class="pub-set-left"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>发生时间</div><div class="pub-set-right"><span id="pub-dl">'+_f(date)+'</span><span class="arrow">›</span></div></div>'+
+    '<div class="pub-set-row" onclick="showLocPick()"><div class="pub-set-left"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>地点</div><div class="pub-set-right"><span id="pub-ll">'+(loc||'未设置')+'</span><span class="arrow">›</span></div></div>'+
+    '<div class="pub-set-row" onclick="showMoodPick()"><div class="pub-set-left"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>心情</div><div class="pub-set-right"><span id="pub-ml">未设置</span><span class="arrow">›</span></div></div></div></div>';
+  document.body.appendChild(o);window.__pd=false;
+}
+function pubCheck(){var t=document.getElementById('pub-t');var b=document.getElementById('pub-sb');if(!b)return;b.disabled=!(t&&t.value.trim())&&!pubPhotos.length;}
+function closePub(force){
+  if(!force&&window.__pd&&!editId){
+    document.getElementById('modal-content').innerHTML='<div class="modal-title">放弃编辑？</div><div style="padding:4px 20px 16px;display:flex;gap:10px"><button style="flex:1;padding:10px;border:1px solid var(--line);border-radius:10px;background:transparent;font-size:12px;font-family:inherit;cursor:pointer;color:var(--muted)" onclick="closeModal();var el=document.getElementById(\'pub-layer\');if(el)el.remove();document.getElementById(\'tl-fab\').style.display=\'\';">放弃</button><button style="flex:1;padding:10px;border:none;border-radius:10px;background:var(--green);color:#FFF;font-size:12px;font-family:inherit;cursor:pointer" onclick="closeModal()">继续编辑</button></div>';
+    openModal();return;
+  }
+  var el=document.getElementById('pub-layer');if(el)el.remove();document.getElementById('tl-fab').style.display='';
+}
+function submitPub(){
+  var t=document.getElementById('pub-t'),c=t?t.value.trim():'';if(!c&&!pubPhotos.length){toast('正文和图片至少填一项');return;}
+  var dl=document.getElementById('pub-dl'),ds=dl?dl.textContent:'今天',dv=_t();
+  if(ds.indexOf('月')>=0){var m=ds.match(/(\d+)月(\d+)日/);if(m)dv=_t().slice(0,4)+'-'+String(parseInt(m[1])).padStart(2,'0')+'-'+String(parseInt(m[2])).padStart(2,'0');}
+  var ll=document.getElementById('pub-ll'),l=ll&&ll.textContent!=='未设置'?ll.textContent:'';
+  if(editId){
+    var p=db.timelinePosts.find(function(x){return x.id===editId;});if(!p)return;var od=p.occurDate;
+    p.content=c;p.images=pubPhotos.slice();p.tags=pubTags.slice();p.mood=pubMood;p.location=l;p.occurDate=dv;
+    p.date=_f(dv)+' '+new Date().toTimeString().slice(0,5);saveDatabase();closePub(true);
+    if(od!==dv)toast('已移动到 '+_f(dv));else toast('已保存');render();return;
+  }
+  if(!db.timelinePosts)db.timelinePosts=[];
+  db.timelinePosts.push({id:'p_'+Date.now(),content:c,images:pubPhotos.slice(),tags:pubTags.slice(),mood:pubMood,location:l,occurDate:dv,date:_f(dv)+' '+new Date().toTimeString().slice(0,5),createdAt:new Date().toISOString(),displayName:(db.userProfile&&db.userProfile.displayName)||'K',avatar:(db.userProfile&&db.userProfile.avatar)||'',pinned:false});
+  saveDatabase();closePub(true);
+  hlDate=dv;if(dv!==curDate)curDate=dv;render();
+  if(dv!==_t())toast('已记录到 '+_f(dv));else toast('已发布');
+}
+function onPubFiles(files){if(!files)return;Array.from(files).slice(0,9-pubPhotos.length).forEach(function(f){if(!f.type.startsWith('image/'))return;var r=new FileReader();r.onload=function(e){pubPhotos.push(e.target.result);pubPhotoRender();pubCheck();};r.readAsDataURL(f);});}
+function pubPhotoRender(){var c=document.getElementById('pub-ph');if(!c)return;c.innerHTML='';pubPhotos.forEach(function(s,i){c.innerHTML+='<div class="pub-photo-item"><img src="'+s+'"><button class="pub-photo-del" onclick="pubPhotos.splice('+i+',1);pubPhotoRender();pubCheck();">✕</button></div>';});}
+
+// ═══ Tag Selector ═══
+function showTagSel(){
+  var all=db.allTags||[];
+  var h='<div class="modal-title">添加标签</div><input class="tag-input" id="ts-q" placeholder="搜索或新建标签..." oninput="tsRender()"><div class="tag-grid" id="ts-g">';
+  all.forEach(function(t){var s=pubTags.indexOf(t)>=0?' selected':'';h+='<span class="tag-item'+s+'" onclick="tsToggle(\''+escapeHtml(t)+'\')">'+t+'</span>';});
+  h+='</div><div class="tag-new"><input type="text" id="ts-n" placeholder="新建标签..."><button onclick="tsAdd()">添加</button></div>';
+  document.getElementById('modal-content').innerHTML=h;openModal();
+}
+function tsRender(){var q=(document.getElementById('ts-q')||{}).value||'';var g=document.getElementById('ts-g');if(!g)return;var a=db.allTags||[],f=a.filter(function(t){return t.indexOf(q)>=0;});g.innerHTML='';f.forEach(function(t){var s=pubTags.indexOf(t)>=0?' selected':'';g.innerHTML+='<span class="tag-item'+s+'" onclick="tsToggle(\''+escapeHtml(t)+'\')">'+t+'</span>';});}
+function tsToggle(t){var i=pubTags.indexOf(t);if(i>=0)pubTags.splice(i,1);else pubTags.push(t);updTags();tsRender();}
+function tsAdd(){var i=document.getElementById('ts-n');if(!i||!i.value.trim())return;var t=i.value.trim();if(!db.allTags)db.allTags=[];if(db.allTags.indexOf(t)<0)db.allTags.push(t);saveDatabase();if(pubTags.indexOf(t)<0)pubTags.push(t);updTags();i.value='';tsRender();}
+function updTags(){var c=document.getElementById('pub-tc'),l=document.getElementById('pub-tl');if(!c||!l)return;c.innerHTML='';pubTags.forEach(function(t){c.innerHTML+='<span class="pub-tag-chip">#'+t+'<span class="pub-tag-del" onclick="var i=pubTags.indexOf(\''+escapeHtml(t)+'\');if(i>=0){pubTags.splice(i,1);updTags();pubCheck();}">✕</span></span>';});l.textContent=pubTags.length?'已选 '+pubTags.length+' 个':'添加标签';}
+
+// ═══ Date/Location/Mood Pickers ═══
+function showDatePick(){
+  document.getElementById('modal-content').innerHTML='<div class="modal-title">发生时间</div><input type="date" class="tag-input" id="pub-dp" value="'+_t()+'" /><div style="display:flex;gap:10px;padding:0 20px 16px"><button style="flex:1;padding:10px;border:1px solid var(--line);border-radius:10px;background:transparent;font-size:12px;font-family:inherit;cursor:pointer;color:var(--muted)" onclick="closeModal()">取消</button><button style="flex:1;padding:10px;border:none;border-radius:10px;background:var(--green);color:#FFF;font-size:12px;font-family:inherit;cursor:pointer" onclick="var v=document.getElementById(\'pub-dp\').value;if(v)document.getElementById(\'pub-dl\').textContent=v===_t()?\'今天\':_f(v);closeModal();">确定</button></div>';
+  openModal();
+}
+function showLocPick(){
+  document.getElementById('modal-content').innerHTML='<div class="modal-title">添加地点</div><input type="text" class="tag-input" id="pub-li" placeholder="例如：深圳·莲花山" /><div style="display:flex;gap:10px;padding:0 20px 16px"><button style="flex:1;padding:10px;border:1px solid var(--line);border-radius:10px;background:transparent;font-size:12px;font-family:inherit;cursor:pointer;color:var(--muted)" onclick="closeModal()">取消</button><button style="flex:1;padding:10px;border:none;border-radius:10px;background:var(--green);color:#FFF;font-size:12px;font-family:inherit;cursor:pointer" onclick="var v=document.getElementById(\'pub-li\').value.trim();if(v)document.getElementById(\'pub-ll\').textContent=v;closeModal();">确定</button></div>';
+  openModal();
+}
+function showMoodPick(){
+  var moods=['😊 开心','😌 平静','😢 难过','😤 生气','😨 焦虑','🤔 思考','🥰 感动','😎 得意'];
+  var h='<div class="modal-title">选择心情</div><div style="padding:0 20px 16px;display:flex;flex-wrap:wrap;gap:8px">';
+  moods.forEach(function(m){h+='<span class="tag-item" onclick="pubMood=\''+escapeHtml(m)+'\';document.getElementById(\'pub-ml\').textContent=pubMood;closeModal();">'+m+'</span>';});
+  h+='</div>';document.getElementById('modal-content').innerHTML=h;openModal();
+}
+
+// ═══ Edit ═══
+function editPost(id){closeCtx();
+  var p=db.timelinePosts.find(function(x){return x.id===id;});if(!p)return;
+  editId=id;pubPhotos=(p.images||[]).slice();pubTags=(p.tags||[]).slice();pubMood=p.mood||'';
+  showPub(p.occurDate||_t(),p.content||'',p.location||'');
+  setTimeout(function(){
+    document.getElementById('pub-dl').textContent=p.occurDate===_t()?'今天':_f(p.occurDate);
+    document.getElementById('pub-ml').textContent=p.mood||'未设置';
+    document.getElementById('pub-ll').textContent=p.location||'未设置';
+    if(p.tags&&p.tags.length)document.getElementById('pub-tl').textContent='已选 '+p.tags.length+' 个';
+    document.getElementById('pub-tc').innerHTML='';
+    (p.tags||[]).forEach(function(t){document.getElementById('pub-tc').innerHTML+='<span class="pub-tag-chip">#'+t+'<span class="pub-tag-del" onclick="var i=pubTags.indexOf(\''+escapeHtml(t)+'\');if(i>=0){pubTags.splice(i,1);updTags();pubCheck();}">✕</span></span>';});
+    document.getElementById('pub-sb').textContent='保存';pubPhotoRender();pubCheck();
+  },50);
+}
+
+// ═══ Context Menu ═══
+function openMenu(e,id){
+  e.stopPropagation();closeCtx();
+  var p=db.timelinePosts.find(function(x){return x.id===id;});if(!p)return;
+  var m=document.createElement('div');m.className='ctx-menu';m.id='ctx';
+  var x=Math.min(e.clientX||0,window.innerWidth-155),y=Math.min(e.clientY||0,window.innerHeight-230);
+  m.style.left=Math.max(8,x)+'px';m.style.top=Math.max(8,y)+'px';
+  m.innerHTML=
+    '<button class="ctx-item" onclick="editPost(\''+id+'\')"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 3a2.85 2.85 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg>编辑</button>'+
+    '<button class="ctx-item" onclick="changeDate(\''+id+'\')"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>修改时间</button>'+
+    '<button class="ctx-item" onclick="togglePin(\''+id+'\')"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/></svg>'+(p.pinned?'取消置顶':'置顶')+'</button>'+
+    '<div class="ctx-divider"></div>'+
+    '<button class="ctx-item danger" onclick="deletePost(\''+id+'\')"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>删除</button>';
+  document.body.appendChild(m);setTimeout(function(){document.addEventListener('click',closeCtx,{once:true});},10);
+}
+function closeCtx(){var m=document.getElementById('ctx');if(m)m.remove();}
+function changeDate(id){closeCtx();var p=db.timelinePosts.find(function(x){return x.id===id;});if(!p)return;
+  document.getElementById('modal-content').innerHTML='<div class="modal-title">修改时间</div><input type="date" class="tag-input" id="chg-d" value="'+(p.occurDate||_t())+'" /><div style="display:flex;gap:10px;padding:0 20px 16px"><button style="flex:1;padding:10px;border:1px solid var(--line);border-radius:10px;background:transparent;font-size:12px;font-family:inherit;cursor:pointer;color:var(--muted)" onclick="closeModal()">取消</button><button style="flex:1;padding:10px;border:none;border-radius:10px;background:var(--green);color:#FFF;font-size:12px;font-family:inherit;cursor:pointer" onclick="confirmDate(\''+id+'\')">确定</button></div>';openModal();}
+function confirmDate(id){var p=db.timelinePosts.find(function(x){return x.id===id;});if(!p)return;var i=document.getElementById('chg-d');if(!i||!i.value)return;var od=p.occurDate;p.occurDate=i.value;saveDatabase();closeModal();toast('已移动到 '+_f(p.occurDate));curDate=od;render();}
+function togglePin(id){closeCtx();var p=db.timelinePosts.find(function(x){return x.id===id;});if(!p)return;p.pinned=!p.pinned;saveDatabase();render();toast(p.pinned?'已置顶':'已取消置顶');}
+
+// ═══ Delete ═══
+function deletePost(id){closeCtx();
+  document.getElementById('modal-content').innerHTML='<div class="modal-title">删除动态</div><div style="font-size:12px;color:var(--body);text-align:center;padding:8px 0 16px;line-height:1.6">确定删除这条动态？<br><span style="font-size:10px;color:var(--soft)">删除后无法恢复</span></div><div style="display:flex;gap:10px;padding:0 20px 16px"><button style="flex:1;padding:10px;border:1px solid var(--line);border-radius:10px;background:transparent;font-size:12px;font-family:inherit;cursor:pointer;color:var(--muted)" onclick="closeModal()">取消</button><button style="flex:1;padding:10px;border:none;border-radius:10px;background:#A56868;color:#FFF;font-size:12px;font-family:inherit;cursor:pointer" onclick="delConfirm(\''+id+'\')">删除</button></div>';openModal();}
+function delConfirm(id){db.timelinePosts=db.timelinePosts.filter(function(p){return p.id!==id;});saveDatabase();closeModal();render();toast('已删除');}
+
+// ═══ Image Viewer ═══
+var vi=[],vx=0;
+function openViewer(pid,idx){var p=db.timelinePosts.find(function(x){return x.id===pid;});if(!p||!p.images||!p.images.length)return;vi=p.images;vx=idx;
+  document.getElementById('viewer-img').src=vi[vx];document.getElementById('viewer-count').textContent=(vx+1)+'/'+vi.length;
+  document.getElementById('viewer-prev').style.display=vi.length>1?'':'none';document.getElementById('viewer-next').style.display=vi.length>1?'':'none';
+  document.getElementById('viewer-overlay').classList.add('show');}
+function viewerNav(d){vx+=d;if(vx<0)vx=vi.length-1;if(vx>=vi.length)vx=0;document.getElementById('viewer-img').src=vi[vx];document.getElementById('viewer-count').textContent=(vx+1)+'/'+vi.length;}
+function closeViewer(){document.getElementById('viewer-overlay').classList.remove('show');}
+
+// ═══ Modal & Toast ═══
+function openModal(){document.getElementById('modal-overlay').classList.add('show');}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('show');}
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1800);}
+
+// ═══ Init ═══
+render();
+</script>
+</body>
+</html>

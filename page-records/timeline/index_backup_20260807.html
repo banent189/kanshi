@@ -1,0 +1,938 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>简纸 — 今日动态</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+SC:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="../../shared.js"></script>
+<style>
+/* ═══════════ 今日动态 v2 — 时间流版 ═══════════ */
+body.page-timeline{
+  --page-bg:#FBFAF6; --surface:#FFFDF9; --text-main:#24231F; --text-secondary:#A7A59D;
+  --border:#E6E3DC; --green:#40513D; --green-soft:#EEF2EA; --black-active:#1C1C19;
+  --tag-bg:#F1F2EE; --mood-bg:#FFF8ED; --delete-text:#D7AAAA; --overlay:rgba(28,30,27,0.62);
+  margin:0; background:#ECEAE4; font-family:'Noto Serif SC','Outfit',sans-serif;
+  -webkit-tap-highlight-color:transparent; overflow-x:hidden;
+}
+.page-timeline *{ box-sizing:border-box; }
+.page-timeline .no-scrollbar::-webkit-scrollbar{ display:none; }
+.page-timeline .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
+body.page-timeline.page-timeline-locked{ overflow:hidden; }
+
+/* ═══ 页面容器 ═══ */
+.page-timeline #daily-feed-page{
+  width:100%; max-width:460px; min-height:100vh; margin:0 auto; overflow-x:hidden;
+  background:var(--page-bg); box-shadow:0 0 40px rgba(28,30,27,0.06);
+}
+
+/* ═══ 顶部导航 + 筛选区（sticky）═══ */
+.page-timeline .daily-sticky{ position:sticky; top:0; z-index:30; background:var(--page-bg); }
+.page-timeline .daily-header{
+  display:flex; align-items:center; height:54px;
+  padding:env(safe-area-inset-top,0px) 20px 0; border-bottom:1px solid rgba(230,227,220,0.7);
+}
+.page-timeline .daily-header-side{ flex:1; display:flex; align-items:center; gap:0; }
+.page-timeline .daily-header-side--right{ justify-content:flex-end; }
+.page-timeline .daily-header-title{
+  font-size:16px; font-weight:600; color:#22221F; white-space:nowrap;
+  font-family:'Noto Serif SC',serif;
+}
+.page-timeline .hdr-btn{
+  width:40px; height:40px; display:flex; align-items:center; justify-content:center;
+  background:none; border:none; padding:0; cursor:pointer; border-radius:10px; color:var(--text-main);
+}
+.page-timeline .hdr-btn:active{ opacity:0.7; }
+.page-timeline .hdr-btn-core{
+  width:29px; height:29px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+}
+.page-timeline .hdr-back{ background:none; border:none; }
+.page-timeline .hdr-back svg{ width:22px; height:22px; stroke-width:1.8; }
+.page-timeline .hdr-date{ background:#E9EDE6; color:var(--text-main); }
+.page-timeline .hdr-date svg{ width:16px; height:16px; stroke-width:1.6; }
+.page-timeline .hdr-date.is-active{ background:var(--green); color:#FFF; }
+.page-timeline .hdr-edit{ background:var(--surface); border:1px solid #E0DDD5; color:#4A4842; font-size:12px; }
+.page-timeline .hdr-plus{ background:var(--green); color:#FFF; font-size:20px; font-weight:300; border-radius:999px; }
+
+/* ═══ 日期筛选栏 ═══ */
+.page-timeline .date-filter-bar{
+  display:none; height:42px; align-items:center; justify-content:space-between;
+  padding:0 21px; border-top:1px solid #EFEDE7; border-bottom:1px solid #EFEDE7; background:var(--page-bg);
+}
+.page-timeline .date-filter-bar.show{ display:flex; }
+.page-timeline .df-date{
+  display:flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer;
+  font-size:13px; color:var(--text-main); font-family:inherit; padding:8px 0;
+}
+.page-timeline .df-date svg{ width:14px; height:14px; stroke-width:1.6; color:var(--green); }
+.page-timeline .df-clear{
+  display:flex; align-items:center; gap:5px; background:none; border:none; cursor:pointer;
+  font-size:12px; color:var(--text-secondary); font-family:inherit; padding:8px 0;
+}
+.page-timeline .df-clear svg{ width:13px; height:13px; stroke-width:1.6; }
+
+/* ═══ 标签筛选栏 ═══ */
+.page-timeline .tag-filter-scroll{
+  display:flex; gap:8px; overflow-x:auto; padding:12px 22px; scrollbar-width:none;
+}
+.page-timeline .tag-filter-scroll::-webkit-scrollbar{ display:none; }
+.page-timeline .tag-chip{
+  height:32px; padding:0 17px; border-radius:999px; border:1px solid #E0DDD5;
+  background:var(--surface); color:#4A4842; font-size:13px; white-space:nowrap;
+  flex-shrink:0; cursor:pointer; font-family:'Outfit','Inter',sans-serif;
+}
+.page-timeline .tag-chip.is-sel{ background:var(--black-active); border-color:var(--black-active); color:#FFF; }
+
+/* ═══ 时间流 ═══ */
+.page-timeline .activity-feed{ padding:8px 22px 48px; }
+.page-timeline .activity-item{ display:flex; gap:12px; margin-bottom:24px; }
+.page-timeline .activity-avatar{
+  width:36px; height:36px; border-radius:50%; flex-shrink:0; overflow:hidden;
+  display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#FFF;
+  background:linear-gradient(135deg,#42503E,#8FA08A);
+}
+.page-timeline .activity-avatar img{ width:100%; height:100%; object-fit:cover; }
+.page-timeline .activity-main{ flex:1; min-width:0; }
+.page-timeline .activity-author-row{ display:flex; align-items:baseline; gap:8px; }
+.page-timeline .activity-name{ font-size:16px; font-weight:600; color:var(--text-main); }
+.page-timeline .activity-time{ font-size:11px; color:var(--text-secondary); }
+.page-timeline .activity-text{
+  font-size:16px; line-height:1.65; color:var(--text-main); white-space:pre-wrap;
+  word-break:break-word; margin:6px 0 0; font-family:'Noto Serif SC',serif;
+}
+.page-timeline .activity-images{ margin:12px 0 0; display:grid; gap:3px; border-radius:12px; overflow:hidden; }
+.page-timeline .activity-images.c1{ grid-template-columns:1fr; aspect-ratio:4/3; }
+.page-timeline .activity-images.c2,
+.page-timeline .activity-images.c4{ grid-template-columns:1fr 1fr; }
+.page-timeline .activity-images.c3,
+.page-timeline .activity-images.c5,
+.page-timeline .activity-images.c6,
+.page-timeline .activity-images.c7,
+.page-timeline .activity-images.c8,
+.page-timeline .activity-images.c9{ grid-template-columns:repeat(3,1fr); }
+.page-timeline .activity-images .activity-img{ width:100%; height:100%; object-fit:cover; display:block; cursor:zoom-in; background:#EDEBE4; }
+.page-timeline .activity-images:not(.c1) .activity-img{ aspect-ratio:1; height:auto; }
+.page-timeline .activity-meta-row{
+  display:flex; flex-wrap:wrap; justify-content:space-between; gap:6px; margin:12px 0 0;
+}
+.page-timeline .activity-tags{ display:flex; flex-wrap:wrap; gap:6px; }
+.page-timeline .activity-tag{
+  font-size:11px; color:#55624E; background:var(--tag-bg); padding:3px 9px;
+  border-radius:999px; line-height:1.5; font-family:'Outfit','Inter',sans-serif;
+}
+.page-timeline .activity-mood{
+  font-size:11px; color:#7A6F5C; background:var(--mood-bg); padding:3px 9px;
+  border-radius:999px; margin-left:auto; flex-shrink:0; font-family:'Outfit','Inter',sans-serif;
+}
+.page-timeline .activity-delete{
+  display:block; margin:12px 0 0 auto; background:none; border:none; cursor:pointer;
+  color:var(--delete-text); font-size:11px; font-family:inherit; padding:4px 0;
+}
+.page-timeline .activity-divider{ height:1px; background:#EDEAE2; margin:20px 0 0 48px; }
+
+/* ═══ 空状态 ═══ */
+.page-timeline .empty-state{
+  display:none; text-align:center; color:var(--text-secondary); font-size:14px; margin:100px 24px 0;
+}
+.page-timeline .empty-state.show{ display:block; }
+
+/* ═══ 日期浮层 ═══ */
+.page-timeline .date-picker-popover{
+  display:none; position:absolute; top:calc(env(safe-area-inset-top,0px) + 62px); right:16px;
+  z-index:40; background:var(--surface); border:1px solid #EFEDE7; border-radius:14px;
+  box-shadow:0 10px 32px rgba(28,30,27,0.12); padding:14px; width:210px;
+}
+.page-timeline .date-picker-popover.show{ display:block; }
+.page-timeline .dp-title{ font-size:13px; color:var(--text-main); margin-bottom:10px; }
+.page-timeline .date-picker-popover input[type=date]{
+  width:100%; height:36px; border:1px solid var(--border); border-radius:10px; padding:0 10px;
+  font-size:13px; font-family:inherit; outline:none; background:#FFF; color:var(--text-main);
+}
+
+/* ═══ 弹窗通用 ═══ */
+.page-timeline .modal-overlay{
+  position:fixed; inset:0; background:var(--overlay); z-index:100; display:none;
+  align-items:center; justify-content:center; padding:20px;
+}
+.page-timeline .modal-overlay.show{ display:flex; }
+.page-timeline .cm-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 20px 12px; border-bottom:1px solid #F0EDE6; flex-shrink:0;
+}
+.page-timeline .cm-title{ font-size:15px; font-weight:600; color:var(--text-main); font-family:'Noto Serif SC',serif; }
+.page-timeline .cm-close{ width:32px; height:32px; border-radius:10px; border:none; background:none; color:#8A867C; font-size:14px; cursor:pointer; }
+.page-timeline .cm-close:active{ background:#F2F0E9; }
+.page-timeline .cm-foot{
+  display:flex; gap:10px; padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px)); flex-shrink:0;
+}
+.page-timeline .cm-btn{
+  flex:1; height:42px; border-radius:10px; border:none; font-size:14px; cursor:pointer;
+  font-family:inherit; font-weight:500;
+}
+.page-timeline .cm-btn-ghost{ background:#F2F0E9; color:#6E6B63; }
+.page-timeline .cm-btn-primary{ background:var(--green); color:#FFF; }
+
+/* ═══ 记录此刻弹窗 ═══ */
+.page-timeline .create-modal{
+  width:min(370px,100%); max-height:calc(100vh - 32px); background:var(--surface);
+  border-radius:20px; box-shadow:0 20px 60px rgba(28,30,27,0.18);
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.page-timeline .cm-body{ flex:1; overflow-y:auto; padding:14px 20px 20px; }
+.page-timeline #cm-text{
+  width:100%; min-height:105px; padding:15px; border:1px solid var(--border); border-radius:14px;
+  font-size:15px; line-height:1.6; font-family:'Noto Serif SC',serif; color:var(--text-main);
+  outline:none; background:#FFF; resize:none;
+}
+.page-timeline #cm-text:focus{ border-color:#A9B8A0; }
+.page-timeline .cm-label{ font-size:13px; color:#6E6B63; margin:16px 0 8px; font-weight:500; }
+.page-timeline .cm-chips{
+  display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none;
+}
+.page-timeline .cm-chips::-webkit-scrollbar{ display:none; }
+.page-timeline .cm-chip{
+  height:32px; padding:0 15px; border-radius:999px; border:1px solid #E0DDD5; background:#FFF;
+  color:#4A4842; font-size:13px; white-space:nowrap; flex-shrink:0; cursor:pointer;
+  font-family:'Outfit','Inter',sans-serif;
+}
+.page-timeline .cm-chip.is-sel{ background:var(--green-soft); border-color:#A9B8A0; color:var(--green); font-weight:600; }
+.page-timeline .cm-photo-box{
+  border:1.5px dashed #CFCBC1; border-radius:14px; height:88px; display:flex; align-items:center;
+  justify-content:center; font-size:13px; color:#8A867C; cursor:pointer; background:#FFFDF8;
+  font-family:'Outfit','Inter',sans-serif;
+}
+
+/* ═══ 编辑资料弹窗 ═══ */
+.page-timeline .profile-modal{
+  width:min(370px,100%); background:var(--surface); border-radius:20px;
+  box-shadow:0 20px 60px rgba(28,30,27,0.18); overflow:hidden;
+}
+.page-timeline .pm-body{ padding:18px 20px 20px; }
+.page-timeline .pm-avatar-row{ display:flex; align-items:center; gap:14px; }
+.page-timeline .pm-avatar{
+  width:64px; height:64px; border-radius:50%; flex-shrink:0; overflow:hidden;
+  display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; color:#FFF;
+  background:linear-gradient(135deg,#42503E,#8FA08A);
+}
+.page-timeline .pm-avatar img{ width:100%; height:100%; object-fit:cover; }
+.page-timeline .pm-upload{
+  height:38px; padding:0 18px; border-radius:10px; border:1px solid #E0DDD5; background:#FFFDF8;
+  font-size:13px; color:var(--green); cursor:pointer; font-family:inherit;
+}
+.page-timeline .pm-hint{ font-size:11px; color:var(--text-secondary); margin-top:8px; }
+.page-timeline .pm-label{ font-size:13px; color:#6E6B63; margin:18px 0 8px; font-weight:500; }
+.page-timeline .pm-input{
+  width:100%; height:42px; padding:0 14px; border:1px solid var(--border); border-radius:12px;
+  font-size:14px; font-family:inherit; outline:none; background:#FFF; color:var(--text-main);
+}
+.page-timeline .pm-input:focus{ border-color:#A9B8A0; }
+
+/* ═══ 轻量确认 ═══ */
+.page-timeline .mini-confirm{
+  position:fixed; inset:0; z-index:150; display:none; align-items:center; justify-content:center;
+  background:var(--overlay); padding:20px;
+}
+.page-timeline .mini-confirm.show{ display:flex; }
+.page-timeline .mc-box{
+  width:min(300px,100%); background:var(--surface); border-radius:16px;
+  padding:22px 18px 14px; box-shadow:0 14px 40px rgba(28,30,27,0.18);
+}
+.page-timeline .mc-text{ font-size:14px; color:var(--text-main); text-align:center; line-height:1.6; margin-bottom:18px; }
+.page-timeline .mc-btns{ display:flex; gap:10px; }
+.page-timeline .mc-btn{ flex:1; height:40px; border-radius:10px; border:none; font-size:13px; cursor:pointer; font-family:inherit; }
+.page-timeline .mc-cancel{ background:#F2F0E9; color:#6E6B63; }
+.page-timeline .mc-ok{ background:var(--green); color:#FFF; }
+
+/* ═══ 图片查看器 ═══ */
+.page-timeline .viewer-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:200; display:none;
+  align-items:center; justify-content:center;
+}
+.page-timeline .viewer-overlay.show{ display:flex; }
+.page-timeline .viewer-close{
+  position:absolute; top:calc(16px + env(safe-area-inset-top,0px)); right:16px; width:38px; height:38px;
+  border-radius:999px; border:none; background:rgba(255,255,255,0.1); color:#FFF; font-size:15px; cursor:pointer; z-index:1;
+}
+.page-timeline .viewer-img{ max-width:94%; max-height:86vh; object-fit:contain; border-radius:6px; }
+.page-timeline .viewer-nav{
+  position:absolute; top:50%; transform:translateY(-50%); width:40px; height:40px; border-radius:999px;
+  border:none; background:rgba(255,255,255,0.08); color:#FFF; font-size:18px; cursor:pointer;
+}
+.page-timeline .viewer-nav.prev{ left:10px; }
+.page-timeline .viewer-nav.next{ right:10px; }
+.page-timeline .viewer-nav.hide{ display:none; }
+.page-timeline .viewer-count{
+  position:absolute; bottom:28px; left:0; right:0; text-align:center; color:rgba(255,255,255,0.55); font-size:11px;
+}
+
+/* ═══ Toast ═══ */
+.page-timeline .toast{
+  position:fixed; bottom:90px; left:50%; transform:translateX(-50%); z-index:300;
+  background:var(--green); color:#FFF; padding:7px 18px; border-radius:999px; font-size:12px;
+  opacity:0; transition:opacity 0.25s; pointer-events:none; white-space:nowrap;
+  max-width:80vw; overflow:hidden; text-overflow:ellipsis;
+}
+.page-timeline .toast.show{ opacity:1; }
+</style>
+</head>
+<body class="page-timeline">
+
+<div id="daily-feed-page">
+
+  <!-- 顶部导航 + 日期栏 + 标签栏（sticky） -->
+  <div class="daily-sticky">
+    <header class="daily-header">
+      <div class="daily-header-side">
+        <button class="hdr-btn" id="btn-back" aria-label="返回"><span class="hdr-btn-core hdr-back"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></span></button>
+      </div>
+      <h1 class="daily-header-title">今日动态 ☁️</h1>
+      <div class="daily-header-side daily-header-side--right">
+        <button class="hdr-btn" id="btn-date" aria-label="按日期筛选"><span class="hdr-btn-core hdr-date" id="hdr-date-core"><svg fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span></button>
+        <button class="hdr-btn" id="btn-profile" aria-label="编辑资料"><span class="hdr-btn-core hdr-edit">编</span></button>
+        <button class="hdr-btn" id="btn-create" aria-label="记录此刻"><span class="hdr-btn-core hdr-plus">+</span></button>
+      </div>
+    </header>
+
+    <div class="date-filter-bar" id="date-bar">
+      <button class="df-date" id="df-date"><svg fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span id="df-date-text">7月7日</span></button>
+      <button class="df-clear" id="df-clear"><svg fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>全部动态</button>
+    </div>
+
+    <nav class="tag-filter-scroll no-scrollbar" id="tag-bar"></nav>
+  </div>
+
+  <!-- 时间流 -->
+  <main class="activity-feed" id="feed"></main>
+
+  <!-- 空状态 -->
+  <div class="empty-state" id="empty">还没有动态，记录此刻吧 ✍️</div>
+
+</div>
+
+<!-- 日期浮层 -->
+<div class="date-picker-popover" id="date-popover">
+  <div class="dp-title">🗓️ 选择日期</div>
+  <input type="date" id="dp-input">
+</div>
+
+<!-- 记录此刻弹窗 -->
+<div class="modal-overlay" id="create-overlay">
+  <div class="create-modal">
+    <div class="cm-header"><span class="cm-title">记录此刻 ✍️</span><button class="cm-close" id="cm-close">✕</button></div>
+    <div class="cm-body">
+      <textarea id="cm-text" placeholder="有什么事，值得记住……"></textarea>
+      <div class="cm-label">▸ 活动标签（可多选）</div>
+      <div class="cm-chips no-scrollbar" id="cm-tags"></div>
+      <div class="cm-label">▸ 此刻心情</div>
+      <div class="cm-chips no-scrollbar" id="cm-moods"></div>
+      <div class="cm-label">▸ 添加照片（可多选）</div>
+      <div class="cm-photo-box" id="cm-photo-box">📷 点此从相册选择照片</div>
+      <input type="file" id="cm-file" accept="image/*" multiple hidden>
+    </div>
+    <div class="cm-foot">
+      <button class="cm-btn cm-btn-ghost" id="cm-cancel">取消</button>
+      <button class="cm-btn cm-btn-primary" id="cm-publish">发布</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑资料弹窗 -->
+<div class="modal-overlay" id="profile-overlay">
+  <div class="profile-modal">
+    <div class="cm-header"><span class="cm-title">编辑资料 📝</span><button class="cm-close" id="pm-close">✕</button></div>
+    <div class="pm-body">
+      <div class="pm-avatar-row">
+        <div class="pm-avatar" id="pm-avatar"></div>
+        <div class="pm-avatar-right">
+          <button class="pm-upload" id="pm-upload">📷 上传照片</button>
+          <div class="pm-hint">不传头像则默认用 ID 第一个字</div>
+        </div>
+      </div>
+      <div class="pm-label">显示名称</div>
+      <input type="text" class="pm-input" id="pm-name" maxlength="20" placeholder="输入显示名称">
+    </div>
+    <div class="cm-foot">
+      <button class="cm-btn cm-btn-ghost" id="pm-cancel">取消</button>
+      <button class="cm-btn cm-btn-primary" id="pm-save">保存</button>
+    </div>
+    <input type="file" id="pm-file" accept="image/*" hidden>
+  </div>
+</div>
+
+<!-- 轻量确认 -->
+<div class="mini-confirm" id="mini-confirm">
+  <div class="mc-box">
+    <div class="mc-text" id="mc-text"></div>
+    <div class="mc-btns">
+      <button class="mc-btn mc-cancel" id="mc-cancel">取消</button>
+      <button class="mc-btn mc-ok" id="mc-ok">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 图片查看器 -->
+<div class="viewer-overlay" id="viewer-overlay">
+  <button class="viewer-close" id="viewer-close">✕</button>
+  <button class="viewer-nav prev" id="viewer-prev">‹</button>
+  <img class="viewer-img" id="viewer-img" alt="">
+  <button class="viewer-nav next" id="viewer-next">›</button>
+  <span class="viewer-count" id="viewer-count"></span>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══ 智能返回：按来源精确返回，history 兜底 ═══
+function smartBack(){
+  var r='';
+  try{ r=document.referrer||''; }catch(e){}
+  if(r.indexOf('records')>=0){ window.location.href='/page-records/records.html'; return; }
+  if(r.indexOf('page-today')>=0){ window.location.href='/page-today/index.html'; return; }
+  try{ if(window.history.length>1){ window.history.back(); return; } }catch(e){}
+  window.location.href='/page-records/records.html';
+}
+
+// ═══ 常量 ═══
+var BASE_TAGS=['日常','出去玩','美食','学习','工作','旅行','运动'];
+var MOODS=[['😊','开心'],['😌','平静'],['😢','难过'],['😤','生气'],['😰','焦虑'],['🤩','激动'],['😴','疲惫'],['🥰','温暖'],['🌊','放松']];
+
+// ═══ 状态 ═══
+var activities=[];
+var profile={};
+var activeTag='全部';
+var selectedDate=null;
+var isCreateModalOpen=false;
+var isProfileModalOpen=false;
+var isDatePopoverOpen=false;
+var draft={content:'',tags:[],mood:{emoji:'😊',label:'开心'},imageFiles:[]};
+var draftAvatar=null;
+var draftName='';
+var savedScrollY=0;
+var viewerList=[],viewerIndex=0;
+var confirmCallback=null;
+var confirmOkLabel='确定';
+
+// ═══ 工具函数 ═══
+function $(id){ return document.getElementById(id); }
+function pad2(n){ return n<10?'0'+n:''+n; }
+function todayISO(){ var d=new Date(); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function fmtDate(dk){ if(!dk)return''; return parseInt(dk.slice(5,7),10)+'月'+parseInt(dk.slice(8,10),10)+'日'; }
+function getActivities(){ return db.timelinePosts||[]; }
+function avatarLetter(){ return (profile.id&&String(profile.id).length)?String(profile.id).charAt(0):'?'; }
+function avatarHTML(){
+  if(profile.avatar) return '<img src="'+escapeHtml(profile.avatar)+'">';
+  return escapeHtml(avatarLetter());
+}
+
+// ═══ 数据迁移（兼容旧动态字段，不破坏其他页面）═══
+function dateKeyFromStr(s){
+  if(!s)return'';
+  var m=String(s).match(/(\d{1,2})月(\d{1,2})日/);
+  if(!m)return'';
+  var now=new Date();
+  return now.getFullYear()+'-'+pad2(parseInt(m[1],10))+'-'+pad2(parseInt(m[2],10));
+}
+function parseDateMs(dateStr,dk){
+  var dk2=dk||dateKeyFromStr(dateStr);
+  var tm=String(dateStr||'').match(/(\d{1,2}):(\d{2})/);
+  if(dk2&&tm){
+    var d=new Date(dk2+'T00:00:00');
+    d.setHours(parseInt(tm[1],10),parseInt(tm[2],10),0,0);
+    return d.getTime();
+  }
+  var ms=dk2?Date.parse(dk2+'T00:00:00'):NaN;
+  return isNaN(ms)?Date.now():ms;
+}
+function normalizePosts(){
+  var list=getActivities();
+  var changed=false;
+  list.forEach(function(p){
+    if(!p.id){ p.id='activity_'+Date.now()+'_'+Math.floor(Math.random()*9999); changed=true; }
+    if(!Array.isArray(p.tags)){ p.tags=(p.tags?String(p.tags).split(/[,，\s]+/).filter(Boolean):[]); changed=true; }
+    if(!Array.isArray(p.images)){ p.images=(p.image?[p.image]:[]); changed=true; }
+    if(!p.dateKey){ p.dateKey=p.occurDate||dateKeyFromStr(p.date)||todayISO(); changed=true; }
+    if(!p.occurDate){ p.occurDate=p.dateKey; changed=true; }
+    if(!p.createdAt){ p.createdAt=parseDateMs(p.date,p.dateKey); changed=true; }
+    else if(typeof p.createdAt==='string'){ var ms=Date.parse(p.createdAt); if(!isNaN(ms)){ p.createdAt=ms; changed=true; } }
+    if(!p.mood||typeof p.mood==='string'){
+      var em=(p.mood?String(p.mood).trim():'').split(/\s+/);
+      p.mood={emoji:em[0]||'',label:em[1]||em[0]||''};
+      changed=true;
+    }
+  });
+  return changed;
+}
+function initProfile(){
+  if(!db.userProfile)db.userProfile={};
+  var p=db.userProfile, changed=false;
+  if(!p.id){ p.id='1'; changed=true; }
+  if(!p.displayName){ p.displayName='简纸'; changed=true; }
+  if(!p.avatar)p.avatar=null;
+  profile=p;
+  return changed;
+}
+function fmtTime(p){
+  if(p.date){
+    var m=String(p.date).match(/\d{1,2}:\d{2}/);
+    if(m)return m[0];
+  }
+  var d=new Date(p.createdAt||Date.now());
+  return pad2(d.getHours())+':'+pad2(d.getMinutes());
+}
+
+// ═══ 派生数据 ═══
+function getAvailableTags(){
+  var result=[],used={};
+  getActivities().slice().sort(function(a,b){return (b.createdAt||0)-(a.createdAt||0);}).forEach(function(item){
+    (item.tags||[]).forEach(function(tag){
+      if(!used[tag]){ used[tag]=true; result.push(tag); }
+    });
+  });
+  return result;
+}
+function getFilteredActivities(){
+  return getActivities().slice().sort(function(a,b){return (b.createdAt||0)-(a.createdAt||0);}).filter(function(item){
+    var tagMatch=activeTag==='全部'||(item.tags||[]).indexOf(activeTag)>=0;
+    var dateMatch=!selectedDate||item.dateKey===selectedDate;
+    return tagMatch&&dateMatch;
+  });
+}
+function getModalTags(){
+  var tags=BASE_TAGS.slice();
+  getAvailableTags().forEach(function(t){ if(tags.indexOf(t)<0)tags.push(t); });
+  return tags;
+}
+
+// ═══ 渲染 ═══
+function renderAll(){
+  renderCalendarBtn();
+  renderDateBar();
+  renderTagBar();
+  renderFeed();
+}
+function renderCalendarBtn(){
+  $('hdr-date-core').classList.toggle('is-active',!!selectedDate);
+}
+function renderDateBar(){
+  var bar=$('date-bar');
+  bar.classList.toggle('show',!!selectedDate);
+  if(selectedDate)$('df-date-text').textContent=fmtDate(selectedDate);
+}
+function renderTagBar(){
+  var tags=['全部'].concat(getAvailableTags());
+  var bar=$('tag-bar');
+  bar.innerHTML='';
+  tags.forEach(function(t){
+    var sel=activeTag===t?' is-sel':'';
+    bar.innerHTML+='<button class="tag-chip'+sel+'" data-tag="'+escapeHtml(t)+'">'+escapeHtml(t)+'</button>';
+  });
+}
+function renderFeed(){
+  var list=getFilteredActivities();
+  var feed=$('feed'),empty=$('empty');
+  if(!list.length){
+    feed.innerHTML='';
+    empty.classList.add('show');
+    return;
+  }
+  empty.classList.remove('show');
+  feed.innerHTML=list.map(itemHTML).join('');
+}
+function itemHTML(p){
+  var avatar='<div class="activity-avatar">'+avatarHTML()+'</div>';
+  var h='<div class="activity-item" data-id="'+escapeHtml(p.id)+'">'+avatar+'<div class="activity-main">';
+  h+='<div class="activity-author-row"><span class="activity-name">'+escapeHtml(profile.displayName)+'</span><span class="activity-time">'+escapeHtml(fmtDate(p.dateKey)+' '+fmtTime(p))+'</span></div>';
+  if(p.content){
+    h+='<div class="activity-text">'+escapeHtml(p.content)+'</div>';
+  }
+  var imgs=p.images||[];
+  if(imgs.length){
+    var c=Math.min(imgs.length,9);
+    h+='<div class="activity-images c'+c+'">';
+    imgs.slice(0,9).forEach(function(src,i){
+      h+='<img class="activity-img" src="'+escapeHtml(src)+'" data-img="'+escapeHtml(p.id)+'" data-idx="'+i+'" loading="lazy" alt="">';
+    });
+    h+='</div>';
+  }
+  var mood=p.mood||{};
+  if((p.tags&&p.tags.length)||(mood.emoji||mood.label)){
+    h+='<div class="activity-meta-row">';
+    if(p.tags&&p.tags.length){
+      h+='<div class="activity-tags">';
+      p.tags.forEach(function(t){ h+='<span class="activity-tag">#'+escapeHtml(t)+'</span>'; });
+      h+='</div>';
+    }
+    if(mood.emoji||mood.label){
+      h+='<span class="activity-mood">'+escapeHtml(mood.emoji+' '+mood.label).trim()+'</span>';
+    }
+    h+='</div>';
+  }
+  h+='<button class="activity-delete" data-del="'+escapeHtml(p.id)+'">删除</button>';
+  h+='<div class="activity-divider"></div>';
+  h+='</div></div>';
+  return h;
+}
+
+// ═══ 滚动锁定 ═══
+function lockScroll(){ savedScrollY=window.scrollY; document.body.classList.add('page-timeline-locked'); }
+function unlockScroll(){ document.body.classList.remove('page-timeline-locked'); window.scrollTo(0,savedScrollY); }
+
+// ═══ 日期浮层 ═══
+function openDatePopover(){
+  $('date-popover').classList.add('show');
+  isDatePopoverOpen=true;
+  var input=$('dp-input');
+  input.value=selectedDate||'';
+  setTimeout(function(){
+    try{
+      if(input.showPicker){ input.showPicker(); }
+      else{ input.focus(); input.click(); }
+    }catch(e){}
+  },30);
+}
+function closeDatePopover(){
+  $('date-popover').classList.remove('show');
+  isDatePopoverOpen=false;
+}
+function toggleDatePopover(){
+  if(isDatePopoverOpen)closeDatePopover();
+  else openDatePopover();
+}
+
+// ═══ 记录此刻弹窗 ═══
+function openCreateModal(){
+  resetDraft();
+  $('cm-text').value='';
+  renderChips();
+  updatePhotoBox();
+  $('create-overlay').classList.add('show');
+  isCreateModalOpen=true;
+  lockScroll();
+  setTimeout(function(){ $('cm-text').focus(); },60);
+}
+function closeCreateModal(force){
+  if(!force&&draftDirty()){
+    showMiniConfirm('是否放弃本次记录？','放弃',function(){
+      resetDraft();
+      closeCreateModal(true);
+    });
+    return;
+  }
+  $('create-overlay').classList.remove('show');
+  isCreateModalOpen=false;
+  unlockScroll();
+}
+function resetDraft(){
+  draft={content:'',tags:[],mood:{emoji:'😊',label:'开心'},imageFiles:[]};
+  $('cm-file').value='';
+}
+function draftDirty(){
+  return (draft.content||'').trim()!==''||draft.tags.length>0||draft.imageFiles.length>0;
+}
+function renderChips(){
+  var tbox=$('cm-tags');tbox.innerHTML='';
+  getModalTags().forEach(function(t){
+    var sel=draft.tags.indexOf(t)>=0?' is-sel':'';
+    tbox.innerHTML+='<button class="cm-chip'+sel+'" data-chip="tag" data-tag="'+escapeHtml(t)+'">'+escapeHtml(t)+'</button>';
+  });
+  var mbox=$('cm-moods');mbox.innerHTML='';
+  MOODS.forEach(function(m){
+    var sel=draft.mood.emoji===m[0]?' is-sel':'';
+    mbox.innerHTML+='<button class="cm-chip'+sel+'" data-chip="mood" data-mood="'+escapeHtml(m[0])+'" data-label="'+escapeHtml(m[1])+'">'+m[0]+' '+m[1]+'</button>';
+  });
+}
+function updatePhotoBox(){
+  var n=draft.imageFiles.length;
+  $('cm-photo-box').textContent=n?'✅ 已选择'+n+'张照片':'📷 点此从相册选择照片';
+}
+function onFiles(files){
+  if(!files||!files.length)return;
+  var remain=9-draft.imageFiles.length;
+  Array.from(files).slice(0,remain).forEach(function(f){
+    if(!f.type||f.type.indexOf('image/')!==0)return;
+    downscale(f,1280,function(url){
+      draft.imageFiles.push(url);
+      updatePhotoBox();
+    });
+  });
+}
+function downscale(file,maxW,cb){
+  var r=new FileReader();
+  r.onload=function(){
+    var img=new Image();
+    img.onload=function(){
+      var w=img.width,h=img.height;
+      var s=Math.min(1,maxW/Math.max(w,h));
+      if(s>=1){ cb(r.result); return; }
+      var c=document.createElement('canvas');
+      c.width=Math.round(w*s); c.height=Math.round(h*s);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      cb(c.toDataURL('image/jpeg',0.82));
+    };
+    img.onerror=function(){ cb(r.result); };
+    img.src=r.result;
+  };
+  r.readAsDataURL(file);
+}
+function publish(){
+  var content=(draft.content||'').trim();
+  if(!content&&!draft.imageFiles.length){
+    toast('正文和图片不能同时为空');
+    return;
+  }
+  var now=new Date();
+  var ds=now.getFullYear()+'-'+pad2(now.getMonth()+1)+'-'+pad2(now.getDate());
+  var post={
+    id:'activity_'+now.getTime()+'_'+Math.floor(Math.random()*999),
+    content:content,
+    tags:draft.tags.slice(),
+    mood:{emoji:draft.mood.emoji,label:draft.mood.label},
+    images:draft.imageFiles.slice(),
+    image:draft.imageFiles[0]||'',
+    createdAt:now.getTime(),
+    dateKey:ds,
+    occurDate:ds,
+    date:fmtDate(ds)+' '+pad2(now.getHours())+':'+pad2(now.getMinutes())
+  };
+  db.timelinePosts=db.timelinePosts||[];
+  db.timelinePosts.unshift(post);
+  saveDatabase();
+  resetDraft();
+  closeCreateModal(true);
+  activeTag='全部';
+  selectedDate=null;
+  renderAll();
+  window.scrollTo(0,0);
+  toast('已发布');
+}
+
+// ═══ 编辑资料弹窗 ═══
+function openProfileModal(){
+  draftAvatar=profile.avatar?profile.avatar:null;
+  draftName=profile.displayName||'';
+  $('pm-name').value=draftName;
+  renderPmAvatar();
+  $('pm-file').value='';
+  $('profile-overlay').classList.add('show');
+  isProfileModalOpen=true;
+  lockScroll();
+}
+function closeProfileModal(){
+  $('profile-overlay').classList.remove('show');
+  isProfileModalOpen=false;
+  unlockScroll();
+}
+function renderPmAvatar(){
+  var box=$('pm-avatar');
+  var src=(draftAvatar!==null)?draftAvatar:(profile.avatar||null);
+  if(src)box.innerHTML='<img src="'+escapeHtml(src)+'">';
+  else box.textContent=avatarLetter();
+}
+function saveProfile(){
+  var name=(draftName||'').trim();
+  if(!name){ toast('显示名称不能为空'); return; }
+  profile.displayName=name;
+  if(draftAvatar!==null)profile.avatar=draftAvatar;
+  db.userProfile=profile;
+  saveDatabase();
+  closeProfileModal();
+  renderAll();
+  toast('资料已更新');
+}
+
+// ═══ 轻量确认 ═══
+function showMiniConfirm(text,okLabel,cb){
+  $('mc-text').textContent=text;
+  $('mc-ok').textContent=okLabel||'确定';
+  confirmOkLabel=okLabel||'确定';
+  confirmCallback=cb;
+  $('mini-confirm').classList.add('show');
+}
+function hideMiniConfirm(){
+  $('mini-confirm').classList.remove('show');
+  confirmCallback=null;
+}
+
+// ═══ 删除 ═══
+function confirmDelete(id){
+  showMiniConfirm('确定删除这条动态吗？','删除',function(){
+    db.timelinePosts=getActivities().filter(function(p){return p.id!==id;});
+    saveDatabase();
+    if(getAvailableTags().indexOf(activeTag)<0)activeTag='全部';
+    renderAll();
+    toast('已删除');
+  });
+}
+
+// ═══ 图片查看器 ═══
+function openViewer(pid,idx){
+  var p=getActivities().find(function(x){return x.id===pid;});
+  if(!p||!p.images||!p.images.length)return;
+  viewerList=p.images;
+  viewerIndex=idx;
+  showViewer();
+}
+function showViewer(){
+  $('viewer-img').src=viewerList[viewerIndex];
+  $('viewer-count').textContent=(viewerIndex+1)+'/'+viewerList.length;
+  var multi=viewerList.length>1;
+  $('viewer-prev').classList.toggle('hide',!multi);
+  $('viewer-next').classList.toggle('hide',!multi);
+  $('viewer-overlay').classList.add('show');
+  lockScroll();
+}
+function viewerNav(d){
+  viewerIndex+=d;
+  if(viewerIndex<0)viewerIndex=viewerList.length-1;
+  if(viewerIndex>=viewerList.length)viewerIndex=0;
+  $('viewer-img').src=viewerList[viewerIndex];
+  $('viewer-count').textContent=(viewerIndex+1)+'/'+viewerList.length;
+}
+function closeViewer(){
+  $('viewer-overlay').classList.remove('show');
+  unlockScroll();
+}
+
+// ═══ Toast ═══
+var toastTimer=null;
+function toast(m){
+  var t=$('toast');
+  t.textContent=m;
+  t.classList.add('show');
+  if(toastTimer)clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){ t.classList.remove('show'); },1800);
+}
+
+// ═══ 横向滚动增强（保留鼠标滚轮横滑）═══
+function enableHScroll(el){
+  if(!el)return;
+  el.addEventListener('wheel',function(e){
+    if(e.deltaY===0)return;
+    if(el.scrollWidth>el.clientWidth&&Math.abs(e.deltaY)>Math.abs(e.deltaX)){
+      el.scrollLeft+=e.deltaY;
+      e.preventDefault();
+    }
+  },{passive:false});
+}
+
+// ═══ 事件绑定 ═══
+function bindEvents(){
+  $('btn-back').addEventListener('click',smartBack);
+  $('btn-date').addEventListener('click',toggleDatePopover);
+  $('btn-profile').addEventListener('click',openProfileModal);
+  $('btn-create').addEventListener('click',openCreateModal);
+
+  // 标签筛选
+  $('tag-bar').addEventListener('click',function(e){
+    var chip=e.target.closest('.tag-chip');
+    if(!chip)return;
+    activeTag=chip.getAttribute('data-tag');
+    renderAll();
+  });
+
+  // 日期栏
+  $('df-date').addEventListener('click',openDatePopover);
+  $('df-clear').addEventListener('click',function(){
+    selectedDate=null;
+    renderAll();
+  });
+  $('dp-input').addEventListener('change',function(){
+    var v=this.value;
+    if(v){ selectedDate=v; closeDatePopover(); renderAll(); }
+  });
+
+  // 浮层外部点击关闭
+  document.addEventListener('click',function(e){
+    if(!isDatePopoverOpen)return;
+    var p=$('date-popover');
+    if(p.contains(e.target)||$('btn-date').contains(e.target))return;
+    closeDatePopover();
+  });
+
+  // 时间流：删除 / 图片预览
+  $('feed').addEventListener('click',function(e){
+    var del=e.target.closest('.activity-delete');
+    if(del){ confirmDelete(del.getAttribute('data-del')); return; }
+    var img=e.target.closest('.activity-img');
+    if(img){
+      openViewer(img.getAttribute('data-img'),parseInt(img.getAttribute('data-idx')||'0',10));
+    }
+  });
+
+  // 记录此刻弹窗
+  $('cm-close').addEventListener('click',function(){ closeCreateModal(false); });
+  $('cm-cancel').addEventListener('click',function(){ closeCreateModal(false); });
+  $('cm-publish').addEventListener('click',publish);
+  $('cm-text').addEventListener('input',function(){ draft.content=this.value; });
+  $('cm-photo-box').addEventListener('click',function(){ $('cm-file').click(); });
+  $('cm-file').addEventListener('change',function(){ onFiles(this.files); this.value=''; });
+  $('cm-tags').addEventListener('click',function(e){
+    var chip=e.target.closest('.cm-chip');
+    if(!chip||chip.getAttribute('data-chip')!=='tag')return;
+    var t=chip.getAttribute('data-tag');
+    var i=draft.tags.indexOf(t);
+    if(i>=0)draft.tags.splice(i,1);
+    else draft.tags.push(t);
+    renderChips();
+  });
+  $('cm-moods').addEventListener('click',function(e){
+    var chip=e.target.closest('.cm-chip');
+    if(!chip||chip.getAttribute('data-chip')!=='mood')return;
+    draft.mood={emoji:chip.getAttribute('data-mood'),label:chip.getAttribute('data-label')};
+    renderChips();
+  });
+
+  // 编辑资料弹窗
+  $('pm-close').addEventListener('click',closeProfileModal);
+  $('pm-cancel').addEventListener('click',closeProfileModal);
+  $('pm-save').addEventListener('click',saveProfile);
+  $('pm-upload').addEventListener('click',function(){ $('pm-file').click(); });
+  $('pm-name').addEventListener('input',function(){ draftName=this.value; });
+  $('pm-file').addEventListener('change',function(){
+    var f=this.files&&this.files[0];
+    if(!f||!f.type||f.type.indexOf('image/')!==0)return;
+    downscale(f,512,function(url){
+      draftAvatar=url;
+      renderPmAvatar();
+    });
+    this.value='';
+  });
+
+  // 轻量确认
+  $('mc-ok').addEventListener('click',function(){
+    var cb=confirmCallback;
+    hideMiniConfirm();
+    if(cb)cb();
+  });
+  $('mc-cancel').addEventListener('click',hideMiniConfirm);
+  $('mini-confirm').addEventListener('click',function(e){
+    if(e.target===this)hideMiniConfirm();
+  });
+
+  // 图片查看器
+  $('viewer-close').addEventListener('click',closeViewer);
+  $('viewer-prev').addEventListener('click',function(){ viewerNav(-1); });
+  $('viewer-next').addEventListener('click',function(){ viewerNav(1); });
+  $('viewer-overlay').addEventListener('click',function(e){
+    if(e.target===this)closeViewer();
+  });
+
+  enableHScroll($('tag-bar'));
+  enableHScroll($('cm-tags'));
+  enableHScroll($('cm-moods'));
+}
+
+// ═══ 初始化 ═══
+loadDatabase();
+var migrated=normalizePosts()||initProfile();
+if(migrated)saveDatabase();
+activities=getActivities();
+renderAll();
+bindEvents();
+</script>
+</body>
+</html>

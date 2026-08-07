@@ -24,6 +24,7 @@ body.page-timeline.page-timeline-locked{ overflow:hidden; }
 
 /* ═══ 页面容器 ═══ */
 .page-timeline #daily-feed-page{
+  position:relative;
   width:100%; max-width:460px; min-height:100vh; margin:0 auto; overflow-x:hidden;
   background:var(--page-bg); box-shadow:0 0 40px rgba(28,30,27,0.06);
 }
@@ -253,6 +254,24 @@ body.page-timeline.page-timeline-locked{ overflow:hidden; }
 .page-timeline .cm-expand .chip-grid{ display:flex; flex-wrap:wrap; gap:8px; }
 .page-timeline .cm-expand .tag-chip{ flex-shrink:1; }
 .page-timeline .cm-expand .tag-chip.is-sel{ background:var(--black-active); border-color:var(--black-active); color:#FFF; }
+.page-timeline .cm-expand .tag-chip.is-custom{ border-style:dashed; border-color:#A9B8A0; }
+.page-timeline .cm-expand .chip-del{
+  display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px;
+  border-radius:50%; background:#CFCBC1; color:#FFF; font-size:8px; line-height:1; margin-left:4px;
+  vertical-align:middle; cursor:pointer;
+}
+.page-timeline .cm-expand .chip-del:active{ background:#A9A49A; }
+.page-timeline .cm-new-row{ display:flex; gap:8px; margin-top:12px; }
+.page-timeline .cm-new-input{
+  flex:1; height:34px; padding:0 14px; border:1px solid var(--border); border-radius:999px;
+  font-size:13px; outline:none; background:#FFF; color:var(--text-main); font-family:inherit; min-width:0;
+}
+.page-timeline .cm-new-input:focus{ border-color:#A9B8A0; }
+.page-timeline .cm-new-btn{
+  height:34px; padding:0 16px; border:none; border-radius:999px; background:var(--green);
+  color:#FFF; font-size:13px; cursor:pointer; font-family:inherit; flex-shrink:0;
+}
+.page-timeline .cm-new-btn:active{ opacity:0.85; }
 .page-timeline .cm-photos{ display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
 .page-timeline .cm-photo-item{
   width:64px; height:64px; border-radius:8px; overflow:hidden; position:relative; flex-shrink:0;
@@ -279,31 +298,6 @@ body.page-timeline.page-timeline-locked{ overflow:hidden; }
 .page-timeline .sheet-handle{ width:36px; height:4px; border-radius:2px; background:#DDD9CE; margin:10px auto 2px; flex-shrink:0; }
 .page-timeline .sheet-title{ font-size:15px; font-weight:600; color:var(--text-main); text-align:center; padding:10px 20px 12px; font-family:'Noto Serif SC',serif; flex-shrink:0; }
 .page-timeline .sheet-scroll{ flex:1; overflow-y:auto; padding:0 20px calc(8px + env(safe-area-inset-bottom,0px)); }
-
-/* 资料 sheet */
-.page-timeline .sp-avatar{
-  width:64px; height:64px; border-radius:50%; margin:10px auto 10px; overflow:hidden; position:relative;
-  display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; color:#FFF;
-  background:linear-gradient(135deg,#42503E,#8FA08A);
-}
-.page-timeline .sp-avatar .av-letter{ position:relative; z-index:0; }
-.page-timeline .sp-avatar img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
-.page-timeline .sp-avatar img.is-broken{ display:none; }
-.page-timeline .sp-name{ text-align:center; font-size:18px; font-weight:600; color:var(--text-main); }
-.page-timeline .sp-sub{ text-align:center; font-size:12px; color:var(--text-secondary); margin:2px 0 16px; }
-.page-timeline .sheet-row{
-  width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px;
-  height:50px; background:none; border:none; border-bottom:1px solid #F0EDE6;
-  font-size:14px; color:var(--text-main); cursor:pointer; font-family:inherit; padding:0 2px;
-}
-.page-timeline .sheet-row:active{ background:#F7F5EF; }
-.page-timeline .sheet-row-arrow{ color:#B9B5AA; font-size:13px; }
-.page-timeline .sheet-cancel-btn{
-  display:block; width:100%; height:44px; border:none; border-radius:12px;
-  background:#F2F0E9; color:#6E6B63; font-size:14px; cursor:pointer; font-family:inherit;
-  margin-top:14px;
-}
-.page-timeline .sheet-cancel-btn:active{ background:#E9E7DF; }
 
 /* 动作菜单 sheet */
 .page-timeline .sheet-action-btn{
@@ -663,6 +657,9 @@ function migrate(){
   if(!p.displayName){ p.displayName='简纸'; changed=true; }
   if(!p.avatar)p.avatar=null;
   timelineState.profile=p;
+  // 自定义标签 / 自定义心情
+  if(!Array.isArray(db.customTags)){ db.customTags=[]; changed=true; }
+  if(!Array.isArray(db.customMoods)){ db.customMoods=[]; changed=true; }
   // activities：补齐 userId 与新字段
   (db.timelinePosts||[]).forEach(function(a){
     if(!a.id){ a.id='activity_'+Date.now()+'_'+Math.floor(Math.random()*9999); changed=true; }
@@ -740,8 +737,17 @@ function getFilteredActivities(){
 }
 function getModalTags(){
   var tags=BASE_TAGS.slice();
+  (db.customTags||[]).forEach(function(t){ if(tags.indexOf(t)<0)tags.push(t); });
   getAvailableTags().forEach(function(t){ if(tags.indexOf(t)<0)tags.push(t); });
   return tags;
+}
+function getModalMoods(){
+  var moods=MOODS.slice();
+  (db.customMoods||[]).forEach(function(m){
+    var dup=moods.some(function(x){return x[0]===m[0];});
+    if(!dup)moods.push([m.emoji,m.label]);
+  });
+  return moods;
 }
 function emptyText(){
   if(!getActivities().length)return '今天还没有留下痕迹。\n记录第一刻吧';
@@ -861,28 +867,9 @@ function closeSheet(){
   unlockScroll();
 }
 
-// ═══ 个人资料 Bottom Sheet ═══
-function openProfileSheet(){
-  var p=timelineState.profile;
-  var html=avatarHTML('sp')
-    +'<div class="sp-name">'+escapeHtml(p.displayName)+'</div>'
-    +'<div class="sp-sub">我的资料</div>'
-    +'<button class="sheet-row" data-sheet-action="avatar">更换头像<span class="sheet-row-arrow">›</span></button>'
-    +'<button class="sheet-row" data-sheet-action="name">修改显示名称<span class="sheet-row-arrow">›</span></button>'
-    +'<button class="sheet-cancel-btn" data-sheet-action="close">取消</button>';
-  openSheet('',html,function(e){
-    var b=e.target.closest('[data-sheet-action]');
-    if(!b)return;
-    var act=b.getAttribute('data-sheet-action');
-    if(act==='close')closeSheet();
-    else if(act==='avatar')changeAvatarStep1();
-    else if(act==='name'){ closeSheet(); openEditProfilePanel(null); }
-  });
-}
-
-// ═══ 编辑资料：头像 + 名称 一次确定 ═══
-function openEditProfilePanel(preview){
-  timelineState.draftAvatar=(preview!==null&&preview!==undefined)?preview:(timelineState.profile.avatar||null);
+// ═══ 编辑资料：头像 + 名称 一次确定（点击作者区直接打开）═══
+function openEditProfilePanel(){
+  timelineState.draftAvatar=timelineState.profile.avatar||null;
   timelineState.nameDraft=timelineState.profile.displayName||'';
   $('ep-name-input').value=timelineState.nameDraft;
   renderEpAvatar();
@@ -907,8 +894,8 @@ function changeAvatarStep1(){
     f.remove();
     if(!file||!file.type||file.type.indexOf('image/')!==0)return;
     downscale(file,512,function(url){
-      closeSheet();
-      openEditProfilePanel(url);
+      timelineState.draftAvatar=url;   // 只更新预览，弹窗保持打开，不丢名称草稿
+      renderEpAvatar();
     });
   });
   document.body.appendChild(f);
@@ -1021,23 +1008,83 @@ function toggleCmPanel(kind){
   }
 }
 function renderTagPanel(){
+  var custom=db.customTags||[];
   var html='<div class="chip-grid">';
   getModalTags().forEach(function(t){
     var sel=timelineState.draft.tags.indexOf(t)>=0?' is-sel':'';
-    html+='<button class="tag-chip'+sel+'" data-chip-tag="'+escapeHtml(t)+'">'+escapeHtml(t)+'</button>';
+    var isCustom=custom.indexOf(t)>=0;
+    html+='<button class="tag-chip'+sel+(isCustom?' is-custom':'')+'" data-chip-tag="'+escapeHtml(t)+'">'+escapeHtml(t)
+      +(isCustom?'<span class="chip-del" data-tag-del="'+escapeHtml(t)+'">✕</span>':'')
+      +'</button>';
   });
-  html+='</div>';
+  html+='</div>'
+    +'<div class="cm-new-row"><input type="text" class="cm-new-input" id="new-tag-input" placeholder="新建标签，回车添加" maxlength="10"><button class="cm-new-btn" id="new-tag-btn">添加</button></div>';
   $('cm-tag-panel').innerHTML=html;
 }
 function renderMoodPanel(){
   var cur=timelineState.draft.mood.emoji;
+  var custom=db.customMoods||[];
   var html='<div class="chip-grid">';
-  MOODS.forEach(function(m){
+  getModalMoods().forEach(function(m){
     var sel=cur===m[0]?' is-sel':'';
-    html+='<button class="tag-chip'+sel+'" data-chip-mood="'+escapeHtml(m[0])+'" data-chip-label="'+escapeHtml(m[1])+'">'+m[0]+' '+m[1]+'</button>';
+    var isCustom=custom.some(function(x){return x.emoji===m[0];});
+    html+='<button class="tag-chip'+sel+(isCustom?' is-custom':'')+'" data-chip-mood="'+escapeHtml(m[0])+'" data-chip-label="'+escapeHtml(m[1])+'">'+m[0]+' '+m[1]
+      +(isCustom?'<span class="chip-del" data-mood-del="'+escapeHtml(m[0])+'">✕</span>':'')
+      +'</button>';
   });
-  html+='</div>';
+  html+='</div>'
+    +'<div class="cm-new-row"><input type="text" class="cm-new-input" id="new-mood-input" placeholder="自定义心情，如：😍 开心" maxlength="12"><button class="cm-new-btn" id="new-mood-btn">添加</button></div>';
   $('cm-mood-panel').innerHTML=html;
+}
+// ═══ 自定义标签 / 自定义心情 增删 ═══
+function addCustomTag(){
+  var input=$('new-tag-input');
+  var v=(input?input.value:'').trim();
+  if(!v){ toast('请输入标签名'); return; }
+  if(!db.customTags)db.customTags=[];
+  if(db.customTags.indexOf(v)>=0||BASE_TAGS.indexOf(v)>=0){ toast('该标签已存在'); return; }
+  db.customTags.push(v);
+  if(timelineState.draft.tags.indexOf(v)<0)timelineState.draft.tags.push(v);
+  saveDatabase();
+  if(input)input.value='';
+  renderTagPanel();
+  syncOptionVals();
+  toast('已添加标签');
+}
+function deleteCustomTag(t){
+  db.customTags=(db.customTags||[]).filter(function(x){return x!==t;});
+  var i=timelineState.draft.tags.indexOf(t);
+  if(i>=0)timelineState.draft.tags.splice(i,1);
+  saveDatabase();
+  renderTagPanel();
+  syncOptionVals();
+  toast('已删除标签');
+}
+function addCustomMood(){
+  var input=$('new-mood-input');
+  var v=(input?input.value:'').trim();
+  if(!v){ toast('请输入心情'); return; }
+  var parts=v.split(/\s+/);
+  var emoji=parts[0]||'🎈',label=parts[1]||parts[0];
+  if(/[一-龥]/.test(emoji)){ label=emoji; emoji='🎈'; } // 首段非 emoji，回退默认
+  if(!db.customMoods)db.customMoods=[];
+  var dup=db.customMoods.some(function(m){return m.emoji===emoji&&m.label===label;})
+    ||MOODS.some(function(m){return m[0]===emoji&&m[1]===label;});
+  if(dup){ toast('该心情已存在'); return; }
+  db.customMoods.push({emoji:emoji,label:label});
+  timelineState.draft.mood={emoji:emoji,label:label};
+  saveDatabase();
+  if(input)input.value='';
+  renderMoodPanel();
+  syncOptionVals();
+  hideCmPanels();
+  toast('已添加心情');
+}
+function deleteCustomMood(emoji){
+  db.customMoods=(db.customMoods||[]).filter(function(m){return m.emoji!==emoji;});
+  saveDatabase();
+  renderMoodPanel();
+  toast('已删除心情');
 }
 function renderCmPhotos(){
   var box=$('cm-photos');
@@ -1406,7 +1453,7 @@ function bindEvents(){
     var t=e.target.closest('[data-action]');
     if(!t)return;
     var action=t.getAttribute('data-action');
-    if(action==='profile')openProfileSheet();
+    if(action==='profile')openEditProfilePanel();
     else if(action==='menu')openActionSheet(t.getAttribute('data-id'));
     else if(action==='image'){
       openViewer(t.getAttribute('data-id'),parseInt(t.getAttribute('data-idx')||'0',10));
@@ -1426,6 +1473,8 @@ function bindEvents(){
   $('cm-tag-opt').addEventListener('click',function(){ toggleCmPanel('tag'); });
   $('cm-mood-opt').addEventListener('click',function(){ toggleCmPanel('mood'); });
   $('cm-tag-panel').addEventListener('click',function(e){
+    var del=e.target.closest('[data-tag-del]');
+    if(del){ deleteCustomTag(del.getAttribute('data-tag-del')); return; }
     var c=e.target.closest('[data-chip-tag]');
     if(!c)return;
     var t=c.getAttribute('data-chip-tag');
@@ -1436,11 +1485,25 @@ function bindEvents(){
     syncOptionVals();
   });
   $('cm-mood-panel').addEventListener('click',function(e){
+    var del=e.target.closest('[data-mood-del]');
+    if(del){ deleteCustomMood(del.getAttribute('data-mood-del')); return; }
     var c=e.target.closest('[data-chip-mood]');
     if(!c)return;
     timelineState.draft.mood={emoji:c.getAttribute('data-chip-mood'),label:c.getAttribute('data-chip-label')};
     syncOptionVals();
     hideCmPanels();
+  });
+  $('cm-tag-panel').addEventListener('keydown',function(e){
+    if(e.key==='Enter'){ e.preventDefault(); addCustomTag(); }
+  });
+  $('cm-tag-panel').addEventListener('click',function(e){
+    if(e.target.closest('#new-tag-btn'))addCustomTag();
+  });
+  $('cm-mood-panel').addEventListener('keydown',function(e){
+    if(e.key==='Enter'){ e.preventDefault(); addCustomMood(); }
+  });
+  $('cm-mood-panel').addEventListener('click',function(e){
+    if(e.target.closest('#new-mood-btn'))addCustomMood();
   });
   $('cm-file').addEventListener('change',function(){ onFiles(this.files); this.value=''; });
   $('cm-photos').addEventListener('click',function(e){

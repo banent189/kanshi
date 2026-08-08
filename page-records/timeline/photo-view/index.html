@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>简纸 — 图片</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+SC:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="../../../shared.js"></script>
+<style>
+/* ═══════════ 图片查看 — 沉浸回到那一刻 ═══════════ */
+body.page-photoview{
+  --text-on-dark:rgba(255,255,255,0.85); --text-dim:rgba(255,255,255,0.45);
+  margin:0; background:#1C1C1B; font-family:'Noto Serif SC','Outfit',sans-serif;
+  -webkit-tap-highlight-color:transparent; overflow-x:hidden; color:var(--text-on-dark);
+}
+.page-photoview *{ box-sizing:border-box; }
+.page-photoview .pv-page{ position:relative; width:100%; max-width:480px; min-height:100vh; margin:0 auto; display:flex; flex-direction:column; }
+
+/* 顶部 */
+.page-photoview .pv-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:calc(env(safe-area-inset-top,0px) + 4px) 12px 0; flex-shrink:0; height:52px;
+}
+.page-photoview .pv-btn{
+  width:44px; height:44px; display:flex; align-items:center; justify-content:center;
+  background:none; border:none; color:var(--text-on-dark); cursor:pointer; font-size:20px;
+}
+.page-photoview .pv-count{ font-size:13px; color:var(--text-dim); font-family:'Outfit','Inter',sans-serif; }
+
+/* 图片区 */
+.page-photoview .pv-stage{
+  flex:1; display:flex; align-items:center; justify-content:center;
+  min-height:0; position:relative;
+}
+.page-photoview .pv-img{
+  width:calc(100% - 24px); max-height:68dvh; object-fit:contain; border-radius:6px;
+  margin:12px auto 0; opacity:0; transition:opacity 0.25s;
+}
+.page-photoview .pv-img.loaded{ opacity:1; }
+.page-photoview .pv-nav{
+  position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:999px;
+  border:none; background:rgba(255,255,255,0.08); color:#FFF; font-size:20px; cursor:pointer;
+}
+.page-photoview .pv-nav.prev{ left:8px; }
+.page-photoview .pv-nav.next{ right:8px; }
+.page-photoview .pv-nav.hide{ display:none; }
+
+/* 下方信息（贴近图片） */
+.page-photoview .pv-info{ padding:18px 20px calc(20px + env(safe-area-inset-bottom,0px)); flex-shrink:0; }
+.page-photoview .pv-text{
+  font-size:15px; line-height:1.65; color:var(--text-on-dark); white-space:pre-wrap;
+  word-break:break-word; margin-bottom:8px;
+}
+.page-photoview .pv-date{ font-size:12px; color:var(--text-dim); }
+.page-photoview .pv-tags{ margin-top:6px; font-size:11px; color:rgba(255,255,255,0.4); }
+.page-photoview .pv-mood{ margin-left:8px; font-size:14px; }
+</style>
+</head>
+<body class="page-photoview">
+
+<div class="pv-page">
+
+  <!-- 顶部 -->
+  <header class="pv-header">
+    <button class="pv-btn" id="btn-close" aria-label="关闭">✕</button>
+    <span class="pv-count" id="pv-count"></span>
+    <span style="width:40px"></span>
+  </header>
+
+  <!-- 图片区 -->
+  <div class="pv-stage">
+    <button class="pv-nav prev" id="pv-prev">‹</button>
+    <img class="pv-img" id="pv-img" alt="">
+    <button class="pv-nav next" id="pv-next">›</button>
+  </div>
+
+  <!-- 信息 -->
+  <div class="pv-info">
+    <div class="pv-text" id="pv-text"></div>
+    <div class="pv-date" id="pv-date"></div>
+    <div class="pv-tags" id="pv-tags"></div>
+  </div>
+
+</div>
+
+<script>
+// ═══ 常量 ═══
+var IDB_NAME='KANSHI_IMAGES',IDB_STORE='images',idbDB=null;
+var images=[],index=0;
+
+// ═══ 工具 ═══
+function $(id){ return document.getElementById(id); }
+function pad2(n){ return n<10?'0'+n:''+n; }
+function todayISO(){ var d=new Date(); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function fmtDate(dk){ if(!dk)return''; return parseInt(dk.slice(5,7),10)+'月'+parseInt(dk.slice(8,10),10)+'日'; }
+function dayLabel(dk){
+  if(dk===todayISO())return '今天';
+  var y=new Date(); y.setDate(y.getDate()-1);
+  var yk=y.getFullYear()+'-'+pad2(y.getMonth()+1)+'-'+pad2(y.getDate());
+  if(dk===yk)return '昨天';
+  return fmtDate(dk);
+}
+function fmtTime(p){
+  if(p.date){
+    var m=String(p.date).match(/\d{1,2}:\d{2}/);
+    if(m)return m[0];
+  }
+  var d=new Date(p.createdAt||Date.now());
+  return pad2(d.getHours())+':'+pad2(d.getMinutes());
+}
+function escapeHtml(s){ if(!s)return''; return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+
+// ═══ IDB ═══
+function idbOpen(){
+  return new Promise(function(res,rej){
+    if(idbDB)return res(idbDB);
+    var req;
+    try{ req=indexedDB.open(IDB_NAME,1); }
+    catch(e){ rej(e); return; }
+    req.onsuccess=function(){ idbDB=req.result; res(idbDB); };
+    req.onerror=function(){ rej(req.error); };
+  });
+}
+function idbGet(key){
+  return idbOpen().then(function(db){
+    return new Promise(function(res,rej){
+      var tx=db.transaction(IDB_STORE,'readonly');
+      var r=tx.objectStore(IDB_STORE).get(key);
+      r.onsuccess=function(){ res(r.result||null); };
+      r.onerror=function(){ rej(r.error); };
+    });
+  });
+}
+function resolveImage(src,cb){
+  if(!src){ cb(null); return; }
+  if(src.indexOf('idb:')===0){
+    idbGet(src.slice(4)).then(function(v){
+      if(v instanceof Blob){ cb(URL.createObjectURL(v)); }
+      else if(typeof v==='string'){ cb(v); }
+      else cb(null);
+    }).catch(function(){ cb(null); });
+  }else{ cb(src); }
+}
+
+// ═══ 展示 ═══
+function showImage(){
+  var img=$('pv-img');
+  img.classList.remove('loaded');
+  resolveImage(images[index],function(url){
+    if(url){ img.src=url; img.classList.add('loaded'); }
+  });
+  var multi=images.length>1;
+  $('pv-count').textContent=multi?((index+1)+' / '+images.length):'';
+  $('pv-prev').classList.toggle('hide',!multi);
+  $('pv-next').classList.toggle('hide',!multi);
+}
+function nav(d){
+  index+=d;
+  if(index<0)index=images.length-1;
+  if(index>=images.length)index=0;
+  showImage();
+}
+
+// ═══ 初始化 ═══
+loadDatabase();
+var q=window.location.search;
+var id=decodeURIComponent((q.match(/[?&]activity=([^&]+)/)||['',''])[1]||'');
+var idx=parseInt((q.match(/[?&]image=(\d+)/)||['','0'])[1]||'0',10);
+var act=(db.timelinePosts||[]).find(function(a){return a.id===id;});
+
+$('btn-close').addEventListener('click',function(){
+  if(window.history.length>1){ window.history.back(); }
+  else{ window.location.href='../index.html'; }
+});
+
+if(act&&(act.images||[]).length){
+  images=(act.images||[]).slice(0,9);
+  index=Math.min(idx,images.length-1);
+  showImage();
+  $('pv-text').textContent=act.content||'';
+  $('pv-date').textContent=(act.dateKey?dayLabel(act.dateKey):'')+' '+fmtTime(act);
+  var tags=(act.tags||[]).map(function(t){return '#'+escapeHtml(t);}).join(' ');
+  var mood=(act.mood&&act.mood.emoji)?escapeHtml(act.mood.emoji):'';
+  $('pv-tags').innerHTML=tags+(mood?' <span class="pv-mood">'+mood+'</span>':'');
+}else{
+  $('pv-text').textContent='这张照片不在了。';
+  $('pv-date').textContent='';
+}
+$('pv-prev').addEventListener('click',function(){ nav(-1); });
+$('pv-next').addEventListener('click',function(){ nav(1); });
+</script>
+</body>
+</html>

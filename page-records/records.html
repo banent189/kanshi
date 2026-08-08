@@ -339,6 +339,8 @@ body.page-records{ margin:0; background:#0F0F0E; font-family:'Noto Serif SC','Ou
 </div><!-- /record-page-shell -->
 
 <script>
+// ─── 加载共享数据（今日动态/饮食/记账等真实数据）───
+loadDatabase();
 // ─── 保存滚动位置 ───
 var recScroll=document.getElementById('record-scroll');
 if(recScroll){var savedY=localStorage.getItem('KANSHI_RECORD_SCROLL');if(savedY)setTimeout(function(){recScroll.scrollTop=parseInt(savedY);},50);recScroll.addEventListener('scroll',function(){localStorage.setItem('KANSHI_RECORD_SCROLL',recScroll.scrollTop);});}
@@ -349,7 +351,11 @@ function showRecordSearch(){var q=prompt('搜索记录类型、标题或内容')
 try{
   var posts=db.timelinePosts||[];
   var ftCount=document.getElementById('ft-count');
-  if(ftCount)ftCount.textContent=posts.length+' 条记录';
+  if(ftCount){
+    if(posts.length===0)ftCount.textContent='还没有留下片段';
+    else if(posts.length<12)ftCount.textContent=posts.length+' 段记录';
+    else ftCount.textContent=posts.length+' 段记录';
+  }
   if(posts.length>0){
     var last=posts[posts.length-1];
     var ftImg=document.getElementById('ft-img'), ftPh=document.getElementById('ft-placeholder');

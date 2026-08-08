@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>简纸 — 找一找</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+SC:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="../../../shared.js"></script>
+<style>
+/* ═══════════ 找一找 — 私人生活纸 ═══════════ */
+body.page-search{
+  --page-bg:#F6F3EC; --paper:#FAF8F2; --text-main:#292923; --text-body:#32322D;
+  --text-soft:#96958D; --text-faint:#AAA89F; --green:#5E6E58; --green-soft:#EEF0E8;
+  --line:#E7E3DA; --overlay:rgba(40,38,33,0.55);
+  margin:0; background:#E9E5DC; font-family:'Noto Serif SC','Outfit',sans-serif;
+  -webkit-tap-highlight-color:transparent; overflow-x:hidden;
+}
+.page-search *{ box-sizing:border-box; }
+.page-search .search-page{ position:relative; width:100%; max-width:480px; min-height:100vh; margin:0 auto; background:var(--page-bg); overflow-x:hidden; }
+
+/* 顶部 */
+.page-search .search-header{
+  position:sticky; top:0; z-index:40; background:var(--page-bg);
+  display:grid; grid-template-columns:1fr auto 1fr; align-items:center; min-height:56px;
+  padding-top:env(safe-area-inset-top,0px); border-bottom:1px solid var(--line);
+}
+.page-search .sh-left{ justify-self:start; padding-left:18px; }
+.page-search .sh-title{ font-size:17px; font-weight:500; color:var(--text-main); font-family:'Noto Serif SC',serif; justify-self:center; letter-spacing:2px; }
+.page-search .sh-right{ justify-self:end; padding-right:18px; }
+.page-search .sh-btn{ width:40px; height:40px; display:flex; align-items:center; justify-content:center; background:none; border:none; color:var(--text-body); cursor:pointer; }
+.page-search .sh-btn svg{ width:20px; height:20px; stroke-width:1.8; }
+
+/* 搜索框 */
+.page-search .search-box{ padding:16px 22px 6px; }
+.page-search .search-input{
+  width:100%; height:44px; padding:0 16px; border:1px solid var(--line); border-radius:999px;
+  font-size:14px; font-family:'Noto Serif SC',serif; outline:none; background:var(--paper);
+  color:var(--text-body);
+}
+.page-search .search-input:focus{ border-color:#AEBBA4; }
+.page-search .search-input::placeholder{ color:var(--text-faint); }
+
+/* 结果 */
+.page-search .search-hint{ padding:14px 24px 4px; font-size:12px; color:var(--text-faint); }
+.page-search .search-results{ padding:6px 22px 56px; }
+.page-search .search-item{
+  display:block; width:100%; text-align:left; background:none; border:none; border-bottom:1px solid var(--line);
+  padding:14px 2px; cursor:pointer; font-family:inherit;
+}
+.page-search .search-item:active{ background:var(--green-soft); }
+.page-search .si-head{ display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+.page-search .si-thumb{
+  width:44px; height:44px; border-radius:8px; overflow:hidden; background:#EDEAE1; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; color:var(--text-faint); font-size:12px;
+}
+.page-search .si-thumb img{ width:100%; height:100%; object-fit:cover; }
+.page-search .si-title{ font-size:15px; font-weight:500; color:var(--text-main); font-family:'Noto Serif SC',serif; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.page-search .si-date{ font-size:11px; color:var(--text-faint); flex-shrink:0; }
+.page-search .si-excerpt{
+  font-size:13px; line-height:1.7; color:var(--text-soft); white-space:pre-wrap;
+  word-break:break-word; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.page-search .si-tags{ margin-top:4px; font-size:11px; color:#6B7A63; }
+
+/* 空 / 无结果 */
+.page-search .search-empty{
+  text-align:center; padding:80px 30px; color:var(--text-soft); font-size:15px;
+  line-height:2; white-space:pre-line; font-family:'Noto Serif SC',serif;
+}
+.page-search .search-empty .sub{ font-size:12px; color:var(--text-faint); }
+</style>
+</head>
+<body class="page-search">
+
+<div class="search-page">
+
+  <!-- 顶部 -->
+  <header class="search-header">
+    <div class="sh-left">
+      <button class="sh-btn" id="btn-back" aria-label="返回"><svg fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>
+    </div>
+    <div class="sh-title">找一找</div>
+    <div class="sh-right"></div>
+  </header>
+
+  <!-- 搜索框 -->
+  <div class="search-box">
+    <input type="text" class="search-input" id="search-input" placeholder="找一找那一天的片段……">
+  </div>
+
+  <!-- 提示 / 结果 -->
+  <div class="search-hint" id="search-hint"></div>
+  <div class="search-results" id="search-results"></div>
+  <div class="search-empty" id="search-empty"></div>
+
+</div>
+
+<script>
+// ═══ 返回 ═══
+function goBack(){
+  if(window.history.length>1){ try{ window.history.back(); return; }catch(e){} }
+  window.location.href='../index.html';
+}
+
+// ═══ 常量 ═══
+var IDB_NAME='KANSHI_IMAGES',IDB_STORE='images',idbDB=null;
+
+// ═══ 工具 ═══
+function $(id){ return document.getElementById(id); }
+function pad2(n){ return n<10?'0'+n:''+n; }
+function todayISO(){ var d=new Date(); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function fmtDate(dk){ if(!dk)return''; return parseInt(dk.slice(5,7),10)+'月'+parseInt(dk.slice(8,10),10)+'日'; }
+function dayLabel(dk){
+  if(dk===todayISO())return '今天';
+  var y=new Date(); y.setDate(y.getDate()-1);
+  var yk=y.getFullYear()+'-'+pad2(y.getMonth()+1)+'-'+pad2(y.getDate());
+  if(dk===yk)return '昨天';
+  return fmtDate(dk);
+}
+function fmtTime(p){
+  if(p.date){
+    var m=String(p.date).match(/\d{1,2}:\d{2}/);
+    if(m)return m[0];
+  }
+  var d=new Date(p.createdAt||Date.now());
+  return pad2(d.getHours())+':'+pad2(d.getMinutes());
+}
+function escapeHtml(s){ if(!s)return''; return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+
+// ═══ IDB 读取图片 ═══
+function idbOpen(){
+  return new Promise(function(res,rej){
+    if(idbDB)return res(idbDB);
+    var req;
+    try{ req=indexedDB.open(IDB_NAME,1); }
+    catch(e){ rej(e); return; }
+    req.onsuccess=function(){ idbDB=req.result; res(idbDB); };
+    req.onerror=function(){ rej(req.error); };
+  });
+}
+function idbGet(key){
+  return idbOpen().then(function(db){
+    return new Promise(function(res,rej){
+      var tx=db.transaction(IDB_STORE,'readonly');
+      var r=tx.objectStore(IDB_STORE).get(key);
+      r.onsuccess=function(){ res(r.result||null); };
+      r.onerror=function(){ rej(r.error); };
+    });
+  });
+}
+function resolveImage(src,cb){
+  if(!src){ cb(null); return; }
+  if(src.indexOf('idb:')===0){
+    idbGet(src.slice(4)).then(function(v){
+      if(v instanceof Blob){ cb(URL.createObjectURL(v)); }
+      else if(typeof v==='string'){ cb(v); }
+      else cb(null);
+    }).catch(function(){ cb(null); });
+  }else{ cb(src); }
+}
+
+// ═══ 搜索 ═══
+var activities=[];
+function doSearch(q){
+  var hint=$('search-hint'),results=$('search-results'),empty=$('search-empty');
+  if(!q){
+    hint.textContent='';
+    results.innerHTML='';
+    empty.innerHTML='写下几个字，找找过去的片段。<br><span class="sub">搜索只为了回忆，不为了整理。</span>';
+    empty.style.display='block';
+    return;
+  }
+  var kw=q.toLowerCase();
+  var found=activities.filter(function(a){
+    return ((a.content||'').toLowerCase().indexOf(kw)>=0)
+      ||((a.tags||[]).some(function(t){return t.toLowerCase().indexOf(kw)>=0;}));
+  }).sort(function(a,b){return (b.createdAt||0)-(a.createdAt||0);});
+  if(!found.length){
+    hint.textContent='';
+    results.innerHTML='';
+    empty.innerHTML='没找到和「'+q+'」有关的片段。<br><span class="sub">换个词试试？</span>';
+    empty.style.display='block';
+    return;
+  }
+  empty.style.display='none';
+  hint.textContent=found.length===1?'找到 1 段记录':'找到 '+found.length+' 段记录';
+  results.innerHTML=found.map(itemHTML).join('');
+  resolveThumbs();
+}
+function itemHTML(a){
+  var h='<button class="search-item" data-id="'+escapeHtml(a.id)+'">';
+  h+='<div class="si-head">';
+  h+='<span class="si-thumb">';
+  if((a.images||[]).length)h+='<img data-src="'+escapeHtml(a.images[0])+'" alt="">';
+  else h+='⌕';
+  h+='</span>';
+  h+='<span class="si-title">'+escapeHtml(firstLine(a))+'</span>';
+  h+='<span class="si-date">'+escapeHtml(dayLabel(a.dateKey)+' '+fmtTime(a))+'</span>';
+  h+='</div>';
+  h+='<div class="si-excerpt">'+escapeHtml(a.content||'')+'</div>';
+  if((a.tags||[]).length){
+    h+='<div class="si-tags">'+a.tags.map(function(t){return '#'+escapeHtml(t);}).join(' ')+'</div>';
+  }
+  h+='</button>';
+  return h;
+}
+function firstLine(a){
+  var c=(a.content||'').trim();
+  var nl=c.indexOf('\n');
+  return nl>0?c.slice(0,nl):c;
+}
+function resolveThumbs(){
+  [].forEach.call($('search-results').querySelectorAll('.si-thumb img'),function(img){
+    var src=img.getAttribute('data-src');
+    if(!src)return;
+    resolveImage(src,function(url){ if(url)img.src=url; });
+  });
+}
+
+// ═══ 初始化 ═══
+loadDatabase();
+activities=db.timelinePosts||[];
+$('btn-back').addEventListener('click',goBack);
+$('search-input').addEventListener('input',function(){ doSearch(this.value.trim()); });
+$('search-results').addEventListener('click',function(e){
+  var item=e.target.closest('[data-id]');
+  if(!item)return;
+  var id=item.getAttribute('data-id');
+  window.location.href='../index.html?activity='+encodeURIComponent(id);
+});
+doSearch('');
+</script>
+</body>
+</html>

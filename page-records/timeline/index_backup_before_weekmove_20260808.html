@@ -85,106 +85,61 @@ body.page-timeline.page-timeline-locked{ overflow:hidden; }
   font-size:13px; font-family:inherit; outline:none; background:#FFF; color:var(--text-main);
 }
 
-/* ═══ 主列表（每条动态一个完整生活片段）═══ */
-.page-timeline .timeline-groups{ padding:16px 20px 60px; }
-.page-timeline .timeline-entry{
-  width:100%; box-sizing:border-box; margin:0 0 36px 0;
+/* ═══ 日期章节 ═══ */
+.page-timeline .timeline-groups{ padding:0 20px 60px; }
+.page-timeline .timeline-day{ margin-bottom:40px; }
+.page-timeline .timeline-day-title{
+  display:flex; align-items:baseline; gap:8px;
+  font-size:16px; font-weight:500; color:#34332E;
+  font-family:'Noto Serif SC','Songti SC',serif; margin:0 0 16px; letter-spacing:0.5px;
+  line-height:1.35;
 }
+.page-timeline .timeline-day-title .day-sub{
+  font-size:11px; color:#9A978E;
+  font-family:-apple-system,'PingFang SC',sans-serif; font-weight:400;
+}
+.page-timeline .timeline-day:first-child .timeline-day-title{ margin-top:22px; }
 
-/* 动态顶部：头像+名字 左，··· 右 */
-.page-timeline .entry-header{
-  width:100%; min-height:32px; display:flex; align-items:center; justify-content:space-between;
+/* 条目（自然块，无时间列无竖线） */
+.page-timeline .timeline-entry{ padding-bottom:24px; }
+
+/* 作者行（一行：头像 名字 · 时间） */
+.page-timeline .entry-head{
+  display:flex; align-items:center; justify-content:space-between; min-height:44px;
 }
 .page-timeline .entry-author{
-  display:flex; align-items:center; gap:8px; border:0; background:none; padding:0;
-  min-width:0; min-height:44px;
+  display:flex; align-items:center; gap:8px; background:none; border:none; padding:0; margin:0;
+  cursor:pointer; text-align:left; font-family:inherit; min-height:44px; flex:1; min-width:0;
 }
 .page-timeline .entry-avatar{
-  width:28px; height:28px; flex:0 0 28px; border-radius:50%; flex-shrink:0; overflow:hidden; position:relative;
+  width:26px; height:26px; border-radius:50%; flex-shrink:0; overflow:hidden; position:relative;
   display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; color:#FFF;
   background:linear-gradient(135deg,#64705E,#8A9882);
 }
 .page-timeline .entry-avatar .av-letter{ position:relative; z-index:0; }
 .page-timeline .entry-avatar img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
 .page-timeline .entry-avatar img.is-broken{ display:none; }
-.page-timeline .entry-name{
-  font-size:14px; line-height:1.2; font-weight:500; color:#62625C;
-  font-family:-apple-system,'PingFang SC',sans-serif;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
+.page-timeline .entry-name{ font-size:13px; font-weight:500; color:var(--tl-text-soft); font-family:-apple-system,'PingFang SC',sans-serif; }
+.page-timeline .entry-dot{ color:#9E9B92; font-size:12px; margin:0 1px; }
+.page-timeline .entry-time{ font-size:12px; color:#9E9B92; font-family:-apple-system,'PingFang SC',sans-serif; }
+
+/* ··· 极轻（作者行最右） */
 .page-timeline .entry-menu{
-  width:40px; height:40px; display:flex; align-items:center; justify-content:flex-end;
-  border:0; background:none; padding:0; color:#AAA79E; opacity:0.8; font-size:17px;
-  letter-spacing:1px; cursor:pointer; font-weight:700; flex-shrink:0;
+  width:44px; height:44px; display:flex; align-items:center; justify-content:center;
+  background:none; border:none; color:#AAA79E; font-size:17px; letter-spacing:1px;
+  cursor:pointer; font-weight:700; flex-shrink:0;
 }
-.page-timeline .entry-menu:active{ color:var(--tl-muted); }
-
-/* 正文 */
-.page-timeline .entry-content{
-  margin-top:10px; font-size:16px; line-height:1.7; font-weight:400; color:#292923;
-  white-space:pre-wrap; word-break:break-word;
-  font-family:'Noto Serif SC','Songti SC',serif;
-}
-
-/* 图片 */
-.page-timeline .entry-images{ margin-top:12px; display:grid; gap:6px; border-radius:11px; overflow:hidden; }
-.page-timeline .entry-images.no-content{ margin-top:12px; }
-.page-timeline .entry-images.c1{ grid-template-columns:1fr; }
-.page-timeline .entry-images.c2,
-.page-timeline .entry-images.c4{ grid-template-columns:1fr 1fr; }
-.page-timeline .entry-images.c3,
-.page-timeline .entry-images.c5,
-.page-timeline .entry-images.c6,
-.page-timeline .entry-images.c7,
-.page-timeline .entry-images.c8,
-.page-timeline .entry-images.c9{ grid-template-columns:repeat(3,1fr); }
-/* 单图：固定预览区 + 完整 contain 不裁内容 */
-.page-timeline .entry-images.c1{
-  height:240px; display:flex; align-items:center; justify-content:center;
-  background:#F5F3ED;
-}
-.page-timeline .entry-images.c1 .entry-img{
-  width:100%; height:100%; object-fit:contain; object-position:center; display:block;
-  cursor:pointer; opacity:0; transition:opacity 0.25s;
-}
-.page-timeline .entry-images.c1 .entry-img.loaded{ opacity:1; }
-/* 多图：方形 cover */
-.page-timeline .entry-images:not(.c1) .entry-img{
-  width:100%; aspect-ratio:1; object-fit:cover; display:block; cursor:pointer;
-  opacity:0; transition:opacity 0.25s; background:#EDE9DF;
-}
-.page-timeline .entry-images:not(.c1) .entry-img.loaded{ opacity:1; }
-
-/* 动态底部：左标签心情，右日期时间 */
-.page-timeline .entry-footer{
-  width:100%; margin-top:10px; display:flex; align-items:baseline;
-  justify-content:space-between; gap:14px; min-width:0; flex-wrap:wrap;
-}
-.page-timeline .entry-meta{
-  display:flex; align-items:center; flex-wrap:wrap; gap:8px; min-width:0;
-}
-.page-timeline .entry-tags{ display:flex; flex-wrap:wrap; gap:6px; }
-.page-timeline .entry-tag{ font-size:13px; color:#65705F; font-family:-apple-system,'PingFang SC',sans-serif; }
-.page-timeline .entry-mood{ font-size:16px; line-height:1; }
-.page-timeline .entry-mood .mood-label{ font-size:13px; color:#8E8B82; margin-left:4px; font-family:-apple-system,'PingFang SC',sans-serif; }
-.page-timeline .entry-datetime{
-  flex:0 0 auto; margin-left:auto; white-space:nowrap; font-size:12px; line-height:1.2;
-  font-weight:400; color:#A09D94; text-align:right;
-  font-family:-apple-system,'PingFang SC',sans-serif;
-}
-
-/* 作者行（左：头像+名字，右：时间·周几 + ···） */
 .page-timeline .entry-menu:active{ color:var(--tl-muted); }
 
 /* 正文 */
 .page-timeline .entry-content{
   font-size:16px; line-height:1.7; color:#292923; white-space:pre-wrap;
-  word-break:break-word; margin-top:10px;
+  word-break:break-word; margin-top:8px;
   font-family:'Noto Serif SC','Songti SC',serif; letter-spacing:0; font-weight:400;
 }
 
 /* 图片 */
-.page-timeline .entry-images{ margin-top:10px; display:grid; gap:6px; border-radius:11px; overflow:hidden; }
+.page-timeline .entry-images{ margin-top:12px; display:grid; gap:6px; border-radius:12px; overflow:hidden; }
 .page-timeline .entry-images.no-content{ margin-top:10px; }
 .page-timeline .entry-images.c1{ grid-template-columns:1fr; }
 .page-timeline .entry-images.c2,
@@ -195,31 +150,22 @@ body.page-timeline.page-timeline-locked{ overflow:hidden; }
 .page-timeline .entry-images.c7,
 .page-timeline .entry-images.c8,
 .page-timeline .entry-images.c9{ grid-template-columns:repeat(3,1fr); }
-/* 单图：固定预览区 + 完整 contain 不裁内容 */
-.page-timeline .entry-images.c1{
-  height:240px; display:flex; align-items:center; justify-content:center;
-  background:#F3F1EB;
+.page-timeline .entry-img{
+  width:100%; display:block; object-fit:cover; cursor:pointer; opacity:0; transition:opacity 0.25s;
+  background:#EDE9DF;
 }
-.page-timeline .entry-images.c1 .entry-img{
-  width:100%; height:100%; object-fit:contain; object-position:center; display:block;
-  cursor:pointer; opacity:0; transition:opacity 0.25s;
-}
-.page-timeline .entry-images.c1 .entry-img.loaded{ opacity:1; }
-/* 多图：方形 cover */
-.page-timeline .entry-images:not(.c1) .entry-img{
-  width:100%; aspect-ratio:1; object-fit:cover; display:block; cursor:pointer;
-  opacity:0; transition:opacity 0.25s; background:#EDE9DF;
-}
-.page-timeline .entry-images:not(.c1) .entry-img.loaded{ opacity:1; }
+.page-timeline .entry-img.loaded{ opacity:1; }
+.page-timeline .entry-images:not(.c1) .entry-img{ aspect-ratio:1; height:auto; }
+.page-timeline .entry-images.c1 .entry-img{ height:225px; max-height:52dvh; }
 
 /* 标签 / 心情 */
 .page-timeline .entry-meta{
   display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin-top:10px;
 }
 .page-timeline .entry-tags{ display:flex; flex-wrap:wrap; gap:6px; }
-.page-timeline .entry-tag{ font-size:13px; color:#65705F; font-family:-apple-system,'PingFang SC',sans-serif; }
-.page-timeline .entry-mood{ font-size:16px; line-height:1; margin-left:8px; }
-.page-timeline .entry-mood .mood-label{ font-size:13px; color:#8E8B82; margin-left:4px; font-family:-apple-system,'PingFang SC',sans-serif; }
+.page-timeline .entry-tag{ font-size:13px; color:#5F6C59; font-family:-apple-system,'PingFang SC',sans-serif; }
+.page-timeline .entry-mood{ font-size:17px; line-height:1; margin-left:8px; }
+.page-timeline .entry-mood .mood-label{ font-size:13px; color:#8F8C84; margin-left:3px; font-family:-apple-system,'PingFang SC',sans-serif; }
 
 /* ═══ 空状态 ═══ */
 .page-timeline .timeline-empty{
@@ -721,29 +667,19 @@ function fmtTime(p){
   var d=new Date(p.createdAt||Date.now());
   return pad2(d.getHours())+':'+pad2(d.getMinutes());
 }
-function weekShort(dk){ return ['周日','周一','周二','周三','周四','周五','周六'][new Date(dk+'T00:00:00').getDay()]; }
-// 右下日期时间：今天 · 周六 11:18 / 昨天 · 周五 18:22 / 8月6日 · 周四 17:07 / 跨年 2025年8月6日 · 周三 17:07
-function datetimeLabel(p){
-  var dk=p.dateKey||'';
-  var wd=weekShort(dk);
-  var hm=fmtTime(p);
-  var head;
-  if(dk===todayISO())head='今天';
+function weekOf(dk){ var d=new Date(dk+'T00:00:00'); return '星期'+['日','一','二','三','四','五','六'][d.getDay()]; }
+// 日期标题：主日期（16px）+ 今天/昨天辅助小字（11px）
+function dayLabelHTML(dk){
+  var main=fmtDate(dk)+' · '+weekOf(dk);
+  var sub='';
+  if(dk===todayISO())sub='今天';
   else{
     var y=new Date(); y.setDate(y.getDate()-1);
     var yk=y.getFullYear()+'-'+pad2(y.getMonth()+1)+'-'+pad2(y.getDate());
-    if(dk===yk)head='昨天';
-    else{
-      var d=new Date(dk+'T00:00:00');
-      var thisYear=new Date().getFullYear();
-      if(!isNaN(d.getTime())&&d.getFullYear()!==thisYear){
-        head=d.getFullYear()+'年'+fmtDate(dk);
-      }else{
-        head=fmtDate(dk);
-      }
-    }
+    if(dk===yk)sub='昨天';
   }
-  return head+' · '+wd+' '+hm;
+  return '<span class="day-main">'+escapeHtml(main)+'</span>'
+    +(sub?'<span class="day-sub">'+escapeHtml(sub)+'</span>':'');
 }
 
 // ═══ 派生数据 ═══
@@ -792,8 +728,19 @@ function renderGroups(){
     return;
   }
   empty.classList.remove('show');
-  // 直接按 createdAt 从新到旧逐条输出，无日期分组
-  wrap.innerHTML=list.map(itemHTML).join('');
+  // 按日期分组
+  var groups=[],map={};
+  list.forEach(function(a){
+    var k=a.dateKey||'';
+    if(!map[k]){ map[k]={key:k,items:[]}; groups.push(map[k]); }
+    map[k].items.push(a);
+  });
+  wrap.innerHTML=groups.map(function(g){
+    return '<section class="timeline-day" data-day="'+escapeHtml(g.key)+'">'
+      +'<div class="timeline-day-title">'+dayLabelHTML(g.key)+'</div>'
+      +g.items.map(itemHTML).join('')
+      +'</section>';
+  }).join('');
   resolveGroupImages();
 }
 function emptyHTML(){
@@ -802,7 +749,8 @@ function emptyHTML(){
       +'<button class="empty-btn" id="empty-create">＋ 记下这一刻</button>';
   }
   if(timelineState.selectedDate){
-    return '<div class="empty-main">'+escapeHtml(fmtDate(timelineState.selectedDate))+'没有留下记录。</div>'
+    return '<div class="timeline-day-title" style="margin-top:22px">'+dayLabelHTML(timelineState.selectedDate)+'</div>'
+      +'<div class="empty-main">'+escapeHtml(fmtDate(timelineState.selectedDate))+'没有留下记录。</div>'
       +'<div class="empty-sub">那天也许只是静静过去了。</div><br>'
       +'<button class="empty-btn" id="empty-today">回今天</button>';
   }
@@ -810,11 +758,13 @@ function emptyHTML(){
 }
 function itemHTML(p){
   var h='<article class="timeline-entry" data-id="'+escapeHtml(p.id)+'">';
-  // 顶部：头像+名字 左，··· 右
-  h+='<div class="entry-header">';
+  // 头部：作者（可点入口）+ ···
+  h+='<div class="entry-head">';
   h+='<button class="entry-author" data-action="profile">';
   h+=avatarHTML('entry');
   h+='<span class="entry-name">'+escapeHtml(timelineState.profile.displayName)+'</span>';
+  h+='<span class="entry-dot">·</span>';
+  h+='<span class="entry-time">'+escapeHtml(fmtTime(p))+'</span>';
   h+='</button>';
   h+='<button class="entry-menu" data-action="menu" data-id="'+escapeHtml(p.id)+'" aria-label="更多">···</button>';
   h+='</div>';
@@ -832,21 +782,20 @@ function itemHTML(p){
     });
     h+='</div>';
   }
-  // 底部：左标签+心情，右日期时间
+  // 标签 / 心情
   var mood=p.mood||{};
-  h+='<div class="entry-footer">';
-  h+='<div class="entry-meta">';
-  if(p.tags&&p.tags.length){
-    h+='<div class="entry-tags">';
-    p.tags.forEach(function(t){ h+='<span class="entry-tag">#'+escapeHtml(t)+'</span>'; });
+  if((p.tags&&p.tags.length)||(mood.emoji||mood.label)){
+    h+='<div class="entry-meta">';
+    if(p.tags&&p.tags.length){
+      h+='<div class="entry-tags">';
+      p.tags.forEach(function(t){ h+='<span class="entry-tag">#'+escapeHtml(t)+'</span>'; });
+      h+='</div>';
+    }
+    if(mood.emoji||mood.label){
+      h+='<span class="entry-mood">'+escapeHtml(mood.emoji||'')+(mood.label?'<em class="mood-label">'+escapeHtml(mood.label)+'</em>':'')+'</span>';
+    }
     h+='</div>';
   }
-  if(mood.emoji||mood.label){
-    h+='<span class="entry-mood">'+escapeHtml(mood.emoji||'')+(mood.label?'<em class="mood-label">'+escapeHtml(mood.label)+'</em>':'')+'</span>';
-  }
-  h+='</div>';
-  h+='<time class="entry-datetime">'+escapeHtml(datetimeLabel(p))+'</time>';
-  h+='</div>';
   h+='</article>';
   return h;
 }

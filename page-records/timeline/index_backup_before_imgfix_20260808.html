@@ -126,6 +126,35 @@ body.page-timeline.page-timeline-locked{ overflow:hidden; }
   font-family:'Noto Serif SC','Songti SC',serif;
 }
 
+/* 图片 */
+.page-timeline .entry-images{ margin-top:12px; display:grid; gap:6px; border-radius:11px; overflow:hidden; }
+.page-timeline .entry-images.no-content{ margin-top:12px; }
+.page-timeline .entry-images.c1{ grid-template-columns:1fr; }
+.page-timeline .entry-images.c2,
+.page-timeline .entry-images.c4{ grid-template-columns:1fr 1fr; }
+.page-timeline .entry-images.c3,
+.page-timeline .entry-images.c5,
+.page-timeline .entry-images.c6,
+.page-timeline .entry-images.c7,
+.page-timeline .entry-images.c8,
+.page-timeline .entry-images.c9{ grid-template-columns:repeat(3,1fr); }
+/* 单图：固定预览区 + 完整 contain 不裁内容 */
+.page-timeline .entry-images.c1{
+  height:240px; display:flex; align-items:center; justify-content:center;
+  background:#F5F3ED;
+}
+.page-timeline .entry-images.c1 .entry-img{
+  width:100%; height:100%; object-fit:contain; object-position:center; display:block;
+  cursor:pointer; opacity:0; transition:opacity 0.25s;
+}
+.page-timeline .entry-images.c1 .entry-img.loaded{ opacity:1; }
+/* 多图：方形 cover */
+.page-timeline .entry-images:not(.c1) .entry-img{
+  width:100%; aspect-ratio:1; object-fit:cover; display:block; cursor:pointer;
+  opacity:0; transition:opacity 0.25s; background:#EDE9DF;
+}
+.page-timeline .entry-images:not(.c1) .entry-img.loaded{ opacity:1; }
+
 /* 动态底部：左标签心情，右日期时间 */
 .page-timeline .entry-footer{
   width:100%; margin-top:10px; display:flex; align-items:baseline;
@@ -182,15 +211,6 @@ body.page-timeline.page-timeline-locked{ overflow:hidden; }
   opacity:0; transition:opacity 0.25s; background:#EDE9DF;
 }
 .page-timeline .entry-images:not(.c1) .entry-img.loaded{ opacity:1; }
-/* 图片加载失败占位 */
-.page-timeline .entry-img.img-fail{
-  opacity:1; position:relative; display:flex; align-items:center; justify-content:center;
-  color:#B5B2A8; font-size:12px; min-height:60px;
-}
-.page-timeline .entry-images.c1 .entry-img.img-fail{
-  background:#F3F1EB; height:100%;
-}
-.page-timeline .entry-img.img-fail::before{ content:'图片暂时没加载出来，点一下重试'; }
 
 /* 标签 / 心情 */
 .page-timeline .entry-meta{
@@ -320,14 +340,6 @@ body.page-timeline.page-timeline-locked{ overflow:hidden; }
   cursor:pointer; font-family:-apple-system,'PingFang SC',sans-serif; display:inline-flex; align-items:center;
 }
 .page-timeline .tag-chip.is-sel{ background:#6B7663; color:#FFF; }
-/* 标签/心情 chip 上的删除按钮 */
-.page-timeline .chip-del{
-  display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px;
-  border-radius:50%; background:#CFCBC1; color:#FFF; font-size:9px; line-height:1;
-  margin-left:6px; cursor:pointer; vertical-align:middle;
-}
-.page-timeline .tag-chip.is-sel .chip-del{ background:rgba(255,255,255,0.35); }
-.page-timeline .chip-del:active{ background:#A9A49A; }
 /* 心情 chip：更轻，选中浅绿 */
 .page-timeline .sheet-mood-chip{ background:transparent; color:var(--tl-text); }
 .page-timeline .sheet-mood-chip.is-sel{ background:#E6EBE2; color:#4D5949; }
@@ -541,7 +553,7 @@ var timelineState={
   profile:null,
   selectedDate:null,
   editingId:null,
-  draft:{ content:'', tags:[], mood:{emoji:'',label:''}, images:[] },
+  draft:{ content:'', tags:[], mood:{emoji:'😊',label:'开心'}, images:[] },
   avatarDraft:null,
   nameDraft:'',
   sheetHandler:null
@@ -673,8 +685,6 @@ function migrate(){
   timelineState.profile=p;
   if(!Array.isArray(db.customTags)){ db.customTags=[]; changed=true; }
   if(!Array.isArray(db.customMoods)){ db.customMoods=[]; changed=true; }
-  if(!Array.isArray(db.hiddenTags)){ db.hiddenTags=[]; changed=true; }
-  if(!Array.isArray(db.hiddenMoods)){ db.hiddenMoods=[]; changed=true; }
   (db.timelinePosts||[]).forEach(function(a){
     if(!a.id){ a.id='activity_'+Date.now()+'_'+Math.floor(Math.random()*9999); changed=true; }
     if(!a.userId){ a.userId=p.id; changed=true; }
@@ -743,17 +753,15 @@ function getFilteredActivities(){
   });
 }
 function getModalTags(){
-  var hidden=db.hiddenTags||[];
-  var tags=BASE_TAGS.filter(function(t){return hidden.indexOf(t)<0;});
+  var tags=BASE_TAGS.slice();
   (db.customTags||[]).forEach(function(t){ if(tags.indexOf(t)<0)tags.push(t); });
   getActivities().forEach(function(a){
-    (a.tags||[]).forEach(function(t){ if(tags.indexOf(t)<0&&hidden.indexOf(t)<0)tags.push(t); });
+    (a.tags||[]).forEach(function(t){ if(tags.indexOf(t)<0)tags.push(t); });
   });
   return tags;
 }
 function getModalMoods(){
-  var hidden=db.hiddenMoods||[];
-  var moods=MOODS.filter(function(m){return hidden.indexOf(m[0])<0;});
+  var moods=MOODS.slice();
   (db.customMoods||[]).forEach(function(m){
     var dup=moods.some(function(x){return x[0]===m[0];});
     if(!dup)moods.push([m.emoji,m.label]);
@@ -847,24 +855,7 @@ function resolveGroupImages(){
     var src=img.getAttribute('data-src');
     if(!src||img.getAttribute('src'))return;
     resolveImage(src,function(url){
-      if(url){
-        img.src=url;
-        img.classList.add('loaded');
-        img.onerror=function(){ img.classList.add('img-fail'); };
-      }else{
-        // IDB 读取失败：显示占位，点击重试
-        img.classList.add('img-fail');
-        img.setAttribute('data-fail','1');
-        img.addEventListener('click',function once(e){
-          e.preventDefault();e.stopPropagation();
-          var s=this.getAttribute('data-src');
-          this.classList.remove('img-fail');
-          resolveImage(s,function(u){
-            if(u){ this.src=u; this.classList.add('loaded'); }
-            else{ this.classList.add('img-fail'); }
-          }.bind(this));
-        },{once:true});
-      }
+      if(url){ img.src=url; img.classList.add('loaded'); }
     });
   });
 }
@@ -885,29 +876,18 @@ function closeSheet(){
   unlockScroll();
 }
 
-// ═══ 标签 Sheet（多选 + 完成 + 每个标签可删除）═══
+// ═══ 标签 Sheet（多选 + 确定）═══
 function openTagSheet(sel,cb){
   var sels=sel.slice();
   var html='<div class="sheet-row-head"><span>活动标签</span><button class="sheet-done" data-done="1">完成</button></div>'
     +'<div class="chip-grid">';
   getModalTags().forEach(function(t){
-    html+='<button class="tag-chip'+(sels.indexOf(t)>=0?' is-sel':'')+'" data-chip="'+escapeHtml(t)+'">'+escapeHtml(t)
-      +'<span class="chip-del" data-tag-del="'+escapeHtml(t)+'">✕</span></button>';
+    html+='<button class="tag-chip'+(sels.indexOf(t)>=0?' is-sel':'')+'" data-chip="'+escapeHtml(t)+'">'+escapeHtml(t)+'</button>';
   });
   html+='</div>'
     +'<button class="sheet-new-tag" data-newtag="1">＋ 新标签</button>'
     +'<div class="sheet-new-tag-row" id="sheet-new-row"><input type="text" class="sheet-new-input" id="sheet-new-input" placeholder="新标签的名字" maxlength="8"><button class="sheet-new-btn" id="sheet-new-add">添加</button></div>';
   openSheet('',html,function(e){
-    // 删除优先
-    var del=e.target.closest('[data-tag-del]');
-    if(del){
-      var dt=del.getAttribute('data-tag-del');
-      var di=sels.indexOf(dt);
-      if(di>=0)sels.splice(di,1);
-      deleteTagItem(dt);
-      openTagSheet(sels,cb);
-      return;
-    }
     var chip=e.target.closest('.tag-chip');
     if(chip){
       var t=chip.getAttribute('data-chip');
@@ -939,79 +919,21 @@ function openTagSheet(sel,cb){
     if(e.target.closest('[data-done]')){ closeSheet(); cb(sels); }
   });
 }
-// 删除标签：自定义直接移除，预设加入隐藏列表
-function deleteTagItem(t){
-  if((db.customTags||[]).indexOf(t)>=0){
-    db.customTags=(db.customTags||[]).filter(function(x){return x!==t;});
-  }else{
-    if(!db.hiddenTags)db.hiddenTags=[];
-    if(db.hiddenTags.indexOf(t)<0)db.hiddenTags.push(t);
-  }
-  saveDatabase();
-  toast('已删除标签');
-}
 
-// ═══ 心情 Sheet（单选即关 + 删除 + 新增）═══
+// ═══ 心情 Sheet（单选即关）═══
 function openMoodSheet(cur,cb){
   var html='<div class="chip-grid">';
   getModalMoods().forEach(function(m){
-    html+='<button class="tag-chip sheet-mood-chip'+(cur===m[0]?' is-sel':'')+'" data-mood="'+escapeHtml(m[0])+'" data-label="'+escapeHtml(m[1])+'">'+m[0]+' '+m[1]
-      +'<span class="chip-del" data-mood-del="'+escapeHtml(m[0])+'">✕</span></button>';
+    html+='<button class="tag-chip sheet-mood-chip'+(cur===m[0]?' is-sel':'')+'" data-mood="'+escapeHtml(m[0])+'" data-label="'+escapeHtml(m[1])+'">'+(cur===m[0]?'✓ ':'')+m[0]+' '+m[1]+'</button>';
   });
-  html+='</div>'
-    +'<button class="sheet-new-tag" data-newmood="1">＋ 新心情</button>'
-    +'<div class="sheet-new-tag-row" id="sheet-new-mood-row"><input type="text" class="sheet-new-input" id="sheet-new-mood-input" placeholder="心情，如：😍 惊喜" maxlength="10"><button class="sheet-new-btn" id="sheet-new-mood-add">添加</button></div>';
+  html+='</div>';
   openSheet('此刻心情',html,function(e){
-    // 新增
-    if(e.target.closest('[data-newmood]')){
-      $('sheet-new-mood-row').classList.add('show');
-      setTimeout(function(){ var i=$('sheet-new-mood-input'); if(i)i.focus(); },50);
-      return;
-    }
-    if(e.target.closest('#sheet-new-mood-add')){
-      var input=$('sheet-new-mood-input');
-      var v=(input?input.value:'').trim();
-      if(!v){ toast('写个心情吧'); return; }
-      var parts=v.split(/\s+/);
-      var emoji=parts[0]||'😶',label=parts[1]||parts[0];
-      if(!/[\uD800-\uDBFF]/.test(emoji)){ label=emoji; emoji='😶'; } // 首段非 emoji 时回退
-      if(!db.customMoods)db.customMoods=[];
-      var dup=db.customMoods.some(function(m){return m.emoji===emoji&&m.label===label;})
-        ||MOODS.some(function(m){return m[0]===emoji&&m[1]===label;});
-      if(dup){ toast('这个心情已经有了'); return; }
-      db.customMoods.push({emoji:emoji,label:label});
-      saveDatabase();
-      if(input)input.value='';
-      openMoodSheet(cur,cb); // 重绘包含新心情，保持原选中状态（新心情不自动选中）
-      return;
-    }
-    // 删除
-    var del=e.target.closest('[data-mood-del]');
-    if(del){
-      var dm=del.getAttribute('data-mood-del');
-      if(cur===dm)cur='';
-      deleteMoodItem(dm);
-      openMoodSheet(cur,cb);
-      return;
-    }
     var chip=e.target.closest('.tag-chip');
     if(!chip)return;
     var mood={emoji:chip.getAttribute('data-mood'),label:chip.getAttribute('data-label')};
     closeSheet();
     cb(mood);
   });
-}
-// 删除心情：自定义直接移除，预设加入隐藏列表
-function deleteMoodItem(emoji){
-  var isPreset=MOODS.some(function(m){return m[0]===emoji;});
-  if((db.customMoods||[]).some(function(m){return m.emoji===emoji;})){
-    db.customMoods=(db.customMoods||[]).filter(function(m){return m.emoji!==emoji;});
-  }else if(isPreset){
-    if(!db.hiddenMoods)db.hiddenMoods=[];
-    if(db.hiddenMoods.indexOf(emoji)<0)db.hiddenMoods.push(emoji);
-  }
-  saveDatabase();
-  toast('已删除心情');
 }
 
 // ═══ 头像与名字 Sheet ═══
@@ -1121,14 +1043,14 @@ function openPublishModal(editId){
     if(!a)return;
     d.content=a.content||'';
     d.tags=(a.tags||[]).slice();
-    d.mood=a.mood&&(a.mood.emoji||a.mood.label)?{emoji:a.mood.emoji||'',label:a.mood.label||''}:{emoji:'',label:''};
+    d.mood=a.mood&&(a.mood.emoji||a.mood.label)?{emoji:a.mood.emoji||'',label:a.mood.label||''}:{emoji:'😊',label:'开心'};
     d.images=(a.images||[]).slice();
     $('publish-title').textContent='编辑这条动态';
     $('pm-save').textContent='保存';
     $('publish-date-row').classList.add('show');
     $('publish-date').value=a.dateKey||todayISO();
   }else{
-    d.content='';d.tags=[];d.mood={emoji:'',label:''};d.images=[];
+    d.content='';d.tags=[];d.mood={emoji:'😊',label:'开心'};d.images=[];
     $('publish-title').textContent='记下这一刻';
     $('pm-save').textContent='记下';
     $('publish-date-row').classList.remove('show');
@@ -1193,7 +1115,7 @@ function renderPublishPhotos(){
     item.className='pm-photo-item';
     var im=document.createElement('img');
     im.alt='';
-    // dataURL 同步回调时 im 尚未挂载，先 append 再设 src，避免漏设置
+    resolveImage(src,function(url){ if(url&&im.parentNode)im.src=url; });
     var del=document.createElement('button');
     del.className='pm-photo-del';
     del.textContent='✕';
@@ -1201,7 +1123,6 @@ function renderPublishPhotos(){
     item.appendChild(im);
     item.appendChild(del);
     box.appendChild(item);
-    resolveImage(src,function(url){ if(url&&im.parentNode)im.src=url; });
   });
   // 末尾添加 "+" 虚线框
   if(timelineState.draft.images.length<9){
